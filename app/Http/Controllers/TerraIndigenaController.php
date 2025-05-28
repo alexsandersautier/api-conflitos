@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\TerraIndigena;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * 
@@ -58,6 +60,13 @@ class TerraIndigenaController extends Controller
      *     path="/api/terra-indigena",
      *     tags={"TerraIndigenas"},
      *     security={ {"sanctum": {} } },
+     *     @OA\Parameter(
+     *         name="page",
+     *         description="Página de terras indígenas",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
      *     summary="Listar todos os terra indigenas",
      *     @OA\Response(
      *         response=200,
@@ -71,8 +80,15 @@ class TerraIndigenaController extends Controller
      */
     public function index()
     {
-        $terraindigenas = TerraIndigena::with(['situacao_fundiaria', 'povo'])->get();
-        return response()->json($terraindigenas);
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $terraindigenas = TerraIndigena::with(['situacao_fundiaria', 'povo'])->paginate(10);
+        return response()->json($terraindigenas, Response::HTTP_OK);
     }
 
     /**
@@ -96,12 +112,19 @@ class TerraIndigenaController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
 
         $terraindigena = TerraIndigena::create($validatedData);
-        return response()->json($terraindigena, 201);
+        return response()->json($terraindigena, Response::HTTP_CREATED);
     }
 
     /**
@@ -124,6 +147,13 @@ class TerraIndigenaController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $terraindigena = TerraIndigena::with(['situacao_fundiaria', 'povo'])->findOrFail($id);
         return response()->json($terraindigena);
     }
@@ -156,6 +186,13 @@ class TerraIndigenaController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $terraindigena = TerraIndigena::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -186,8 +223,15 @@ class TerraIndigenaController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $terraindigena = TerraIndigena::findOrFail($id);
         $terraindigena->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

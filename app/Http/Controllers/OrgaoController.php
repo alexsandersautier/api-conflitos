@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Orgao;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  * 
@@ -43,6 +45,13 @@ class OrgaoController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $orgaos = Orgao::all();
         return response()->json($orgaos);
     }
@@ -68,12 +77,19 @@ class OrgaoController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
 
         $orgao = Orgao::create($validatedData);
-        return response()->json($orgao, 201);
+        return response()->json($orgao, Response::HTTP_CREATED);
     }
 
     /**
@@ -97,6 +113,13 @@ class OrgaoController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $orgao = Orgao::findOrFail($id);
         return response()->json($orgao);
     }
@@ -128,6 +151,13 @@ class OrgaoController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $orgao = Orgao::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -158,8 +188,15 @@ class OrgaoController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $orgao = Orgao::findOrFail($id);
         $orgao->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

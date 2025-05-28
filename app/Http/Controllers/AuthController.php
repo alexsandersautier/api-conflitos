@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Tag(
@@ -100,6 +101,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $request->user()->tokens()->delete();
         return response()->json(['message' => 'Logout realizado com sucesso'], Response::HTTP_OK);
     }
@@ -132,6 +140,13 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         return response()->json($request->user());
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Ator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  *  @OA\Schema(
@@ -71,6 +73,13 @@ class AtorController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'idTipoAtor' => 'required|integer|exists:tipo_ator,idTipoAtor',
             'idConflito' => 'required|integer|exists:conflito,idConflito',
@@ -78,7 +87,7 @@ class AtorController extends Controller
         ]);
 
         $ator = Ator::create($validatedData);
-        return response()->json($ator, 201);
+        return response()->json($ator, Response::HTTP_CREATED);
     }
 
     /**
@@ -102,6 +111,13 @@ class AtorController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $ator = Ator::findOrFail($id);
         return response()->json($ator);
     }
@@ -135,6 +151,13 @@ class AtorController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $ator = Ator::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -167,9 +190,16 @@ class AtorController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $ator = Ator::findOrFail($id);
         $ator->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
     
     /**
@@ -189,20 +219,31 @@ class AtorController extends Controller
      *         description="Lista de Atores"
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Termo de pesquisa não fornecido"
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro na consulta"
      *     )
      * )
      */
     public function getAllByConflito($idConflito){
         try {
+            if (!Auth::guard('sanctum')->check()) {
+                return response()->json([
+                    'message' => 'Não autorizado',
+                    'status'  => Response::HTTP_UNAUTHORIZED
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+            
             return Ator::with(['tipo_ator', 'conflito'])->where('idConflito', $idConflito)->get();
             
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Erro na pesquisa',
                 'details' => $e->getMessage()
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

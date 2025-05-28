@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Episodio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  * @OA\Schema(
@@ -44,6 +46,13 @@ class EpisodioController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $episodio = Episodio::all();
         return response()->json($episodio);
     }
@@ -69,12 +78,19 @@ class EpisodioController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
 
         $episodio = Episodio::create($validatedData);
-        return response()->json($episodio, 201);
+        return response()->json($episodio, Response::HTTP_CREATED);
     }
 
     /**
@@ -98,6 +114,13 @@ class EpisodioController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $episodio = Episodio::findOrFail($id);
         return response()->json($episodio);
     }
@@ -130,6 +153,13 @@ class EpisodioController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $episodio = Episodio::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -160,8 +190,15 @@ class EpisodioController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $episodio = Episodio::findOrFail($id);
         $episodio->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\TipoResponsavel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  * @OA\Schema(
@@ -42,6 +44,13 @@ class TipoResponsavelController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoResponsavel = TipoResponsavel::all();
         return response()->json($tipoResponsavel);
     }
@@ -67,6 +76,13 @@ class TipoResponsavelController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
@@ -96,6 +112,13 @@ class TipoResponsavelController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoResponsavel = TipoResponsavel::findOrFail($id);
         return response()->json($tipoResponsavel);
     }
@@ -127,6 +150,13 @@ class TipoResponsavelController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoResponsavel = TipoResponsavel::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -157,8 +187,15 @@ class TipoResponsavelController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoResponsavel = TipoResponsavel::findOrFail($id);
         $tipoResponsavel->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

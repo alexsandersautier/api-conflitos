@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TipoInqueritoPolicial;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Schema(
@@ -43,6 +44,13 @@ class TipoInqueritoPolicialController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoinqueritopolicial = TipoInqueritoPolicial::all();
         return response()->json($tipoinqueritopolicial, Response::HTTP_OK);
     }
@@ -68,6 +76,13 @@ class TipoInqueritoPolicialController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
@@ -97,6 +112,13 @@ class TipoInqueritoPolicialController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoinqueritopolicial = TipoInqueritoPolicial::findOrFail($id);
         return response()->json($tipoinqueritopolicial, Response::HTTP_OK);
     }
@@ -128,6 +150,13 @@ class TipoInqueritoPolicialController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoinqueritopolicial = TipoInqueritoPolicial::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -158,6 +187,13 @@ class TipoInqueritoPolicialController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoinqueritopolicial = TipoInqueritoPolicial::findOrFail($id);
         $tipoinqueritopolicial->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

@@ -48,11 +48,10 @@ class AssuntoController extends Controller
      * )
      */
     public function index(Request $request){
-        // Verificação explícita
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status' => Response::HTTP_UNAUTHORIZED
+                'status'  => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
@@ -93,7 +92,7 @@ class AssuntoController extends Controller
         ]);
 
         $assunto = Assunto::create($validatedData);
-        return response()->json($assunto, 201);
+        return response()->json($assunto, Response::HTTP_CREATED);
     }
 
     /**
@@ -117,6 +116,13 @@ class AssuntoController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $assunto = Assunto::findOrFail($id);
         return response()->json($assunto);
     }
@@ -149,6 +155,13 @@ class AssuntoController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $assunto = Assunto::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -179,8 +192,15 @@ class AssuntoController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $assunto = Assunto::findOrFail($id);
         $assunto->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

@@ -93,7 +93,7 @@ class UsuarioController extends Controller {
 
     /**
      * @OA\Post(
-     *     path="/api/usuarios",
+     *     path="/api/usuario",
      *     tags={"Usuarios"},
      *     security={ {"sanctum": {} } },
      *     summary="Cria um novo usuário",
@@ -122,20 +122,39 @@ class UsuarioController extends Controller {
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:usuario',
             'senha'    => 'required|string|min:4',
             'idOrgao'  => 'required|integer|exists:orgao,idOrgao',
             'idPerfil' => 'required|integer|exists:perfil,idPerfil'
-        ]);
+            ],
+            ['nome.required' => 'Nome é obrigatório',
+            'email.required' => 'E-mail é obrigatório',
+            'senha.required' => 'Senha é obrigatória',
+            'idOrgao.exists' => 'O Órgão selecionado não existe',
+            'idPerfil.exists' => 'O Perfil selecionado não existe',]);
+        
+        if (!$validatedData) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $validatedData->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
         
         // Criptografa a senha antes de armazenar
         $validatedData['senha'] = Hash::make($validatedData['senha']);
         
         $usuario = Usuario::create($validatedData);
         
-        return response()->json($usuario, 201);
+        return response()->json($usuario, Response::HTTP_CREATED);
     }
     
     /**
@@ -173,6 +192,13 @@ class UsuarioController extends Controller {
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $usuario = Usuario::findOrFail($id);
         
         $validator = Validator::make($request->all(), [
@@ -238,7 +264,7 @@ class UsuarioController extends Controller {
             if (!Auth::guard('sanctum')->check()) {
                 return response()->json([
                     'message' => 'Não autorizado',
-                    'status' => Response::HTTP_UNAUTHORIZED
+                    'status'  => Response::HTTP_UNAUTHORIZED
                 ], Response::HTTP_UNAUTHORIZED);
             }
             

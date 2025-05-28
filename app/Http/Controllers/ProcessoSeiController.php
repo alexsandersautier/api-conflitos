@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProcessoSei;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  *  @OA\Schema(
@@ -47,6 +48,13 @@ class ProcessoSeiController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $processos_sei = ProcessoSei::all();
         return response()->json($processos_sei);
     }
@@ -78,17 +86,24 @@ class ProcessoSeiController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'idTipoProcessoSei' => 'required|integer|exists:tipo_processo_sei,idTipoProcessoSei',
-            'idConflito' => 'required|integer|exists:conflito,idConflito',
-            'numero' => 'required|string|max:50',
-            'assunto' => 'required|string|max:50',
-            'especificacao' => 'required|string|max:50',
-            'interessado' => 'required|string|max:50'
+            'idConflito'        => 'required|integer|exists:conflito,idConflito',
+            'numero'            => 'required|string|max:50',
+            'assunto'           => 'string|max:50',
+            'especificacao'     => 'string|max:50',
+            'interessado'       => 'string|max:50'
         ]);
 
         $processosei = ProcessoSei::create($validatedData);
-        return response()->json($processosei, 201);
+        return response()->json($processosei, Response::HTTP_CREATED);
     }
 
     /**
@@ -111,6 +126,13 @@ class ProcessoSeiController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $processosei = ProcessoSei::findOrFail($id);
         return response()->json($processosei);
     }
@@ -147,15 +169,22 @@ class ProcessoSeiController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $processosei = ProcessoSei::findOrFail($id);
 
         $validatedData = $request->validate([
             'idTipoProcessoSei' => 'required|integer|exists:tipo_processo_sei,idTipoProcessoSei',
-            'idConflito' => 'required|integer|exists:conflito,idConflito',
-            'numero' => 'required|string|max:50',
-            'assunto' => 'required|string|max:50',
-            'especificacao' => 'required|string|max:50',
-            'interessado' => 'required|string|max:50'
+            'idConflito'        => 'required|integer|exists:conflito,idConflito',
+            'numero'            => 'required|string|max:50',
+            'assunto'           => 'string|max:50',
+            'especificacao'     => 'string|max:50',
+            'interessado'       => 'string|max:50'
         ]);
 
         $processosei->update($validatedData);
@@ -182,6 +211,13 @@ class ProcessoSeiController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $processosei = ProcessoSei::findOrFail($id);
         $processosei->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
@@ -211,11 +247,18 @@ class ProcessoSeiController extends Controller
      */
     public function getAllByConflito($idConflito){
         try {
+            if (!Auth::guard('sanctum')->check()) {
+                return response()->json([
+                    'message' => 'Não autorizado',
+                    'status' => Response::HTTP_UNAUTHORIZED
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+            
             return ProcessoSei::with(['tipo_processo_sei', 'conflito'])->where('idConflito', $idConflito)->get();
             
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Erro na pesquisa',
+                'error' => 'Erro na consulta',
                 'details' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

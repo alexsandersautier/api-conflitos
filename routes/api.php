@@ -55,6 +55,7 @@ Route::prefix('ator')->group(function () {
 
 Route::prefix('conflito')->group(function () {
     Route::get('/',        [ConflitoController::class, 'index']);
+    Route::get('/page',    [ConflitoController::class, 'getAllPage']);
     Route::post('/',       [ConflitoController::class, 'store']);
     Route::get('/{id}',    [ConflitoController::class, 'show']);
     Route::put('/{id}',    [ConflitoController::class, 'update']);

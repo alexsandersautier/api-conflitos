@@ -12,6 +12,8 @@ use App\Models\ProcessoSei;
 use App\Models\ImpactoAmbiental;
 use App\Models\ImpactoSaude;
 use App\Models\ImpactoSocioEconomico;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  *  @OA\Schema(
@@ -77,8 +79,58 @@ class ConflitoController extends Controller
      */
     public function index()
     {
-        //$conflitos = Conflito::all();
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflitos = Conflito::with(['terra_indigena.situacao_fundiaria', 'povo'])->get();
+        return response()->json($conflitos);
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/page",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     @OA\Parameter(
+     *         name="page",
+     *         description="Página de conflitos",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         description="Registros por Página",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     summary="Listar os conflitos por página",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos",
+     *         @OA\JsonContent(
+     *              type="array",
+     *              @OA\Items(ref="#/components/schemas/Conflito")
+     *          )
+     *     )
+     * )
+     */
+    public function getAllPage(Request $request)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $per_page = $request->per_page ?? 10;
+        $conflitos = Conflito::with(['terra_indigena.situacao_fundiaria', 'povo'])->paginate($per_page);
         return response()->json($conflitos);
     }
 
@@ -111,11 +163,26 @@ class ConflitoController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Conflito criado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro na validação"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
      *     )
      * )
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validator = Validator::make($request->all(), [
             'idTerraIndigena'            => 'required|integer|exists:terra_indigena,idTerraIndigena',
             'idPovo'                     => 'required|integer|exists:povo,idPovo',
@@ -138,7 +205,7 @@ class ConflitoController extends Controller
             return response()->json([
                 'message' => 'Erro de validação',
                 'errors' => $validator->errors()
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         $validatedData = $validator->validated();
@@ -160,7 +227,7 @@ class ConflitoController extends Controller
         
         $conflito = Conflito::create($validatedData);
         
-        return response()->json($conflito, 201);
+        return response()->json($conflito, Response::HTTP_CREATED);
     }
 
     /**
@@ -184,6 +251,13 @@ class ConflitoController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::with(['povo', 'terra_indigena.situacao_fundiaria'])->findOrFail($id);
         return response()->json($conflito);
     }
@@ -210,11 +284,26 @@ class ConflitoController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Conflito atualizado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro na validação"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
      *     )
      * )
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
@@ -239,7 +328,7 @@ class ConflitoController extends Controller
             return response()->json([
                 'message' => 'Erro de validação',
                 'errors' => $validator->errors()
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         $validatedData = $validator->validated();
@@ -283,9 +372,16 @@ class ConflitoController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($id);
         $conflito->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_CREATED);
     }
 
     /**
@@ -312,6 +408,13 @@ class ConflitoController extends Controller
      */
     public function getAssuntos($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($id);
         $assuntos = $conflito->assuntos()->get();
 
@@ -345,12 +448,25 @@ class ConflitoController extends Controller
      *         description="Assunto associado com sucesso",
      *         @OA\JsonContent(ref="#/components/schemas/Conflito")
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Assunto não encontrado"),
-     *     @OA\Response(response=422, description="Validação falhou")
+     *     @OA\Response(
+     *          response=404, 
+     *          description="Conflito ou Assunto não encontrado"
+     *     ),
+     *     @OA\Response(
+     *          response=422, 
+     *          description="Validação falhou"
+     *     )
      * )
      */
     public function attachAssunto(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $request->validate([
             'idAssunto' => 'required|integer|exists:assunto,idAssunto'
         ]);
@@ -361,14 +477,14 @@ class ConflitoController extends Controller
         if(!$conflito->exists()){
             return response()->json([
                 'message' => 'Conflito não encontrado'
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
         
         // Verifica se a relação já existe
         if ($conflito->assuntos()->where('assunto_conflito.idAssunto', $idAssunto)->exists()) {
             return response()->json([
                 'message' => 'Este assunto já está associado ao conflito'
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         // Cria a relação
@@ -413,12 +529,19 @@ class ConflitoController extends Controller
      */
     public function detachAssunto($idConflito, $idAssunto)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($idConflito);
         
         if(!$conflito->exists()){
             return response()->json([
                 'message' => 'Conflito não encontrado'
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
         
         // Verifica se o assunto existe
@@ -430,7 +553,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Assunto removido com sucesso',
             'data' => $conflito->load('assuntos')
-        ], 200);
+        ]);
     }
     
     /**
@@ -457,6 +580,13 @@ class ConflitoController extends Controller
      */
     public function getImpactosAmbientais($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($id);
         $impactosAmbientais = $conflito->impactosAmbientais()->get();
         
@@ -496,6 +626,13 @@ class ConflitoController extends Controller
      */
     public function attachImpactoAmbiental(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $request->validate([
             'idImpactoAmbiental' => 'required|integer|exists:impacto_ambiental,idImpactoAmbiental'
         ]);
@@ -506,14 +643,14 @@ class ConflitoController extends Controller
         if(!$conflito->exists()){
             return response()->json([
                 'message' => 'Conflito não encontrado'
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
         
         // Verifica se a relação já existe
         if ($conflito->impactosAmbientais()->where('impacto_ambiental.idImpactoAmbiental', $idImpactoAmbiental)->exists()) {
             return response()->json([
                 'message' => 'Este Impacto Ambiental já está associado ao conflito'
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         // Cria a relação
@@ -523,7 +660,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Impacto Ambiental adicionado com sucesso',
             'data' => $conflito->load('impactosAmbientais')
-        ], 200);
+        ]);
     }
     
     /**
@@ -552,11 +689,21 @@ class ConflitoController extends Controller
      *         response=200,
      *         description="Impacto Ambiental desassociado com sucesso",
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Impacto Ambiental não encontrado")
+     *     @OA\Response(
+     *         response=401, 
+     *         description="Não autorizado"
+     *     )
      * )
      */
     public function detachImpactoAmbiental($idConflito, $idImpactoAmbiental)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($idConflito);
         
         // Verifica se o assunto existe
@@ -568,7 +715,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Impacto Ambiental removido com sucesso',
             'data' => $conflito->load('impactosambientais')
-        ], 200);
+        ]);
     }
     
     
@@ -591,11 +738,22 @@ class ConflitoController extends Controller
      *              type="array",
      *              @OA\Items(ref="#/components/schemas/ImpactoSaude")
      *          )
+     *     ),
+     *     @OA\Response(
+     *         response=401, 
+     *         description="Não autorizado"
      *     )
      * )
      */
     public function getImpactosSaude($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($id);
         $impactosSaude = $conflito->impactosSaude()->get();
         
@@ -632,12 +790,23 @@ class ConflitoController extends Controller
      *              @OA\Items(ref="#/components/schemas/ImpactoSaude")
      *          )
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Impacto Saude não encontrado"),
-     *     @OA\Response(response=422, description="Validação falhou")
+     *     @OA\Response(
+     *                  response=404, 
+     *                  description="Conflito ou Impacto Saude não encontrado"),
+     *     @OA\Response(
+     *                  response=422, 
+     *                  description="Validação falhou")
      * )
      */
     public function attachImpactoSaude(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $request->validate([
             'idImpactoSaude' => 'required|integer|exists:impacto_saude,idImpactoSaude'
         ]);
@@ -648,14 +817,14 @@ class ConflitoController extends Controller
         if(!$conflito->exists()){
             return response()->json([
                 'message' => 'Conflito não encontrado'
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
         
         // Verifica se a relação já existe
         if ($conflito->impactosSaude()->where('impacto_saude.idImpactoSaude', $idImpactoSaude)->exists()) {
             return response()->json([
                 'message' => 'Este Impacto Saude já está associado ao conflito'
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         // Cria a relação
@@ -665,7 +834,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Impacto na Saúde adicionado com sucesso',
             'data' => $conflito->load('impactosSaude')
-        ], 200);
+        ]);
     }
     
     /**
@@ -694,11 +863,21 @@ class ConflitoController extends Controller
      *         response=200,
      *         description="Impacto Saude desassociado com sucesso",
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Impacto Saude não encontrado")
+     *     @OA\Response(
+     *          response=401, 
+     *          description="Não autorizado"
+     *     )
      * )
      */
     public function detachImpactoSaude($idConflito, $idImpactoSaude)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($idConflito);
         
         // Verifica se o assunto existe
@@ -708,9 +887,9 @@ class ConflitoController extends Controller
         $conflito->impactosSaude()->detach($idImpactoSaude);
         
         return response()->json([
-            'message' => 'Impacto Saude removido com sucesso',
+            'message' => 'Impacto Saúde removido com sucesso',
             'data' => $conflito->load('impactosSaude')
-        ], 200);
+        ]);
     }
     
     /**
@@ -732,11 +911,22 @@ class ConflitoController extends Controller
      *              type="array",
      *              @OA\Items(ref="#/components/schemas/ImpactoSocioEconomico")
      *          )
+     *     ),
+     *     @OA\Response(
+     *          response=401, 
+     *          description="Não autorizado"
      *     )
      * )
      */
     public function getImpactosSocioEconomicos($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($id);
         $impactosSocioEconomicos = $conflito->impactosSocioEconomicos()->get();
         
@@ -770,12 +960,29 @@ class ConflitoController extends Controller
      *         description="Impacto Socio Economico associado com sucesso",
      *         @OA\JsonContent(ref="#/components/schemas/Conflito")
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Impacto Socio Economico não encontrado"),
-     *     @OA\Response(response=422, description="Validação falhou")
+     *     @OA\Response(
+     *          response=401, 
+     *          description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *          response=404, 
+     *          description="Conflito ou Impacto Socio Economico não encontrado"
+     *     ),
+     *     @OA\Response(
+     *          response=422, 
+     *          description="Validação falhou"
+     *     )
      * )
      */
     public function attachImpactoSocioEconomico(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $request->validate([
             'idImpactoSocioEconomico' => 'required|integer|exists:impacto_socio_economico,idImpactoSocioEconomico'
         ]);
@@ -786,14 +993,14 @@ class ConflitoController extends Controller
         if(!$conflito->exists()){
             return response()->json([
                 'message' => 'Conflito não encontrado'
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
         
         // Verifica se a relação já existe
         if ($conflito->impactosSocioEconomicos()->where('impacto_socio_economico.idImpactoSocioEconomico', $idImpactoSocioEconomico)->exists()) {
             return response()->json([
                 'message' => 'Este Impacto Socio Economico já está associado ao conflito'
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         // Cria a relação
@@ -803,7 +1010,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Impacto na Socio Economico adicionado com sucesso',
             'data' => $conflito->load('impactosSocioEconomicos')
-        ], 200);
+        ]);
     }
     
     /**
@@ -832,11 +1039,21 @@ class ConflitoController extends Controller
      *         response=200,
      *         description="Impacto Socio Economico desassociado com sucesso",
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Impacto Socio Economico não encontrado")
+     *     @OA\Response(
+     *         response=401, 
+     *         description="Não autorizado"
+     *     )
      * )
      */
     public function detachImpactoSocioEconomico($idConflito, $idSocioEconomico)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($idConflito);
         
         // Verifica se o assunto existe
@@ -848,7 +1065,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Impacto Socio Economico removido com sucesso',
             'data' => $conflito->load('impactosSocioEconomicos')
-        ], 200);
+        ]);
     }
     
     
@@ -871,11 +1088,22 @@ class ConflitoController extends Controller
      *              type="array",
      *              @OA\Items(ref="#/components/schemas/TipoConflito")
      *          )
+     *     ),
+     *     @OA\Response(
+     *         response=401, 
+     *         description="Não autorizado"
      *     )
      * )
      */
     public function getTiposConflito($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($id);
         $tiposConflito = $conflito->tiposConflito()->get();
         
@@ -909,12 +1137,28 @@ class ConflitoController extends Controller
      *         description="Tipo de Conflito associado com sucesso",
      *         @OA\JsonContent(ref="#/components/schemas/Conflito")
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Tipo de Conflito não encontrado"),
-     *     @OA\Response(response=422, description="Validação falhou")
+     *     @OA\Response(
+     *         response=401, 
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *          response=404, 
+     *          description="Conflito ou Tipo de Conflito não encontrado"
+     *     ),
+     *     @OA\Response(
+     *          response=422, 
+     *          description="Validação falhou")
      * )
      */
     public function attachTipoConflito(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $request->validate([
             'idTipoConflito' => 'required|integer|exists:tipo_conflito,idTipoConflito'
         ]);
@@ -925,14 +1169,14 @@ class ConflitoController extends Controller
         if(!$conflito->exists()){
             return response()->json([
                 'message' => 'Conflito não encontrado'
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
         
         // Verifica se a relação já existe
         if ($conflito->tiposConflito()->where('tipo_conflito.idTipoConflito', $idTipoConflito)->exists()) {
             return response()->json([
                 'message' => 'Este Tipo de Conflito já está associado ao conflito'
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         // Cria a relação
@@ -942,7 +1186,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Tipo de Conflito adicionado com sucesso',
             'data' => $conflito->load('tiposConflito')
-        ], 200);
+        ]);
     }
     
     /**
@@ -971,11 +1215,21 @@ class ConflitoController extends Controller
      *         response=200,
      *         description="Tipo de Conflito desassociado com sucesso",
      *     ),
-     *     @OA\Response(response=404, description="Conflito ou Tipo de Conflito não encontrado")
+     *     @OA\Response(
+     *         response=401, 
+     *         description="Não autorizado"
+     *     )
      * )
      */
     public function detachTipoConflito($idConflito, $idTipoConflito)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $conflito = Conflito::findOrFail($idConflito);
         
         // Verifica se o assunto existe
@@ -987,7 +1241,7 @@ class ConflitoController extends Controller
         return response()->json([
             'message' => 'Tipo de Conflito removido com sucesso',
             'data' => $conflito->load('tiposconflito')
-        ], 200);
+        ]);
     }
     
 }

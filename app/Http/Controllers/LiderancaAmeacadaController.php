@@ -74,7 +74,7 @@ class LiderancaAmeacadaController extends Controller
         $validatedData = $request->validate([
             'idConflito'         => 'required|integer|exists:conflito,idConflito',
             'nome'               => 'required|string|max:100',
-            'distancia_conflito' => 'nullabel|numeric|decimal:0,2'
+            'distancia_conflito' => 'numeric|decimal:0,2'
         ]);
 
         $liderancaAmeacada = LiderancaAmeacada::create($validatedData);

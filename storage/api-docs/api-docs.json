@@ -490,6 +490,9 @@
                 "responses": {
                     "201": {
                         "description": "Inquerito Policial criado"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -1017,6 +1020,17 @@
                 ],
                 "summary": "Listar todos os terra indigenas",
                 "operationId": "85dd7ea9f02e825f9e09b82da5a3765b",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Página de terras indígenas",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Lista de Terras indigenas",
@@ -1434,6 +1448,73 @@
                         "sanctum": []
                     }
                 ]
+            },
+            "post": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Cria um novo usuário",
+                "operationId": "createUsuario",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nome",
+                                    "email",
+                                    "senha",
+                                    "idOrgao"
+                                ],
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "João Silva"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao@example.com"
+                                    },
+                                    "senha": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "senha123"
+                                    },
+                                    "idOrgao": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "idPerfil": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuário criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Usuario"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validação falhou"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/assunto/{id}": {
@@ -1692,8 +1773,11 @@
                     "200": {
                         "description": "Lista de Atores"
                     },
-                    "400": {
-                        "description": "Termo de pesquisa não fornecido"
+                    "401": {
+                        "description": "Não autorizado"
+                    },
+                    "500": {
+                        "description": "Erro na consulta"
                     }
                 },
                 "security": [
@@ -2027,6 +2111,61 @@
                 "responses": {
                     "201": {
                         "description": "Conflito criado"
+                    },
+                    "422": {
+                        "description": "Erro na validação"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/page": {
+            "get": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Listar os conflitos por página",
+                "operationId": "697776ab99faac73f43982f3187d5fba",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Página de conflitos",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por Página",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de conflitos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Conflito"
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -2109,6 +2248,12 @@
                 "responses": {
                     "200": {
                         "description": "Conflito atualizado"
+                    },
+                    "422": {
+                        "description": "Erro na validação"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -2424,8 +2569,8 @@
                     "200": {
                         "description": "Impacto Ambiental desassociado com sucesso"
                     },
-                    "404": {
-                        "description": "Conflito ou Impacto Ambiental não encontrado"
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -2465,6 +2610,9 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -2572,8 +2720,8 @@
                     "200": {
                         "description": "Impacto Saude desassociado com sucesso"
                     },
-                    "404": {
-                        "description": "Conflito ou Impacto Saude não encontrado"
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -2613,6 +2761,9 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -2671,6 +2822,9 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Não autorizado"
+                    },
                     "404": {
                         "description": "Conflito ou Impacto Socio Economico não encontrado"
                     },
@@ -2717,8 +2871,8 @@
                     "200": {
                         "description": "Impacto Socio Economico desassociado com sucesso"
                     },
-                    "404": {
-                        "description": "Conflito ou Impacto Socio Economico não encontrado"
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -2758,6 +2912,9 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -2816,6 +2973,9 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Não autorizado"
+                    },
                     "404": {
                         "description": "Conflito ou Tipo de Conflito não encontrado"
                     },
@@ -2862,8 +3022,8 @@
                     "200": {
                         "description": "Tipo de Conflito desassociado com sucesso"
                     },
-                    "404": {
-                        "description": "Conflito ou Tipo de Conflito não encontrado"
+                    "401": {
+                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -3467,8 +3627,8 @@
                     "200": {
                         "description": "Lista de inqueritos policiais"
                     },
-                    "400": {
-                        "description": "Termo de pesquisa não fornecido"
+                    "500": {
+                        "description": "Erro na consulta"
                     }
                 },
                 "security": [
@@ -3882,8 +4042,8 @@
                     "200": {
                         "description": "Lista de Origens de Dados"
                     },
-                    "400": {
-                        "description": "Termo de pesquisa não fornecido"
+                    "500": {
+                        "description": "Erro no consulta"
                     }
                 },
                 "security": [
@@ -5131,75 +5291,6 @@
                     },
                     "422": {
                         "description": "Erro de validação"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/usuarios": {
-            "post": {
-                "tags": [
-                    "Usuarios"
-                ],
-                "summary": "Cria um novo usuário",
-                "operationId": "createUsuario",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "nome",
-                                    "email",
-                                    "senha",
-                                    "idOrgao"
-                                ],
-                                "properties": {
-                                    "nome": {
-                                        "type": "string",
-                                        "example": "João Silva"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "joao@example.com"
-                                    },
-                                    "senha": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "senha123"
-                                    },
-                                    "idOrgao": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "idPerfil": {
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Usuário criado com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Usuario"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validação falhou"
                     }
                 },
                 "security": [

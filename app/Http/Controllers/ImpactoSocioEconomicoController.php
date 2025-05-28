@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ImpactoSocioEconomico;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  *  @OA\Schema(
@@ -42,6 +44,13 @@ class ImpactoSocioEconomicoController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $impactosocioeconomico = ImpactoSocioEconomico::all();
         return response()->json($impactosocioeconomico);
     }
@@ -67,12 +76,19 @@ class ImpactoSocioEconomicoController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
 
         $impactosocioeconomico = ImpactoSocioEconomico::create($validatedData);
-        return response()->json($impactosocioeconomico, 201);
+        return response()->json($impactosocioeconomico, Response::HTTP_CREATED);
     }
 
     /**
@@ -96,6 +112,13 @@ class ImpactoSocioEconomicoController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $impactosocioeconomico = ImpactoSocioEconomico::findOrFail($id);
         return response()->json($impactosocioeconomico);
     }
@@ -127,6 +150,13 @@ class ImpactoSocioEconomicoController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $impactosocioeconomico = ImpactoSocioEconomico::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -157,8 +187,15 @@ class ImpactoSocioEconomicoController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $impactosocioeconomico = ImpactoSocioEconomico::findOrFail($id);
         $impactosocioeconomico->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

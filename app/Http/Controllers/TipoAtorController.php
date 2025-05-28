@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\TipoAtor;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Schema(
@@ -42,6 +44,13 @@ class TipoAtorController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoator = TipoAtor::all();
         return response()->json($tipoator);
     }
@@ -67,12 +76,19 @@ class TipoAtorController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
 
         $tipoator = TipoAtor::create($validatedData);
-        return response()->json($tipoator, 201);
+        return response()->json($tipoator, Response::HTTP_CREATED);
     }
 
     /**
@@ -96,6 +112,13 @@ class TipoAtorController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoator = TipoAtor::findOrFail($id);
         return response()->json($tipoator);
     }
@@ -127,6 +150,13 @@ class TipoAtorController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoator = TipoAtor::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -157,8 +187,15 @@ class TipoAtorController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $tipoator = TipoAtor::findOrFail($id);
         $tipoator->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

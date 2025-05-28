@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\InqueritoPolicial;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  * 
@@ -47,6 +49,13 @@ class InqueritoPolicialController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $inqueritoPolicials = InqueritoPolicial::with(['conflito', 'tipo_inquerito_policial'])->get();
         return response()->json($inqueritoPolicials);
     }
@@ -71,11 +80,22 @@ class InqueritoPolicialController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Inquerito Policial criado"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
      *     )
      * )
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'idConflito'              => 'required|integer|exists:conflito,idConflito',
             'idTipoInqueritoPolicial' => 'required|integer|exists:tipo_inquerito_policial,idTipoInqueritoPolicial',
@@ -85,7 +105,7 @@ class InqueritoPolicialController extends Controller
         ]);
 
         $inqueritoPolicial = InqueritoPolicial::create($validatedData);
-        return response()->json($inqueritoPolicial, 201);
+        return response()->json($inqueritoPolicial, Response::HTTP_CREATED);
     }
 
     /**
@@ -109,6 +129,13 @@ class InqueritoPolicialController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $inqueritoPolicial = InqueritoPolicial::with(['conflito', 'tipo_inquerito_policial'])->findOrFail($id);
         return response()->json($inqueritoPolicial);
     }
@@ -144,6 +171,13 @@ class InqueritoPolicialController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $inqueritoPolicial = InqueritoPolicial::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -178,9 +212,16 @@ class InqueritoPolicialController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $inqueritoPolicial = InqueritoPolicial::findOrFail($id);
         $inqueritoPolicial->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
     
     /**
@@ -200,20 +241,27 @@ class InqueritoPolicialController extends Controller
      *         description="Lista de inqueritos policiais"
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Termo de pesquisa não fornecido"
+     *         response=500,
+     *         description="Erro na consulta"
      *     )
      * )
      */
     public function getAllByConflito($idConflito){
         try {
+            if (!Auth::guard('sanctum')->check()) {
+                return response()->json([
+                    'message' => 'Não autorizado',
+                    'status'  => Response::HTTP_UNAUTHORIZED
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+            
             return InqueritoPolicial::with(['conflito', 'tipo_inquerito_policial'])->where('idConflito', $idConflito)->get();
             
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Erro na consulta',
                 'details' => $e->getMessage()
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

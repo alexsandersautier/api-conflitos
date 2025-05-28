@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\OrigemDado;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 /**
  * @OA\Schema(
@@ -45,6 +47,13 @@ class OrigemDadoController extends Controller
      */
     public function index()
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $origens_dados = OrigemDado::with(['conflito', 'tipo_responsavel'])->get();
         return response()->json($origens_dados);
     }
@@ -73,6 +82,13 @@ class OrigemDadoController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $validatedData = $request->validate([
             'idConflito'        => 'required|integer|exists:conflito,idConflito',
             'idTipoResponsavel' => 'required|integer|exists:tipo_responsavel,idTipoResponsavel',
@@ -105,6 +121,13 @@ class OrigemDadoController extends Controller
      */
     public function show($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $origemDado = OrigemDado::with(['conflito', 'tipo_responsavel'])->findOrFail($id);
         return response()->json($origemDado);
     }
@@ -139,6 +162,13 @@ class OrigemDadoController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $origemDado = OrigemDado::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -172,9 +202,16 @@ class OrigemDadoController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
         $origemDado = OrigemDado::findOrFail($id);
         $origemDado->delete();
-        return response()->json(null, 204);
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
     
     /**
@@ -194,20 +231,27 @@ class OrigemDadoController extends Controller
      *         description="Lista de Origens de Dados"
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Termo de pesquisa não fornecido"
+     *         response=500,
+     *         description="Erro no consulta"
      *     )
      * )
      */
     public function getAllByConflito($idConflito){
         try {
+            if (!Auth::guard('sanctum')->check()) {
+                return response()->json([
+                    'message' => 'Não autorizado',
+                    'status'  => Response::HTTP_UNAUTHORIZED
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+            
             return OrigemDado::with(['conflito', 'tipo_responsavel'])->where('idConflito', $idConflito)->get();
             
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Erro na consulta',
                 'details' => $e->getMessage()
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
