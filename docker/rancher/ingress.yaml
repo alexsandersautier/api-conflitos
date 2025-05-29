@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paineldeconflitos-app-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: letsencrypt-prod  # Opcional (HTTPS)
+spec:
+  rules:
+  - host: paineldeconflitos.povosindigenas.gov.br  # Seu domínio
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: paineldeconflitos-app-service  # Nome do service.yaml
+            port:
+              number: 80
+  tls:                          # Configuração de TLS (opcional)
+  - hosts:
+    - paineldeconflitos.povosindigenas.gov.br
+    secretName: paineldeconflitos-app-tls

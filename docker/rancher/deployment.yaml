@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paineldeconflitos-app
+  labels:
+    app: paineldeconflitos-app
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: paineldeconflitos-app
+  template:
+    metadata:
+      labels:
+        app: paineldeconflitos-app
+    spec:
+      containers:
+      - name: paineldeconflitos-app
+        image: seu-registry/paineldeconflitos-app:v1
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        envFrom:
+          - configMapRef:
+              name: paineldeconflitos-app-config  # Opcional (ConfigMap)
