@@ -62,6 +62,15 @@ Route::prefix('conflito')->group(function () {
     Route::patch('/{id}',  [ConflitoController::class, 'update']);
     Route::delete('/{id}', [ConflitoController::class, 'destroy']);
 
+    
+    Route::get('/{id}/terras-indigenas',                                    [ConflitoController::class, 'getTerrasIndigenas']);
+    Route::post('/{id}/terra-indigena',                                     [ConflitoController::class, 'attachTerraIndigena']);
+    Route::delete('/{idConflito}/terra-indigena/{idTerraIndigena}',         [ConflitoController::class, 'detachTerraIndigena']);
+    
+    Route::get('/{id}/povos',                                               [ConflitoController::class, 'getPovos']);
+    Route::post('/{id}/povo',                                               [ConflitoController::class, 'attachPovo']);
+    Route::delete('/{idConflito}/povo/{idPovo}',                            [ConflitoController::class, 'detachPovo']);
+    
     Route::get('/{id}/assuntos',                                            [ConflitoController::class, 'getAssuntos']);
     Route::post('/{id}/assunto',                                            [ConflitoController::class, 'attachAssunto']);
     Route::delete('/{idConflito}/assunto/{idAssunto}',                      [ConflitoController::class, 'detachAssunto']);

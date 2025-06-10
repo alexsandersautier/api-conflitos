@@ -14,6 +14,8 @@ use App\Models\ImpactoSaude;
 use App\Models\ImpactoSocioEconomico;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
+use App\Models\TerraIndigena;
+use App\Models\Povo;
 
 /**
  *  @OA\Schema(
@@ -36,17 +38,47 @@ use Illuminate\Http\Response;
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time"),
  *     @OA\Property(
+ *         property="terrasIndigenas",
+ *         type="array",
+ *         description="Terras Indigenas vinculadas",
+ *         @OA\Items(ref="#/components/schemas/TerraIndigena")
+ *     ),
+ *     @OA\Property(
+ *         property="povos",
+ *         type="array",
+ *         description="Povos vinculadas",
+ *         @OA\Items(ref="#/components/schemas/Povo")
+ *     ),
+ *     @OA\Property(
  *         property="assuntos",
  *         type="array",
  *         description="Assuntos vinculados",
  *         @OA\Items(ref="#/components/schemas/Assunto")
  *     ),
  *     @OA\Property(
- *         property="processosSei",
+ *         property="tiposConflito",
  *         type="array",
- *         description="Processos SEI vinculados",
- *         @OA\Items(ref="#/components/schemas/ProcessoSei")
+ *         description="Tipos de Conflito vinculados",
+ *         @OA\Items(ref="#/components/schemas/TipoConflito")
  *     ),
+ *     @OA\Property(
+ *         property="impactosAmbientais",
+ *         type="array",
+ *         description="Impactos Ambientais vinculados",
+ *         @OA\Items(ref="#/components/schemas/ImpactoAmbiental")
+ *     ),
+ *     @OA\Property(
+ *         property="impactosSaude",
+ *         type="array",
+ *         description="Impactos Saúde vinculados",
+ *         @OA\Items(ref="#/components/schemas/ImpactoSaude")
+ *     ),
+ *     @OA\Property(
+ *         property="impactosSocioEconomicos",
+ *         type="array",
+ *         description="Impactos Sócio Econômicos vinculados",
+ *         @OA\Items(ref="#/components/schemas/ImpactoSocioEconomico")
+ *     )
  * )
  * 
  * 
@@ -86,7 +118,7 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflitos = Conflito::with(['terra_indigena.situacao_fundiaria', 'povo'])->get();
+        $conflitos = Conflito::all();
         return response()->json($conflitos);
     }
     
@@ -130,7 +162,7 @@ class ConflitoController extends Controller
         }
         
         $per_page = $request->per_page ?? 10;
-        $conflitos = Conflito::with(['terra_indigena.situacao_fundiaria', 'povo'])->paginate($per_page);
+        $conflitos = Conflito::all()->paginate($per_page);
         return response()->json($conflitos);
     }
 
@@ -184,8 +216,6 @@ class ConflitoController extends Controller
         }
         
         $validator = Validator::make($request->all(), [
-            'idTerraIndigena'            => 'required|integer|exists:terra_indigena,idTerraIndigena',
-            'idPovo'                     => 'required|integer|exists:povo,idPovo',
             'nome'                       => 'required|string|max:255',
             'descricao'                  => 'required|string',
             'regiao'                     => 'required|string|max:100',
@@ -258,7 +288,7 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflito = Conflito::with(['povo', 'terra_indigena.situacao_fundiaria'])->findOrFail($id);
+        $conflito = Conflito->findOrFail($id);
         return response()->json($conflito);
     }
 
@@ -307,8 +337,6 @@ class ConflitoController extends Controller
         $conflito = Conflito::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'idTerraIndigena'            => 'required|integer|exists:terra_indigena,idTerraIndigena',
-            'idPovo'                     => 'required|integer|exists:povo,idPovo',
             'nome'                       => 'required|string|max:255',
             'descricao'                  => 'required|string',
             'regiao'                     => 'required|string|max:100',
@@ -384,6 +412,350 @@ class ConflitoController extends Controller
         return response()->json(null, Response::HTTP_CREATED);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/{id}/terras-indigenas",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Obter as Terras Indígenas de um conflito específico",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Terras Indígenas de um conflito",
+     *         @OA\JsonContent(
+     *              type="array",
+     *              @OA\Items(ref="#/components/schemas/TerraIndigena")
+     *          )
+     *     )
+     * )
+     */
+    public function getTerrasIndigenas($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $conflito = Conflito::findOrFail($id);
+        $terrasIndigenas = $conflito->terras_indigenas()->get();
+        
+        return response()->json($terrasIndigenas);
+    }
+    
+    /**
+     * Adiciona uma Terra Indígena a um conflito
+     *
+     * @OA\Post(
+     *     path="/api/conflito/{id}/terra-indigena",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Associa uma Terra Indígena a um conflito",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID do conflito",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"idTerraIndigena"},
+     *             @OA\Property(property="idTerraIndigena", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Terra Indigena associada com sucesso",
+     *         @OA\JsonContent(ref="#/components/schemas/Conflito")
+     *     ),
+     *     @OA\Response(
+     *          response=404,
+     *          description="Conflito ou Terra Indigena não encontrado"
+     *     ),
+     *     @OA\Response(
+     *          response=422,
+     *          description="Validação falhou"
+     *     )
+     * )
+     */
+    public function attachTerraIndigena(Request $request, $id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $request->validate([
+            'idTerraIndigena' => 'required|integer|exists:terra_indigena,idTerraIndigena'
+        ]);
+        
+        $conflito = Conflito::findOrFail($id);
+        $idTerraIndigena = $request->input('idTerraIndigena');
+        
+        if(!$conflito->exists()){
+            return response()->json([
+                'message' => 'Conflito não encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        // Verifica se a relação já existe
+        if ($conflito->terras_indigenas()->where('terra_indigena_conflito.idTerraIndigena', $idTerraIndigena)->exists()) {
+            return response()->json([
+                'message' => 'Este Povo já está associado ao conflito'
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        
+        // Cria a relação
+        $conflito->terras_indigenas()->attach($idTerraIndigena);
+        
+        // Retorna o conflito com os assuntos atualizados
+        return response()->json([
+            'message' => 'Terra indigena adicionada com sucesso',
+            'data' => $conflito->load('terras_indigenas')
+        ]);
+    }
+    
+    /**
+     * Remove uma Terra Indigena de um conflito
+     *
+     * @OA\Delete(
+     *     path="/api/conflito/{idConflito}/terra-indigena/{idTerraIndigena}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Remove a associação de uma Terra Indigena com um conflito",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="idConflito",
+     *         in="path",
+     *         description="ID do conflito",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="idTerraIndigena",
+     *         in="path",
+     *         description="ID da Terra Indigena",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Terra Indigena desassociada com sucesso",
+     *     ),
+     *     @OA\Response(response=404, description="Conflito ou Povo não encontrado")
+     * )
+     */
+    public function detachTerraIndigena($idConflito, $idTerraIndigena)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $conflito = Conflito::findOrFail($idConflito);
+        
+        if(!$conflito->exists()){
+            return response()->json([
+                'message' => 'Conflito não encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        // Verifica se o assunto existe
+        TerraIndigena::findOrFail($idTerraIndigena);
+        
+        // Remove a relação
+        $conflito->terras_indigenas()->detach($idTerraIndigena);
+        
+        return response()->json([
+            'message' => 'Terra Indigena removida com sucesso',
+            'data' => $conflito->load('terras_indigenas')
+        ]);
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/{id}/povos",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Obter os Povos de um conflito específico",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Povos de um conflito",
+     *         @OA\JsonContent(
+     *              type="array",
+     *              @OA\Items(ref="#/components/schemas/Povo")
+     *          )
+     *     )
+     * )
+     */
+    public function getPovos($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $conflito = Conflito::findOrFail($id);
+        $povos = $conflito->povos()->get();
+        
+        return response()->json($povos);
+    }
+    
+    /**
+     * Adiciona um Povo a um conflito
+     *
+     * @OA\Post(
+     *     path="/api/conflito/{id}/povo",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Associa um Povo a um conflito",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID do conflito",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"idPovo"},
+     *             @OA\Property(property="idPovo", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Povo associado com sucesso",
+     *         @OA\JsonContent(ref="#/components/schemas/Conflito")
+     *     ),
+     *     @OA\Response(
+     *          response=404,
+     *          description="Conflito ou Povo não encontrado"
+     *     ),
+     *     @OA\Response(
+     *          response=422,
+     *          description="Validação falhou"
+     *     )
+     * )
+     */
+    public function attachPovo(Request $request, $id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $request->validate([
+            'idPovo' => 'required|integer|exists:povo,idPovo'
+        ]);
+        
+        $conflito = Conflito::findOrFail($id);
+        $idPovo = $request->input('idPovo');
+        
+        if(!$conflito->exists()){
+            return response()->json([
+                'message' => 'Conflito não encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        // Verifica se a relação já existe
+        if ($conflito->povos()->where('povo_conflito.idPovo', $idPovo)->exists()) {
+            return response()->json([
+                'message' => 'Este Povo já está associado ao conflito'
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        
+        // Cria a relação
+        $conflito->povos()->attach($idPovo);
+        
+        // Retorna o conflito com os assuntos atualizados
+        return response()->json([
+            'message' => 'Povo adicionado com sucesso',
+            'data' => $conflito->load('povos')
+        ]);
+    }
+    
+    /**
+     * Remove um Povo de um conflito
+     *
+     * @OA\Delete(
+     *     path="/api/conflito/{idConflito}/povo/{idPovo}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Remove a associação de um Povo com um conflito",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="idConflito",
+     *         in="path",
+     *         description="ID do conflito",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="idPovo",
+     *         in="path",
+     *         description="ID do Povo",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Povo desassociado com sucesso",
+     *     ),
+     *     @OA\Response(response=404, description="Conflito ou Povo não encontrado")
+     * )
+     */
+    public function detachPovo($idConflito, $idPovo)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $conflito = Conflito::findOrFail($idConflito);
+        
+        if(!$conflito->exists()){
+            return response()->json([
+                'message' => 'Conflito não encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        // Verifica se o povo existe
+        Povo::findOrFail($idPovo);
+        
+        // Remove a relação
+        $conflito->povos()->detach($idPovo);
+        
+        return response()->json([
+            'message' => 'Povo removido com sucesso',
+            'data' => $conflito->load('povos')
+        ]);
+    }
+    
     /**
      * @OA\Get(
      *     path="/api/conflito/{id}/assuntos",

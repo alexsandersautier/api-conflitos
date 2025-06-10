@@ -13,8 +13,6 @@ return new class extends Migration
     {
         Schema::create('conflito', function (Blueprint $table) {
             $table->id('idConflito')->primary();
-            $table->foreignId('idTerraIndigena')->constrained('terra_indigena');
-            $table->foreignId('idPovo')->constrained('povo');
             $table->string('nome', 200);
             $table->longText('descricao')->nullable();
             $table->string('regiao', 200)->nullable();
@@ -32,6 +30,46 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('povo_conflito', function (Blueprint $table) {
+            // Chaves estrangeiras
+            $table->unsignedBigInteger('idConflito');
+            $table->unsignedBigInteger('idPovo');
+            
+            // Chave primária composta
+            $table->primary(['idConflito', 'idPovo']);
+            
+            // Constraints de chave estrangeira
+            $table->foreign('idConflito')
+            ->references('idConflito')
+            ->on('conflito')
+            ->onDelete('cascade');
+            
+            $table->foreign('idPovo')
+            ->references('idPovo')
+            ->on('povo')
+            ->onDelete('cascade');
+        });
+        
+        Schema::create('terra_indigena_conflito', function (Blueprint $table) {
+            // Chaves estrangeiras
+            $table->unsignedBigInteger('idConflito');
+            $table->unsignedBigInteger('idTerraIndigena');
+            
+            // Chave primária composta
+            $table->primary(['idConflito', 'idTerraIndigena']);
+            
+            // Constraints de chave estrangeira
+            $table->foreign('idConflito')
+            ->references('idConflito')
+            ->on('conflito')
+            ->onDelete('cascade');
+            
+            $table->foreign('idTerraIndigena')
+            ->references('idTerraIndigena')
+            ->on('terra_indigena')
+            ->onDelete('cascade');
+        });
+        
         Schema::create('assunto_conflito', function (Blueprint $table) {
             // Chaves estrangeiras
             $table->unsignedBigInteger('idConflito');

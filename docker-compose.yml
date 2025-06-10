@@ -1,0 +1,18 @@
+services:
+  webserver:
+    build: .
+    container_name: laravel-webserver
+    restart: on-failure:5  # Limita tentativas de reinício
+    ports:
+      - "8000:80"
+    volumes:
+      - ./codigo-fonte:/var/www/html
+      - ./docker/apache/vhost.conf:/etc/apache2/sites-available/000-default.conf
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html/public
+      - APACHE_LOG_DIR=/var/log/apache2
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

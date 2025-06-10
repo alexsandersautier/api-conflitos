@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('codEtnia', 50);
             $table->string('lingua', 200)->nullable();
             $table->string('familia_linguistica', 200)->nullable();
-            $table->string('ufs_povo', 200)->nullable();
+            $table->integer('populacao')->nullable();
+            $table->string('ufs_povo', 50)->nullable();
             $table->integer('qtd_ti_povo')->nullable();
             $table->timestamps();
         });

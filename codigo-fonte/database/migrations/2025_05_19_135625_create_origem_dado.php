@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('origem_dado', function (Blueprint $table) {
             $table->id('idOrigemDado')->primary();
+            $table->foreignId('idConflito')->constrained('conflito');
             $table->foreignId('idTipoResponsavel')->constrained('tipo_responsavel');
             $table->string('setor_cadastrante', 200);
             $table->longText('observacao')->nullable();

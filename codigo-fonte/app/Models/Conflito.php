@@ -12,29 +12,27 @@ class Conflito extends Model
     protected $table = 'conflito';
     protected $primaryKey = 'idConflito';
     
-    protected $fillable = ['idTerraIndigena',
-                            'idPovo',
-                            'nome',
-                            'descricao',
-                            'regiao',
-                            'dataInicioConflito',
-                            'dataFimConflito',
-                            'latitude',
-                            'longitude',
-                            'municipio',
-                            'uf',
-                            'flagOcorrenciaAmeaca',
-                            'flagOcorrenciaViolencia',
-                            'flagOcorrenciaAssassinato',
-                            'flagOcorrenciaFeridos',
-                            'flagMembroProgramaProtecao'];
+    protected $fillable = ['nome',
+                           'descricao',
+                           'regiao',
+                           'dataInicioConflito',
+                           'dataFimConflito',
+                           'latitude',
+                           'longitude',
+                           'municipio',
+                           'uf',
+                           'flagOcorrenciaAmeaca',
+                           'flagOcorrenciaViolencia',
+                           'flagOcorrenciaAssassinato',
+                           'flagOcorrenciaFeridos',
+                           'flagMembroProgramaProtecao'];
 
-    public function terra_indigena() {
-        return $this->belongsTo(TerraIndigena::class, 'idTerraIndigena');
+    public function terras_indigenas() {
+        return $this->belongsToMany(TerraIndigena::class, 'terra_indigena_conflito', 'idConflito', 'idTerraIndigena');
     }
 
-    public function povo() {
-        return $this->belongsTo(Povo::class, 'idPovo');
+    public function povos() {
+        return $this->belongsToMany(Povo::class, 'povo_conflito', 'idConflito', 'idPovo');
     }
 
     public function assuntos(){
@@ -55,17 +53,5 @@ class Conflito extends Model
 
     public function impactosSocioEconomicos(){
         return $this->belongsToMany(ImpactoSocioEconomico::class, 'impacto_socio_economico_conflito', 'idConflito', 'idImpactoSocioEconomico');
-    }
-    
-    public function processosSei(){
-        return $this->belongsToMany(ProcessoSei::class, 'processo_sei_conflito', 'idConflito', 'idProcessoSei');
-    }
-    
-    public function inqueritosPoliciais(){
-        return $this->belongsToMany(TipoInqueritoPolicial::class, 'inquerito_policial', 'idConflito', 'idTipoInqueritoPolicial');
-    }
-    
-    public function tiposAtores(){
-        return $this->belongsToMany(TipoInqueritoPolicial::class, 'tipo_ator_conflito', 'idConflito', 'idTipoAtor');
     }
 }

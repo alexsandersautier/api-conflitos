@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: paineldeconflitos-app-config  # Referenciado no deployment
-data:
-  REACT_APP_API_URL: "https://paineldeconflitos.povosindigenas.gov.br"
-  REACT_APP_ENV: "production"
-  REACT_APP_GA_ID: "UA-XXXXX"  # Exemplo: Google Analytics

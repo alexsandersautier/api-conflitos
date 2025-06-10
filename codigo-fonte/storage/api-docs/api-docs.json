@@ -2290,6 +2290,296 @@
                 ]
             }
         },
+        "/api/conflito/{id}/terras-indigenas": {
+            "get": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Obter as Terras Indígenas de um conflito específico",
+                "operationId": "948bba47066b518a638221f7fca937c9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Terras Indígenas de um conflito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TerraIndigena"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{id}/terra-indigena": {
+            "post": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Associa uma Terra Indígena a um conflito",
+                "description": "Adiciona uma Terra Indígena a um conflito",
+                "operationId": "5e08106aab4a0996d870c58a15a7b44e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "idTerraIndigena"
+                                ],
+                                "properties": {
+                                    "idTerraIndigena": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Terra Indigena associada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Conflito"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Conflito ou Terra Indigena não encontrado"
+                    },
+                    "422": {
+                        "description": "Validação falhou"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{idConflito}/terra-indigena/{idTerraIndigena}": {
+            "delete": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Remove a associação de uma Terra Indigena com um conflito",
+                "description": "Remove uma Terra Indigena de um conflito",
+                "operationId": "d175bc3809d9eeb2a520c1ff0f24e809",
+                "parameters": [
+                    {
+                        "name": "idConflito",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "idTerraIndigena",
+                        "in": "path",
+                        "description": "ID da Terra Indigena",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Terra Indigena desassociada com sucesso"
+                    },
+                    "404": {
+                        "description": "Conflito ou Povo não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{id}/povos": {
+            "get": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Obter os Povos de um conflito específico",
+                "operationId": "1a485dc3918b716f63645052a92dc81e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Povos de um conflito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Povo"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{id}/povo": {
+            "post": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Associa um Povo a um conflito",
+                "description": "Adiciona um Povo a um conflito",
+                "operationId": "10f874cf6d354b3260de4e7c02f1cb3f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "idPovo"
+                                ],
+                                "properties": {
+                                    "idPovo": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Povo associado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Conflito"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Conflito ou Povo não encontrado"
+                    },
+                    "422": {
+                        "description": "Validação falhou"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{idConflito}/povo/{idPovo}": {
+            "delete": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Remove a associação de um Povo com um conflito",
+                "description": "Remove um Povo de um conflito",
+                "operationId": "1bf9e6fba9eb40b7b652c476bc118bab",
+                "parameters": [
+                    {
+                        "name": "idConflito",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "idPovo",
+                        "in": "path",
+                        "description": "ID do Povo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Povo desassociado com sucesso"
+                    },
+                    "404": {
+                        "description": "Conflito ou Povo não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/conflito/{id}/assuntos": {
             "get": {
                 "tags": [
@@ -5551,6 +5841,20 @@
                         "type": "string",
                         "format": "date-time"
                     },
+                    "terrasIndigenas": {
+                        "description": "Terras Indigenas vinculadas",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TerraIndigena"
+                        }
+                    },
+                    "povos": {
+                        "description": "Povos vinculadas",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Povo"
+                        }
+                    },
                     "assuntos": {
                         "description": "Assuntos vinculados",
                         "type": "array",
@@ -5558,11 +5862,32 @@
                             "$ref": "#/components/schemas/Assunto"
                         }
                     },
-                    "processosSei": {
-                        "description": "Processos SEI vinculados",
+                    "tiposConflito": {
+                        "description": "Tipos de Conflito vinculados",
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/ProcessoSei"
+                            "$ref": "#/components/schemas/TipoConflito"
+                        }
+                    },
+                    "impactosAmbientais": {
+                        "description": "Impactos Ambientais vinculados",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImpactoAmbiental"
+                        }
+                    },
+                    "impactosSaude": {
+                        "description": "Impactos Saúde vinculados",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImpactoSaude"
+                        }
+                    },
+                    "impactosSocioEconomicos": {
+                        "description": "Impactos Sócio Econômicos vinculados",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImpactoSocioEconomico"
                         }
                     }
                 },

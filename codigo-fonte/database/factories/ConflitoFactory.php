@@ -63,25 +63,21 @@ class ConflitoFactory extends Factory
         $uf     = $this->faker->randomElement($ufs[$regiao]);
         
         return [
-            'idTerraIndigena' => $idTerraIndigena,
-            
-            'idPovo' => $idPovo,
-            
-            'nome' => $this->faker->sentence(3),
-            'descricao' => $this->faker->paragraph(3),
-            'regiao' => $this->faker->randomElement($regioes),
-            'dataInicioConflito' => $this->faker->dateTimeBetween('-5 years', 'now'),
-            'dataFimConflito' => $this->faker->dateTimeBetween('-5 years', 'now'),
-            'latitude' => $this->faker->latitude($brasilBounds['latitude']['min'],
-                                                 $brasilBounds['latitude']['max']),
-            'longitude' => $this->faker->longitude($brasilBounds['longitude']['min'],
-                                                   $brasilBounds['longitude']['max']),
-            'municipio' => $this->faker->city,
-            'uf' => $uf,
-            'flagOcorrenciaAmeaca' => $this->faker->boolean(30),
-            'flagOcorrenciaViolencia' => $this->faker->boolean(20),
-            'flagOcorrenciaAssassinato' => $this->faker->boolean(10),
-            'flagOcorrenciaFeridos' => $this->faker->boolean(15),
+            'nome'                       => $this->faker->sentence(3),
+            'descricao'                  => $this->faker->paragraph(3),
+            'regiao'                     => $this->faker->randomElement($regioes),
+            'dataInicioConflito'         => $this->faker->dateTimeBetween('-5 years', 'now'),
+            'dataFimConflito'            => $this->faker->dateTimeBetween('-4 years', 'now'),
+            'latitude'                   => $this->faker->latitude($brasilBounds['latitude']['min'],
+                                                                   $brasilBounds['latitude']['max']),
+            'longitude'                  => $this->faker->longitude($brasilBounds['longitude']['min'],
+                                                                    $brasilBounds['longitude']['max']),
+            'municipio'                  => $this->faker->city,
+            'uf'                         => $uf,
+            'flagOcorrenciaAmeaca'       => $this->faker->boolean(30),
+            'flagOcorrenciaViolencia'    => $this->faker->boolean(20),
+            'flagOcorrenciaAssassinato'  => $this->faker->boolean(10),
+            'flagOcorrenciaFeridos'      => $this->faker->boolean(15),
             'flagMembroProgramaProtecao' => $this->faker->boolean(25),
         ];
     }
