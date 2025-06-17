@@ -63,9 +63,9 @@ WORKDIR /var/www/html/
 
 #COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
 
-RUN useradd -G www-data,root -u $uid -d /home/$user $user && \
-    # mkdir -p /home/$user/.composer && \
-    chown -R $user:$user /home/$user
+# RUN useradd -G www-data,root -u $uid -d /home/$user $user && \
+#     # mkdir -p /home/$user/.composer && \
+#     chown -R $user:$user /home/$user
 
 USER $user
 
