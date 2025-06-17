@@ -11,7 +11,7 @@ WORKDIR /var/www/html/
 #COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
 
 # Alterando permissões
-RUN chmod +x /var/www/html/entrypoint.sh
+#RUN chmod +x /var/www/html/entrypoint.sh
 
 
 # Install required dependencies
@@ -71,4 +71,4 @@ USER $user
 
 EXPOSE 80
 
-CMD [ "sh", "-c", "/var/www/html/entrypoint.sh; /usr/local/bin/apache2-foreground" ]
+CMD [ "sh", "-c", "/usr/local/bin/apache2-foreground" ]
