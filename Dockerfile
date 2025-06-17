@@ -45,26 +45,26 @@ WORKDIR /var/www/html/
 #     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer.
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
-    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
-    && php -r "unlink('composer-setup.php');"
+# RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+#     && php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
+#     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
+#     && php -r "unlink('composer-setup.php');"
 
 # Install Node.js, npm.
-RUN apt-get update -y \
-    && apt-get install -y \
-        apt-transport-https \
-        lsb-release \
-        dos2unix \
-    && curl -sL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get -y clean \
-    && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update -y \
+#     && apt-get install -y \
+#         apt-transport-https \
+#         lsb-release \
+#         dos2unix \
+#     && curl -sL https://deb.nodesource.com/setup_20.x | bash - \
+#     && apt-get install -y nodejs \
+#     && apt-get -y clean \
+#     && rm -rf /var/lib/apt/lists/*
 
 #COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
 
 RUN useradd -G www-data,root -u $uid -d /home/$user $user && \
-    mkdir -p /home/$user/.composer && \
+    # mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user
 
 USER $user
