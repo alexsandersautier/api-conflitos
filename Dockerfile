@@ -1,8 +1,7 @@
-<<<<<<< Updated upstream
 from php:8.2-apache
 WORKDIR /var/www/html
 COPY ./codigo-fonte /var/www/html
-=======
+
 FROM php:8.2-apache
 
 # 1. Configurações críticas do Apache
@@ -34,4 +33,4 @@ USER laravel
 
 # 6. Comando de inicialização robusto
 CMD ["apache2ctl", "-D", "FOREGROUND"]
->>>>>>> Stashed changes
+
