@@ -6,9 +6,9 @@ ARG uid=1000
 WORKDIR /var/www/html/
 
 # Apache settings
-COPY ./docker/000-default.conf /etc/apache2/sites-enabled/000-default.conf
+#COPY ./docker/000-default.conf /etc/apache2/sites-enabled/000-default.conf
 # Alterando permissoes
-COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
+#COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
 
 # Alterando permissões
 RUN chmod +x /var/www/html/entrypoint.sh
