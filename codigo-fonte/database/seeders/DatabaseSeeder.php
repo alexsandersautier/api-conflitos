@@ -45,7 +45,8 @@ class DatabaseSeeder extends Seeder {
                     TipoInqueritoPolicialTableSeeder::class,
                     ConflitoTableSeeder::class,
                     TipoProcessoSeiTableSeeder::class,
-                    TipoResponsavelTableSeeder::class
+                    TipoResponsavelTableSeeder::class,
+                    TipoEstrategiaTableSeeder::class
                 ]);
 
     }

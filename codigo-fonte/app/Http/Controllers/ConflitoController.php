@@ -21,7 +21,6 @@ use App\Models\Povo;
  *  @OA\Schema(
  *     schema="Conflito",
  *     type="object",
- *     @OA\Property(property="idTerraIndigena", type="integer", example="1"),
  *     @OA\Property(property="nome", type="string", example="nome do conflito"),
  *     @OA\Property(property="descrição", type="string", example="descrição do conflito"),
  *     @OA\Property(property="regiao", type="string", example="norte"),
@@ -129,7 +128,7 @@ class ConflitoController extends Controller
      *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="page",
-     *         description="Página de conflitos",
+     *         description="Página de registros",
      *         in="query",
      *         required=true,
      *         @OA\Schema(type="integer")
@@ -138,7 +137,7 @@ class ConflitoController extends Controller
      *         name="per_page",
      *         description="Registros por Página",
      *         in="query",
-     *         required=true,
+     *         required=false,
      *         @OA\Schema(type="integer")
      *     ),
      *     summary="Listar os conflitos por página",
@@ -162,7 +161,7 @@ class ConflitoController extends Controller
         }
         
         $per_page = $request->per_page ?? 10;
-        $conflitos = Conflito::all()->paginate($per_page);
+        $conflitos = Conflito::orderBy('created_at')->paginate($per_page);
         return response()->json($conflitos);
     }
 
@@ -175,8 +174,7 @@ class ConflitoController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"idTerraIndigena","idPovo","nome","descricao","regiao","dataConflito","latitude","longitude","municipio","uf","flagOcorrenciaAmeaca","flagOcorrenciaViolencia","flagOcorrenciaAssassinato","flagOcorrenciaFeridos", "flagMembroProgramaProtecao"},
-     *             @OA\Property(property="idTerraIndigena", type="integer", example="1"),
+     *             required={"nome","descricao","regiao","dataConflito","latitude","longitude","municipio","uf","flagOcorrenciaAmeaca","flagOcorrenciaViolencia","flagOcorrenciaAssassinato","flagOcorrenciaFeridos", "flagMembroProgramaProtecao"},
      *             @OA\Property(property="nome", type="string", example="nome do conflito"),
      *             @OA\Property(property="descrição", type="string", example="descrição do conflito"),
      *             @OA\Property(property="regiao", type="string", example="norte"),
@@ -219,7 +217,8 @@ class ConflitoController extends Controller
             'nome'                       => 'required|string|max:255',
             'descricao'                  => 'required|string',
             'regiao'                     => 'required|string|max:100',
-            'dataConflito'               => 'required|date',
+            'dataInicioConflito'         => 'required|date',
+            'dataFimConflito'            => 'nullable|date|after_or_equal:dataInicioConflito',
             'latitude'                   => 'required|numeric|between:-90,90',
             'longitude'                  => 'required|numeric|between:-180,180',
             'municipio'                  => 'required|string|max:100',
@@ -229,6 +228,9 @@ class ConflitoController extends Controller
             'flagOcorrenciaAssassinato'  => 'sometimes|boolean',
             'flagOcorrenciaFeridos'      => 'sometimes|boolean',
             'flagMembroProgramaProtecao' => 'sometimes|boolean'
+        ],[
+            'nome.required'              => 'O título é obrigatório',
+            'descricao.required'         => 'A descrição é obrigatória',
         ]);
         
         if ($validator->fails()) {
@@ -288,7 +290,14 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflito = Conflito->findOrFail($id);
+        $conflito = Conflito::find($id);
+        
+        if (!$conflito) {
+            return response()->json([
+                'message' => 'Conflito não encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
         return response()->json($conflito);
     }
 
@@ -350,8 +359,11 @@ class ConflitoController extends Controller
             'flagOcorrenciaAssassinato'  => 'sometimes|boolean',
             'flagOcorrenciaFeridos'      => 'sometimes|boolean',
             'flagMembroProgramaProtecao' => 'sometimes|boolean'
+        ],[
+            'nome.required'              => 'O título é obrigatório',
+            'descricao.required'         => 'A descrição é obrigatória',
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Erro de validação',

@@ -217,6 +217,8 @@ Route::prefix('terra-indigena')->group(function () {
     Route::put('/{id}',    [TerraIndigenaController::class, 'update']);
     Route::patch('/{id}',  [TerraIndigenaController::class, 'update']);
     Route::delete('/{id}', [TerraIndigenaController::class, 'destroy']);
+    
+    Route::get('/page',        [TerraIndigenaController::class, 'getAllPage']);
 })->middleware('auth:sanctum');
 
 Route::prefix('tipo-ator')->group(function () {

@@ -194,6 +194,11 @@ return new class extends Migration
             $table->id('idImpactoSocioEconomico')->primary();
             $table->string('nome', 100);
         });
+        
+        Schema::create('tipo_estrategia', function (Blueprint $table) {
+            $table->id('idTipoEstrategia')->primary();
+            $table->string('nome', 100);
+        });
     }
 
     /**
@@ -212,5 +217,6 @@ return new class extends Migration
         Schema::dropIfExists('impacto_ambiental');
         Schema::dropIfExists('impacto_saude');
         Schema::dropIfExists('impacto_socio_economico');
+        Schema::dropIfExists('tipo_estrategia');
     }
 };

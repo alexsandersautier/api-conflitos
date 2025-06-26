@@ -59,6 +59,7 @@ class TerraIndigenaController extends Controller
      * @OA\Get(
      *     path="/api/terra-indigena",
      *     tags={"TerraIndigenas"},
+     *     summary="Listar todos os terra indigenas",
      *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="page",
@@ -67,7 +68,6 @@ class TerraIndigenaController extends Controller
      *         required=true,
      *         @OA\Schema(type="string")
      *     ),
-     *     summary="Listar todos os terra indigenas",
      *     @OA\Response(
      *         response=200,
      *         description="Lista de Terras indigenas",
@@ -87,7 +87,50 @@ class TerraIndigenaController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $terraindigenas = TerraIndigena::with(['situacao_fundiaria', 'povo'])->paginate(10);
+        $terraindigenas = TerraIndigena::with(['situacao_fundiaria', 'povo'])->get();
+        return response()->json($terraindigenas, Response::HTTP_OK);
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/terra-indigena/page",
+     *     tags={"TerraIndigenas"},
+     *     summary="Listar todos os terra indigenas por página",
+     *     security={ {"sanctum": {} } },
+     *     @OA\Parameter(
+     *         name="page",
+     *         description="Página de registros",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         description="Registros por Página",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de Terras indigenas",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/TerraIndigena")
+     *         )
+     *     )
+     * )
+     */
+    public function getAllPage()
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status' => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        $per_page = $request->per_page ?? 10;
+        $terraindigenas = TerraIndigena::with(['situacao_fundiaria', 'povo'])->paginate($per_page);
         return response()->json($terraindigenas, Response::HTTP_OK);
     }
 
@@ -95,8 +138,8 @@ class TerraIndigenaController extends Controller
      * @OA\Post(
      *     path="/api/terra-indigena",
      *     tags={"TerraIndigenas"},
-     *     security={ {"sanctum": {} } },
      *     summary="Criar uma nova terra indigena",
+     *     security={ {"sanctum": {} } },
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -131,8 +174,8 @@ class TerraIndigenaController extends Controller
      * @OA\Get(
      *     path="/api/terra-indigena/{id}",
      *     tags={"TerraIndigenas"},
-     *     security={ {"sanctum": {} } },
      *     summary="Obter um terra indigena específica",
+     *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -162,8 +205,8 @@ class TerraIndigenaController extends Controller
      * @OA\Put(
      *     path="/api/terra-indigena/{id}",
      *     tags={"TerraIndigenas"},
-     *     security={ {"sanctum": {} } },
      *     summary="Atualizar um terra indigena específica",
+     *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -207,8 +250,8 @@ class TerraIndigenaController extends Controller
      * @OA\Delete(
      *     path="/api/terra-indigena/{id}",
      *     tags={"TerraIndigenas"},
-     *     security={ {"sanctum": {} } },
      *     summary="Excluir um terra indigena específica",
+     *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

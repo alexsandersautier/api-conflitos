@@ -15,15 +15,19 @@ class ImpactoSocioEconomicoTableSeeder extends Seeder
     public function run()
     {
         $impactos = [
+            ['nome' => 'Insegurança alimentar'],
             ['nome' => 'Aliciamento e cooptação de atores dos povos indígenas'],
-            ['nome' => 'Aumento da violência e criminalidade'],
-            ['nome' => 'Desapropriação de terras'],
-            ['nome' => 'Deslocamento compulsório'],
+            ['nome' => 'Criminalização da população indígena'],
+            ['nome' => 'Expropriação territorial'],
+            ['nome' => 'Deslocamento forçado'],
             ['nome' => 'Militarização e aumento da presença policial'],
             ['nome' => 'Perda de conhecimentos socioculturais'],
             ['nome' => 'Perda de meios de subsistência'],
-            ['nome' => 'Violações dos direitos humanos'],
-            ['nome' => 'Outros'],
+            ['nome' => 'Perda de vínculos laborais'],
+            ['nome' => 'Afetação na prestação de serviços básicos'],
+            ['nome' => 'Aumento da violência e psicológica'],
+            ['nome' => 'Aumento da violência contra a mulher'],
+            ['nome' => 'Aumento da violência contra criança e adolescentes']
         ];
             
         DB::table('impacto_socio_economico')->insert($impactos);

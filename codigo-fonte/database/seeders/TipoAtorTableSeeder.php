@@ -15,16 +15,17 @@ class TipoAtorTableSeeder extends Seeder
     public function run()
     {
         $tipos = [
-            ['nome' => 'Fazendeiro'],
-            ['nome' => 'Garimpeiro'],
-            ['nome' => 'Grileiro'],
-            ['nome' => 'Indústrias de Mineração'],
-            ['nome' => 'Indústrias de energia e exploração de combustível fóssil'],
-            ['nome' => 'Indústrias outras (Grande, Médio e Pequena)'],
-            ['nome' => 'Latifundiário'],
-            ['nome' => 'Madeireiro'],
-            ['nome' => 'Setor público (obras públicas)'],
             ['nome' => 'Agentes de segurança pública'],
+            ['nome' => 'Detentor de pequena propriedade rural'],
+            ['nome' => 'Detentor de média ou grande propriedade rural'],
+            ['nome' => 'Garimpeiro'],
+            ['nome' => 'Indústrias de Mineração'],
+            ['nome' => 'Indústrias madereira'],
+            ['nome' => 'Madereiros ilegais'],
+            ['nome' => 'Indústrias de energia'],
+            ['nome' => 'Indústrias de exploração de combustível fóssil'],
+            ['nome' => 'Empreendimento de infraestrutura'],
+            ['nome' => 'Setor público']
         ];
         
         DB::table('tipo_ator')->insert($tipos);

@@ -15,9 +15,8 @@ class TipoConflitoTableSeeder extends Seeder
     public function run()
     {
         $tiposConflitos = [
-            ['nome' => 'Prevenção e acompanhamento de conflito: Disputas territoriais'],
-            ['nome' => 'Prevenção e acompanhamento de conflito: Violência contra pessoas e coletividades'],
-            ['nome' => 'Prevenção e acompanhamento de conflito: Prevenção de conflito'],
+            ['nome' => 'Disputas territoriais'],
+            ['nome' => 'Violência contra pessoas e coletividades']
         ];
         
         DB::table('tipo_conflito')->insert($tiposConflitos);

@@ -11,14 +11,15 @@ class ImpactoSaudeTableSeeder extends Seeder
      * Run the database seeds.
      *
      * @return void
-     */
+     * 
+    */
     public function run()
     {
         $impactosSaude = [
-            ['nome' => 'Acidentes'],
+            ['nome' => 'Lesões por acidentes'],
             ['nome' => 'Doenças infecciosas'],
-            ['nome' => 'Doenças relacionadas ao meio ambiente contaminado (diarréia, vômito, mal-estar, entre outros)'],
-            ['nome' => 'Doenças relacionadas à saúde mental (uso problemático de álcool e outras drogas ilícitas, ansiedade, depressão, estresse, suicídio, Transtorno de estresse pós-traumático (TEPT), entre outros)'],
+            ['nome' => 'Doenças relacionadas ao meio ambiente contaminado (diarréia, vômito, mal-estar, doenças de pele, entre outros)'],
+            ['nome' => 'Doenças relacionadas à saúde mental (uso problemático de álcool e outras drogas ilícitas, ansiedade, depressão, estresse, suicídio, Transtorno de Estresse Pós-traumático (TEPT), entre outros)'],
             ['nome' => 'Outros'],
         ];
                     
