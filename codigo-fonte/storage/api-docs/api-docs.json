@@ -2028,8 +2028,6 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "idTerraIndigena",
-                                    "idPovo",
                                     "nome",
                                     "descricao",
                                     "regiao",
@@ -2045,10 +2043,6 @@
                                     "flagMembroProgramaProtecao"
                                 ],
                                 "properties": {
-                                    "idTerraIndigena": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
                                     "nome": {
                                         "type": "string",
                                         "example": "nome do conflito"
@@ -2137,7 +2131,7 @@
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "Página de conflitos",
+                        "description": "Página de registros",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -2147,7 +2141,7 @@
                         "name": "per_page",
                         "in": "query",
                         "description": "Registros por Página",
-                        "required": true,
+                        "required": false,
                         "schema": {
                             "type": "integer"
                         }
@@ -4829,6 +4823,55 @@
                 ]
             }
         },
+        "/api/terra-indigena/page": {
+            "get": {
+                "tags": [
+                    "TerraIndigenas"
+                ],
+                "summary": "Listar todos os terra indigenas por página",
+                "operationId": "da7017035246afd15309108f196b905c",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Página de registros",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por Página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Terras indigenas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TerraIndigena"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/terra-indigena/{id}": {
             "get": {
                 "tags": [
@@ -5776,10 +5819,6 @@
             },
             "Conflito": {
                 "properties": {
-                    "idTerraIndigena": {
-                        "type": "integer",
-                        "example": "1"
-                    },
                     "nome": {
                         "type": "string",
                         "example": "nome do conflito"
