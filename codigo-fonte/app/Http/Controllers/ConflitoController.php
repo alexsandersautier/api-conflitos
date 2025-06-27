@@ -223,11 +223,11 @@ class ConflitoController extends Controller
             'longitude'                  => 'required|numeric|between:-180,180',
             'municipio'                  => 'required|string|max:100',
             'uf'                         => 'required|string|size:2',
-            'flagOcorrenciaAmeaca'       => 'sometimes|boolean',
-            'flagOcorrenciaViolencia'    => 'sometimes|boolean',
-            'flagOcorrenciaAssassinato'  => 'sometimes|boolean',
-            'flagOcorrenciaFeridos'      => 'sometimes|boolean',
-            'flagMembroProgramaProtecao' => 'sometimes|boolean'
+            'flagOcorrenciaAmeaca'       => 'required|string',
+            'flagOcorrenciaViolencia'    => 'required|string',
+            'flagOcorrenciaAssassinato'  => 'required|string',
+            'flagOcorrenciaFeridos'      => 'required|string',
+            'flagMembroProgramaProtecao' => 'required|string'
         ],[
             'nome.required'              => 'O título é obrigatório',
             'descricao.required'         => 'A descrição é obrigatória',
@@ -240,26 +240,52 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
-        $validatedData = $validator->validated();
+        try {
+            DB::beginTransaction();
         
-        // Define valores padrão para flags booleanas caso não sejam fornecidas
-        $booleanFields = [
-            'flagOcorrenciaAmeaca',
-            'flagOcorrenciaViolencia',
-            'flagOcorrenciaAssassinato',
-            'flagOcorrenciaFeridos',
-            'flagMembroProgramaProtecao'
-        ];
-        
-        foreach ($booleanFields as $field) {
-            if (!isset($validatedData[$field])) {
-                $validatedData[$field] = false;
+            $conflito = Conflito::create($validator->validated());
+            
+            // Sincroniza relações N:M
+            if ($request->has('assuntos')) {
+                $conflito->assuntos()->sync($request->assuntos);
             }
+            
+            if ($request->has('impactos_ambientais')) {
+                $conflito->impactos_ambientais()->sync($request->impactos_ambientais);
+            }
+            
+            if ($request->has('impactos_saude')) {
+                $conflito->impactos_saude()->sync($request->impactos_saude);
+            }
+            
+            if ($request->has('impactos_socio_economicos')) {
+                $conflito->impactos_socio_economicos()->sync($request->impactos_socio_economicos);
+            }
+            
+            if ($request->has('povos')) {
+                $conflito->povos()->sync($request->povos);
+            }
+            
+            if ($request->has('terras_indigenas')) {
+                $conflito->terras_indigenas()->sync($request->terras_indigenas);
+            }
+            
+            if ($request->has('tipos_conflito')) {
+                $conflito->tipos_conflito()->sync($request->tipos_conflito);
+            }
+            
+            DB::commit();
+            
+            return response()->json($conflito, Response::HTTP_CREATED);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Erro ao criar conflito',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        
-        $conflito = Conflito::create($validatedData);
-        
-        return response()->json($conflito, Response::HTTP_CREATED);
     }
 
     /**
