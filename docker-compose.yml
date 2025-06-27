@@ -11,6 +11,9 @@ services:
     environment:
       - APACHE_DOCUMENT_ROOT=/var/www/html/public
       - APACHE_LOG_DIR=/var/log/apache2
+      - DB_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Mapeia para o host local
     logging:
       driver: "json-file"
       options:

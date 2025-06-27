@@ -24,6 +24,10 @@ use App\Http\Controllers\AtorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrigemDadoController;
 use App\Http\Controllers\TipoResponsavelController;
+use App\Http\Controllers\HealthCheckController;
+
+Route::get('/healthcheck', HealthCheckController::class);
+
 
 Route::post('/login', [AuthController::class, 'login']);
 
