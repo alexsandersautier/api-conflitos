@@ -13,9 +13,24 @@ RUN mkdir -p /var/lock/apache2 /var/run/apache2 && \
     chown -R www-data:www-data /var/lock/apache2 /var/run/apache2
 
 # 3. Instala dependências essenciais
-RUN apt-get update && apt-get install -y \
-    libpng-dev libjpeg-dev libonig-dev libxml2-dev libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring gd zip
+#RUN apt-get update && apt-get install -y \
+#    libpng-dev libjpeg-dev libonig-dev libxml2-dev libzip-dev \
+#    && docker-php-ext-install pdo pdo_mysql mbstring gd zip
+	
+# 3. Instala dependências de forma robusta
+RUN rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    apt-get update --fix-missing || apt-get update --fix-missing && \
+    apt-get install -y --no-install-recommends \
+        libpng-dev \
+        libjpeg-dev \
+        libonig-dev \
+        libxml2-dev \
+        libzip-dev \
+        && \
+    docker-php-ext-install pdo pdo_mysql mbstring gd zip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # 4. Configuração segura do PHP
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
