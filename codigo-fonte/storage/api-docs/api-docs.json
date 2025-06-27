@@ -3433,6 +3433,20 @@
                 ]
             }
         },
+        "/api/healthcheck": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Rota de Health Check",
+                "operationId": "dcbed68e175417486ed2e27fd841a518",
+                "responses": {
+                    "200": {
+                        "description": "Health Check"
+                    }
+                }
+            }
+        },
         "/api/impacto-ambiental/{id}": {
             "get": {
                 "tags": [
@@ -6455,6 +6469,10 @@
         {
             "name": "Usuarios",
             "description": "Endpoints para Usuários"
+        },
+        {
+            "name": "Health",
+            "description": "Health"
         }
     ]
 }
