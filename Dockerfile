@@ -3,6 +3,22 @@
 # Estágio de construção para instalar dependências do Composer
 FROM php:8.2-apache AS builder
 
+# Adiciona as chaves GPG ausentes para os repositórios Debian
+# Este passo deve vir ANTES de qualquer 'apt-get update' para garantir que os repositórios sejam confiáveis.
+# A chave para Bookworm (Debian 12) é geralmente 0E98404D386FA1D9.
+# Incluí as chaves comuns mencionadas no seu log de erro para maior robustez.
+RUN apt-get update && apt-get install -y gnupg \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F8D2585B8783D481 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 54404762BBB6E853 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BDE6D2B9216EC7A8 \
+    && rm -rf /var/lib/apt/lists/* # Limpeza imediata de apt lists para não inchar a camada
+# Note: apt-key is deprecated, but still commonly used in many Docker images.
+# For a more modern approach, one would use:
+# curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xKEYID | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-bookworm.gpg
+
+
 # Instalação de dependências do sistema
 RUN apt-get update && apt-get install -y \
     git \
@@ -36,6 +52,15 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
 
 # Estágio final para a imagem de produção
 FROM php:8.2-apache
+
+# Adiciona as chaves GPG ausentes para os repositórios Debian (também no estágio final)
+RUN apt-get update && apt-get install -y gnupg \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F8D2585B8783D481 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 54404762BBB6E853 \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BDE6D2B9216EC7A8 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Instalação de dependências de runtime
 RUN apt-get update && apt-get install -y \
