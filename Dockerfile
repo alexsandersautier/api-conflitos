@@ -1,10 +1,24 @@
 # Use a imagem base do PHP com Apache
 FROM php:8.2-apache
 
-# Atualizar repositórios sem verificação rigorosa (APENAS PARA AMBIENTES CONTROLADOS)
-RUN echo "Acquire::Check-Valid-Until \"false\";\nAcquire::Check-Date \"false\";" > /etc/apt/apt.conf.d/99no-check-valid && \
-    apt-get update -y --allow-insecure-repositories && \
-    apt-get install -y \
+# 1. Primeiro resolver o problema das chaves GPG
+RUN apt-get update -y --allow-releaseinfo-change && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    gnupg2 && \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys \
+    0E98404D386FA1D9 \
+    6ED0E7B82643E131 \
+    F8D2585B8783D481 \
+    54404762BBB6E853 \
+    BDE6D2B9216EC7A8 && \
+    rm -rf /var/lib/apt/lists/*
+
+# 2. Atualizar repositórios com as novas chaves
+RUN apt-get update -y
+
+# 3. Instalar dependências do sistema
+RUN apt-get install -y --no-install-recommends \
     libzip-dev \
     zip \
     unzip \
@@ -19,7 +33,8 @@ RUN echo "Acquire::Check-Valid-Until \"false\";\nAcquire::Check-Date \"false\";"
     bcmath \
     gd \
     zip \
-    sockets
+    sockets \
+    && rm -rf /var/lib/apt/lists/*
 
 # Habilitar mod_rewrite do Apache
 RUN a2enmod rewrite
