@@ -1,0 +1,3 @@
+172.18.0.1 - - [30/Jun/2025:18:04:53 +0000] "GET /api/documentation HTTP/1.1" 200 1515 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+172.18.0.1 - - [30/Jun/2025:18:04:57 +0000] "GET /docs?api-docs.json HTTP/1.1" 200 235143 "http://localhost:8000/api/documentation" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+172.18.0.1 - - [30/Jun/2025:18:05:03 +0000] "POST /api/login HTTP/1.1" 200 902 "http://localhost:8000/api/documentation" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
