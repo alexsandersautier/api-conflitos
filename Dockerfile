@@ -1,8 +1,21 @@
 # Use a imagem base do PHP com Apache
 FROM php:8.2-apache
 
+# Primeiro atualizar as chaves GPG e depois os repositórios
+RUN apt-get update -y --allow-releaseinfo-change && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    gnupg && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+    0E98404D386FA1D9 \
+    6ED0E7B82643E131 \
+    F8D2585B8783D481 \
+    54404762BBB6E853 \
+    BDE6D2B9216EC7A8 && \
+    apt-get update
+
 # Instalar dependências do sistema
-RUN apt-get update && apt-get install -y \
+RUN apt-get install -y \
     libzip-dev \
     zip \
     unzip \
@@ -28,18 +41,18 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Definir o diretório de trabalho
 WORKDIR /var/www/html
 
-# 1. Copiar apenas os arquivos do composer primeiro
+# Copiar arquivos do composer primeiro
 COPY codigo-fonte/composer.json codigo-fonte/composer.lock ./
 
-# 2. Instalar dependências sem scripts
+# Instalar dependências sem scripts
 RUN composer install --no-interaction --no-scripts --no-autoloader --no-dev
 
-# 3. Copiar todo o restante do código
+# Copiar todo o restante do código
 COPY codigo-fonte/ .
 
-# 4. Gerar autoloader otimizado e rodar apenas os comandos necessários
+# Gerar autoloader otimizado
 RUN composer dump-autoload --optimize && \
-    php artisan package:discover --ansi
+    ([ -f artisan ] && php artisan package:discover --ansi || true)
 
 # Configurar permissões
 RUN chown -R www-data:www-data storage bootstrap/cache
