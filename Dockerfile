@@ -3,21 +3,26 @@
 # Estágio de construção para instalar dependências do Composer
 FROM php:8.2-apache AS builder
 
-# Adiciona as chaves GPG ausentes para os repositórios Debian
-# Este passo deve vir ANTES de qualquer 'apt-get update' para garantir que os repositórios sejam confiáveis.
-# A chave para Bookworm (Debian 12) é geralmente 0E98404D386FA1D9.
-# Incluí as chaves comuns mencionadas no seu log de erro para maior robustez.
-RUN apt-get update && apt-get install -y gnupg \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F8D2585B8783D481 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 54404762BBB6E853 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BDE6D2B9216EC7A8 \
-    && rm -rf /var/lib/apt/lists/* # Limpeza imediata de apt lists para não inchar a camada
-# Note: apt-key is deprecated, but still commonly used in many Docker images.
-# For a more modern approach, one would use:
-# curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xKEYID | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-bookworm.gpg
-
+# Instalação de utilitários e chaves GPG (método moderno)
+RUN apt-get update && apt-get install -y \
+    gnupg \
+    curl \
+    # Adicione aqui qualquer outra ferramenta que precise para baixar chaves, se necessário, como 'dirmngr'
+    # dirmngr \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    # --- Início da parte crucial: Adição das chaves GPG ---
+    # As chaves listadas no erro (0E98404D386FA1D9, 6ED0E7B82643E131, F8D2585B8783D481, etc.)
+    # pertencem aos repositórios principais do Debian e Security.
+    # A maneira mais robusta é instalar o pacote 'debian-archive-keyring'.
+    && apt-get update && apt-get install -y debian-archive-keyring \
+    # Se ainda houver problemas, adicione as chaves específicas manualmente (uma por uma):
+    # && curl -sS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0E98404D386FA1D9" | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-bookworm-main.gpg \
+    # && curl -sS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6ED0E7B82643E131" | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-bookworm-updates.gpg \
+    # && curl -sS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xF8D2585B8783D481" | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-bookworm-backports.gpg \
+    # && curl -sS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x54404762BBB6E853" | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-bookworm-security.gpg \
+    # && curl -sS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xBDE6D2B9216EC7A8" | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-bookworm-security-alt.gpg \
+    # --- Fim da parte crucial: Adição das chaves GPG ---
+    && apt-get clean && rm -rf /var/lib/apt/lists/* # Limpeza dos apt lists após a instalação de gnupg/curl
 
 # Instalação de dependências do sistema
 RUN apt-get update && apt-get install -y \
@@ -25,7 +30,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libpng-dev \
-    # Pacotes corretos para JPEG/WebP em Debian:
     libjpeg-dev \
     libwebp-dev \
     libicu-dev \
@@ -53,21 +57,19 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
 # Estágio final para a imagem de produção
 FROM php:8.2-apache
 
-# Adiciona as chaves GPG ausentes para os repositórios Debian (também no estágio final)
-RUN apt-get update && apt-get install -y gnupg \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F8D2585B8783D481 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 54404762BBB6E853 \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BDE6D2B9216EC7A8 \
-    && rm -rf /var/lib/apt/lists/*
+# Instalação de utilitários e chaves GPG (método moderno)
+RUN apt-get update && apt-get install -y \
+    gnupg \
+    curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && apt-get update && apt-get install -y debian-archive-keyring \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instalação de dependências de runtime
 RUN apt-get update && apt-get install -y \
     git \
     libzip-dev \
     libpng-dev \
-    # Pacotes corretos para JPEG/WebP em Debian:
     libjpeg-dev \
     libwebp-dev \
     libicu-dev \
