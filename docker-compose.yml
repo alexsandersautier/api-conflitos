@@ -1,22 +1,14 @@
 services:
-  webserver:
+ webserver:
     build: .
     container_name: painelconflitos-api
-    restart: on-failure:5  # Limita tentativas de reinício
+    restart: unless-stopped
     ports:
       - "8000:80"
     volumes:
       - ./codigo-fonte:/var/www/html
-      - ./docker/apache2/000-default.conf:/etc/apache2/sites-available/000-default.conf
       - ./docker/apache2/logs:/var/log/apache2
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html/public
-      - APACHE_LOG_DIR=/var/log/apache2
       - DB_HOST=host.docker.internal
     extra_hosts:
-      - "host.docker.internal:host-gateway"  # Mapeia para o host local
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - "host.docker.internal:host-gateway"
