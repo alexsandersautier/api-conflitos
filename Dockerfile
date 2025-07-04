@@ -6,19 +6,19 @@ ARG uid=1000
 WORKDIR /var/www/html/
 
 # Apache settings
-COPY ./docker/000-default.conf /etc/apache2/sites-enabled/000-default.conf
+COPY ./codigo-fonte/000-default.conf /etc/apache2/sites-enabled/000-default.conf
 
-#Alterando permissoes
-COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
+# Alterando permissoes
+COPY ./codigo-fonte/entrypoint.sh /var/www/html/entrypoint.sh
 
 # Alterando permissões
 RUN chmod +x /var/www/html/entrypoint.sh
-
 
 # Install required dependencies
 RUN apt-get update -y && \
     apt-get install -y nano git curl libpng-dev libonig-dev libxml2-dev libzip-dev libjpeg-dev libfreetype6-dev libpq-dev zip unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+	
 # Install PHP extensions/modules.
 RUN apt-get update -y \
     && apt-get install -y cron \
@@ -62,7 +62,7 @@ RUN apt-get update -y \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
+COPY ./codigo-fonte/entrypoint.sh /var/www/html/entrypoint.sh
 
 RUN useradd -G www-data,root -u $uid -d /home/$user $user && \
     mkdir -p /home/$user/.composer && \
