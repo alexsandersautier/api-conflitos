@@ -1,6 +1,19 @@
 FROM php:8.2-apache
 
+ARG user=www-data
+ARG uid=1000
+
 WORKDIR /var/www/html/
+
+# Apache settings
+COPY ./docker/000-default.conf /etc/apache2/sites-enabled/000-default.conf
+
+#Alterando permissoes
+COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
+
+# Alterando permissões
+RUN chmod +x /var/www/html/entrypoint.sh
+
 
 # Install required dependencies
 RUN apt-get update -y && \
@@ -32,9 +45,6 @@ RUN apt-get update -y \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar os arquivos do projeto
-COPY ./codigo-fonte /var/www/html
-
 # Install Composer.
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
@@ -52,6 +62,11 @@ RUN apt-get update -y \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
+COPY ./docker/entrypoint.sh /var/www/html/entrypoint.sh
+
+RUN useradd -G www-data,root -u $uid -d /home/$user $user && \
+    mkdir -p /home/$user/.composer && \
+    chown -R $user:$user /home/$user
 
 USER $user
 
