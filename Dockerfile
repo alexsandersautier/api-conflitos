@@ -1,8 +1,8 @@
-FROM php:8.2-apache
+FROM php:7.4-apache
 
-RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
-           -e 's|security.debian.org|archive.debian.org/debian-security/|g' \
-           -e '/stretch-updates/d' /etc/apt/sources.list
+#RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
+#           -e 's|security.debian.org|archive.debian.org/debian-security/|g' \
+#           -e '/stretch-updates/d' /etc/apt/sources.list
 
 ARG user=anderson
 ARG uid=1000
