@@ -1020,17 +1020,6 @@
                 ],
                 "summary": "Listar todos os terra indigenas",
                 "operationId": "85dd7ea9f02e825f9e09b82da5a3765b",
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Página de terras indígenas",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Lista de Terras indigenas",
@@ -2120,13 +2109,13 @@
                 ]
             }
         },
-        "/api/conflito/page": {
+        "/api/conflito/paginar": {
             "get": {
                 "tags": [
                     "Conflitos"
                 ],
                 "summary": "Listar os conflitos por página",
-                "operationId": "697776ab99faac73f43982f3187d5fba",
+                "operationId": "4f50a80a0301cd61fa85d43725d9e76e",
                 "parameters": [
                     {
                         "name": "page",
@@ -4837,13 +4826,13 @@
                 ]
             }
         },
-        "/api/terra-indigena/page": {
+        "/api/terra-indigena/paginar": {
             "get": {
                 "tags": [
                     "TerraIndigenas"
                 ],
                 "summary": "Listar todos os terra indigenas por página",
-                "operationId": "da7017035246afd15309108f196b905c",
+                "operationId": "83cf75f804df05c6172d94b496652305",
                 "parameters": [
                     {
                         "name": "page",

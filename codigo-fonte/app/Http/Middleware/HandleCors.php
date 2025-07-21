@@ -24,7 +24,7 @@ class HandleCors
     {
         // Configurações CORS
         $headers = [
-            'Access-Control-Allow-Origin'      => env('FRONTEND_URL', 'http://localhost:3000'),
+            'Access-Control-Allow-Origin'      => '*', // env('FRONTEND_URL', 'http://localhost:3000'),
             'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE, PATCH', 
             'Access-Control-Max-Age'           => '86400',
             'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN',
