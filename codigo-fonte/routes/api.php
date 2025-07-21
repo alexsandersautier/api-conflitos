@@ -57,9 +57,11 @@ Route::prefix('ator')->group(function () {
     Route::get('/conflito/{idConflito}', [AtorController::class, 'getAllByConflito']);
 })->middleware('auth:sanctum');
 
+Route::get('/conflito/paginar', [ConflitoController::class, 'getAllPage'])->middleware('auth:sanctum');
+
 Route::prefix('conflito')->group(function () {
     Route::get('/',        [ConflitoController::class, 'index']);
-    Route::get('/page',    [ConflitoController::class, 'getAllPage']);
+    //Route::get('/paginar', [ConflitoController::class, 'getAllPage'])
     Route::post('/',       [ConflitoController::class, 'store']);
     Route::get('/{id}',    [ConflitoController::class, 'show']);
     Route::put('/{id}',    [ConflitoController::class, 'update']);
@@ -214,6 +216,9 @@ Route::prefix('situacao-fundiaria')->group(function () {
     Route::delete('/{id}', [SituacaoFundiariaController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
+
+Route::get('/terra-indigena/paginar', [TerraIndigenaController::class, 'getAllPage'])->middleware('auth:sanctum');
+
 Route::prefix('terra-indigena')->group(function () {
     Route::get('/',        [TerraIndigenaController::class, 'index']);
     Route::post('/',       [TerraIndigenaController::class, 'store']);
@@ -222,7 +227,8 @@ Route::prefix('terra-indigena')->group(function () {
     Route::patch('/{id}',  [TerraIndigenaController::class, 'update']);
     Route::delete('/{id}', [TerraIndigenaController::class, 'destroy']);
     
-    Route::get('/page',        [TerraIndigenaController::class, 'getAllPage']);
+    //Route::get('/paginar', [TerraIndigenaController::class, 'getAllPage']);
+    
 })->middleware('auth:sanctum');
 
 Route::prefix('tipo-ator')->group(function () {

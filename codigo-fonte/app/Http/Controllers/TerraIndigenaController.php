@@ -61,13 +61,6 @@ class TerraIndigenaController extends Controller
      *     tags={"TerraIndigenas"},
      *     summary="Listar todos os terra indigenas",
      *     security={ {"sanctum": {} } },
-     *     @OA\Parameter(
-     *         name="page",
-     *         description="Página de terras indígenas",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="string")
-     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Lista de Terras indigenas",
@@ -93,7 +86,7 @@ class TerraIndigenaController extends Controller
     
     /**
      * @OA\Get(
-     *     path="/api/terra-indigena/page",
+     *     path="/api/terra-indigena/paginar",
      *     tags={"TerraIndigenas"},
      *     summary="Listar todos os terra indigenas por página",
      *     security={ {"sanctum": {} } },
@@ -121,17 +114,24 @@ class TerraIndigenaController extends Controller
      *     )
      * )
      */
-    public function getAllPage()
+    public function getAllPage(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        // Verificação de autenticação
+        if (!$request->user('sanctum')) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        $per_page = $request->per_page ?? 10;
-        $terraindigenas = TerraIndigena::with(['situacao_fundiaria', 'povo'])->paginate($per_page);
-        return response()->json($terraindigenas, Response::HTTP_OK);
+        
+        return TerraIndigena::with(['situacao_fundiaria', 'povo'])
+        ->orderBy('idTerraIndigena')
+        ->paginate(
+            $request->input('per_page', 10),
+            ['*'],
+            'page',
+            $request->input('page', 1)
+            );
     }
 
     /**
