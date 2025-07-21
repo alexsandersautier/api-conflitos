@@ -123,7 +123,7 @@ class ConflitoController extends Controller
     
     /**
      * @OA\Get(
-     *     path="/api/conflito/page",
+     *     path="/api/conflito/paginar",
      *     tags={"Conflitos"},
      *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
@@ -161,7 +161,7 @@ class ConflitoController extends Controller
         }
         
         $per_page = $request->per_page ?? 10;
-        $conflitos = Conflito::orderBy('created_at')->paginate($per_page);
+        $conflitos = Conflito::orderBy('created_at', 'desc')->paginate($per_page);
         return response()->json($conflitos);
     }
 
@@ -219,8 +219,8 @@ class ConflitoController extends Controller
             'regiao'                     => 'required|string|max:100',
             'dataInicioConflito'         => 'required|date',
             'dataFimConflito'            => 'nullable|date|after_or_equal:dataInicioConflito',
-            'latitude'                   => 'required|numeric|between:-90,90',
-            'longitude'                  => 'required|numeric|between:-180,180',
+            'latitude'                   => 'required|numeric',
+            'longitude'                  => 'required|numeric',
             'municipio'                  => 'required|string|max:100',
             'uf'                         => 'required|string|size:2',
             'flagOcorrenciaAmeaca'       => 'required|string',
@@ -247,31 +247,38 @@ class ConflitoController extends Controller
             
             // Sincroniza relações N:M
             if ($request->has('assuntos')) {
-                $conflito->assuntos()->sync($request->assuntos);
+                $idsAssuntos = array_column($request->assuntos, 'idAssunto');
+                $conflito->assuntos()->sync($idsAssuntos);
             }
             
             if ($request->has('impactos_ambientais')) {
-                $conflito->impactos_ambientais()->sync($request->impactos_ambientais);
+                $idsImpactosAmbientais = array_column($request->impactos_ambientais, 'idImpactoAmbiental');
+                $conflito->impactos_ambientais()->sync($idsImpactosAmbientais);
             }
             
             if ($request->has('impactos_saude')) {
-                $conflito->impactos_saude()->sync($request->impactos_saude);
+                $idImpactosSaude = array_column($request->impactos_saude, 'idImpactoSaude');
+                $conflito->impactos_saude()->sync($idImpactosSaude);
             }
             
             if ($request->has('impactos_socio_economicos')) {
-                $conflito->impactos_socio_economicos()->sync($request->impactos_socio_economicos);
+                $idsImpactoSocioEconomico = array_column($request->impactos_socio_economicos, 'idImpactoSocioEconomico');
+                $conflito->impactos_socio_economicos()->sync($idsImpactoSocioEconomico);
             }
             
             if ($request->has('povos')) {
-                $conflito->povos()->sync($request->povos);
+                $idsPovo = array_column($request->povos, 'idPovo');
+                $conflito->povos()->sync($idsPovo);
             }
             
             if ($request->has('terras_indigenas')) {
-                $conflito->terras_indigenas()->sync($request->terras_indigenas);
+                $idsTerraIndigena = array_column($request->terras_indigenas, 'idTerraIndigena');
+                $conflito->terras_indigenas()->sync($idsTerraIndigena);
             }
             
             if ($request->has('tipos_conflito')) {
-                $conflito->tipos_conflito()->sync($request->tipos_conflito);
+                $idsTipoConflito = array_column($request->tipos_conflito, 'idTipoConflito');
+                $conflito->tipos_conflito()->sync($idsTipoConflito);
             }
             
             DB::commit();
@@ -998,7 +1005,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $impactosAmbientais = $conflito->impactosAmbientais()->get();
+        $impactosAmbientais = $conflito->impactos_ambientais()->get();
         
         return response()->json($impactosAmbientais);
     }
@@ -1165,7 +1172,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $impactosSaude = $conflito->impactosSaude()->get();
+        $impactosSaude = $conflito->impactos_saude()->get();
         
         return response()->json($impactosSaude);
     }
@@ -1338,7 +1345,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $impactosSocioEconomicos = $conflito->impactosSocioEconomicos()->get();
+        $impactosSocioEconomicos = $conflito->impactos_socio_economicos()->get();
         
         return response()->json($impactosSocioEconomicos);
     }
@@ -1515,7 +1522,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $tiposConflito = $conflito->tiposConflito()->get();
+        $tiposConflito = $conflito->tipos_conflito()->get();
         
         return response()->json($tiposConflito);
     }
