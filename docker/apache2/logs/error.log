@@ -134,3 +134,38 @@ AH00558: apache2: Could not reliably determine the server's fully qualified doma
 [Mon Jul 21 12:40:05.790614 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00163: Apache/2.4.62 (Debian) PHP/8.2.28 configured -- resuming normal operations
 [Mon Jul 21 12:40:05.791034 2025] [core:notice] [pid 1:tid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
 [Mon Jul 21 13:14:56.656514 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00170: caught SIGWINCH, shutting down gracefully
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.18.0.2. Set the 'ServerName' directive globally to suppress this message
+[Mon Jul 28 18:06:46.202582 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:06:46.203918 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:07:07.785838 2025] [autoindex:error] [pid 19:tid 19] [client 172.18.0.1:43068] AH01276: Cannot serve directory /var/www/html/: No matching DirectoryIndex (index.php,index.html) found, and server-generated directory index forbidden by Options directive
+[Mon Jul 28 18:07:07.912447 2025] [autoindex:error] [pid 21:tid 21] [client 172.18.0.1:43058] AH01276: Cannot serve directory /var/www/html/: No matching DirectoryIndex (index.php,index.html) found, and server-generated directory index forbidden by Options directive
+[Mon Jul 28 18:21:54.413197 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:21:54.413909 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:27:56.584578 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:27:56.584917 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:30:00.632582 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:30:00.633003 2025] [core:notice] [pid 1:tid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:30:06.538768 2025] [autoindex:error] [pid 17:tid 17] [client 172.18.0.1:33404] AH01276: Cannot serve directory /var/www/html/: No matching DirectoryIndex (index.php,index.html) found, and server-generated directory index forbidden by Options directive
+[Mon Jul 28 18:30:36.545060 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00170: caught SIGWINCH, shutting down gracefully
+[Mon Jul 28 18:30:38.429133 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:30:38.429629 2025] [core:notice] [pid 1:tid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:32:39.753349 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00170: caught SIGWINCH, shutting down gracefully
+[Mon Jul 28 18:32:41.826546 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:32:41.826930 2025] [core:notice] [pid 1:tid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:32:56.902341 2025] [autoindex:error] [pid 18:tid 18] [client 172.18.0.1:53618] AH01276: Cannot serve directory /var/www/html/: No matching DirectoryIndex (index.php,index.html) found, and server-generated directory index forbidden by Options directive
+[Mon Jul 28 18:34:04.297210 2025] [mpm_prefork:notice] [pid 1:tid 1] AH00170: caught SIGWINCH, shutting down gracefully
+[Mon Jul 28 18:34:06.349819 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:34:06.350143 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:34:55.515889 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:34:55.516212 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Jul 28 18:39:54.834464 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Mon Jul 28 18:39:54.834883 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.18.0.2. Set the 'ServerName' directive globally to suppress this message
+[Tue Jul 29 14:41:02.607579 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Tue Jul 29 14:41:02.608388 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.18.0.2. Set the 'ServerName' directive globally to suppress this message
+[Tue Jul 29 15:02:05.364545 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Tue Jul 29 15:02:05.365062 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.18.0.2. Set the 'ServerName' directive globally to suppress this message
+[Tue Jul 29 15:10:26.506519 2025] [mpm_prefork:notice] [pid 8:tid 8] AH00163: Apache/2.4.62 (Debian) PHP/8.2.29 configured -- resuming normal operations
+[Tue Jul 29 15:10:26.506926 2025] [core:notice] [pid 8:tid 8] AH00094: Command line: 'apache2 -D FOREGROUND'
