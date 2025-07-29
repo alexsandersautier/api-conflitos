@@ -1,65 +1,110 @@
-FROM php:7.4-apache
-
-#RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
-#           -e 's|security.debian.org|archive.debian.org/debian-security/|g' \
-#           -e '/stretch-updates/d' /etc/apt/sources.list
-
-ARG user=anderson
-ARG uid=1000
-
-WORKDIR /var/www/html/
-
-# Apache conf
-COPY ./docker/000-default.conf /etc/apache2/sites-enabled/000-default.conf
-COPY ./docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Dependências do sistema e extensões PHP
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        nano git curl unzip zip \
-        cron gnupg2 tzdata openssl \
-        libpq-dev libzip-dev libonig-dev libxml2-dev \
-        libjpeg-dev libpng-dev libfreetype6-dev \
-        apt-transport-https lsb-release dos2unix && \
-    docker-php-ext-install \
-        pdo pdo_mysql pdo_pgsql \
-        xml soap ctype bcmath zip opcache && \
-    docker-php-ext-configure gd --with-jpeg --with-freetype && \
-    docker-php-ext-install gd && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+FROM php:8.2-apache-bullseye
 
 RUN a2enmod rewrite
-RUN a2enmod headers
 
-# Copiar os arquivos do projeto
-COPY ./codigo-fonte /var/www/html
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libicu-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    nano \
+    unzip
 
-# Instalar o Composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
-    php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); exit(1); } echo PHP_EOL;" && \
-    php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');"
+#clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/list/*
 
-# Instalar dependências do Composer como root
-RUN composer config --no-interaction allow-plugins.kylekatarnls/update-helper true
+# Install PHP extensions/modules.
+RUN apt-get update -y \
+	&& apt-get install -y apt-transport-https lsb-release dos2unix cron libpq-dev gnupg2 libxml2-dev libzip-dev libjpeg-dev libpng-dev libfreetype6-dev \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install intl \
+    && apt-get install tzdata \
+    && docker-php-ext-install pdo pdo_mysql mysqli  \
+    && docker-php-ext-install xml \
+    && docker-php-ext-install ctype \
+    && docker-php-ext-install bcmath \
+    && docker-php-ext-install zip \
+    #&& docker-php-ext-install opcache \
+    && docker-php-ext-configure gd --with-jpeg=/usr/include --with-freetype=/usr/include \
+    && docker-php-ext-install gd \
+    && apt-get -y clean \
+    && rm -rf /var/lib/apt/lists/*
 
-#RUN composer update --no-interaction --prefer-dist --optimize-autoloader
+# Timezone configuration
+ENV TZ="America/Sao_Paulo"
 
-# NodeJS
-RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Uploads.ini settings
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+#COPY ./docker/uploads.ini  "$PHP_INI_DIR/conf.d/uploads.ini"
+#COPY ./docker/extra-php.ini "$PHP_INI_DIR/99_extra.ini"
 
-# Cria usuário app
-RUN useradd -G www-data,root -u $uid -d /home/$user $user && \
-    mkdir -p /home/$user/.composer && \
-    chown -R $user:$user /home/$user
+# Apache settings
+COPY ./codigo-fonte/000-default.conf /etc/apache2/sites-enabled/000-default.conf
 
-#USER $user
+# Install Composer.
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
+    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
+    && php -r "unlink('composer-setup.php');"
 
-EXPOSE 80 443
-CMD ["sh", "-c", "/entrypoint.sh; apache2-foreground"]
+# Install Node.js, npm.
+#RUN apt-get update -y \
+#    && apt-get install -y \
+#        apt-transport-https \
+#        lsb-release \
+#        dos2unix \
+#    && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+#    && apt-get install -y nodejs \
+#    && apt-get -y clean \
+#    && rm -rf /var/lib/apt/lists/*
+
+# Change the working directory.
+WORKDIR /var/www/html
+
+# Install the backend application dependencies.
+COPY codigo-fonte/database ./database
+COPY codigo-fonte/composer.json ./composer.json
+COPY codigo-fonte/composer.lock ./composer.lock
+RUN composer update \
+ --no-interaction \
+ --no-plugins \
+ --no-scripts \
+ --prefer-dist
+
+COPY ./codigo-fonte ./
+
+# Install the frontend application dependencies.
+#COPY codigo-fonte/package.json ./
+#COPY codigo-fonte/package-lock.json ./
+
+#COPY ./codigo-fonte ./
+
+# Copy the application source code.
+#COPY . .
+#COPY ./docker/.env ./.env
+COPY ./codigo-fonte/entrypoint.sh ./entrypoint.sh
+
+#RUN npm install --loglevel silly
+# Alterando permissoes
+RUN chmod +x /var/www/html/entrypoint.sh
+RUN dos2unix ./entrypoint.sh
+
+RUN echo "* * * * * www-data php /var/www/html/artisan schedule:run >> /var/log/cron.log 2>&1" >> /etc/crontab
+RUN touch /var/log/cron.log \
+    && chown www-data:www-data /var/log/cron.log
+
+# Build the frontend application bundle.
+#RUN npm run prod
+
+# Generate REST API documentation.
+#RUN ./node_modules/.bin/apidoc -i ./src/api -o ./docs/rest_api/dist
+RUN chown -R www-data:www-data /var/www/html
+
+EXPOSE 80
+
+CMD [ "sh", "-c", "/var/www/html/entrypoint.sh; /usr/local/bin/apache2-foreground" ]
  
