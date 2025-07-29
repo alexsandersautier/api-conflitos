@@ -61,7 +61,7 @@ Route::get('/conflito/paginar', [ConflitoController::class, 'getAllPage'])->midd
 
 Route::prefix('conflito')->group(function () {
     Route::get('/',        [ConflitoController::class, 'index']);
-    //Route::get('/paginar', [ConflitoController::class, 'getAllPage'])
+    //Route::get('/paginar', [ConflitoController::class, 'getAllPage']);
     Route::post('/',       [ConflitoController::class, 'store']);
     Route::get('/{id}',    [ConflitoController::class, 'show']);
     Route::put('/{id}',    [ConflitoController::class, 'update']);
