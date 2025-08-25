@@ -22,11 +22,12 @@ return new class extends Migration
             $table->string('longitude', 200)->nullable();
             $table->string('municipio', 200)->nullable();
             $table->string('uf', 2)->nullable();
-            $table->boolean('flagOcorrenciaAmeaca')->default(0);
-            $table->boolean('flagOcorrenciaViolencia')->default(0);
-            $table->boolean('flagOcorrenciaAssassinato')->default(0);
-            $table->boolean('flagOcorrenciaFeridos')->default(0);
-            $table->boolean('flagMembroProgramaProtecao')->default(0);
+            $table->string('flagOcorrenciaAmeaca', 14)->default('SEM INFORMAÇÃO');
+            $table->string('flagOcorrenciaViolencia', 14)->default('SEM INFORMAÇÃO');
+            $table->string('flagOcorrenciaAssassinato', 14)->default('SEM INFORMAÇÃO');
+            $table->string('flagOcorrenciaFeridos', 14)->default('SEM INFORMAÇÃO');
+            $table->string('flagMembroProgramaProtecao', 14)->default('SEM INFORMAÇÃO');
+            $table->longText('estrategiaColetiva')->nullable();
             $table->timestamps();
         });
 
