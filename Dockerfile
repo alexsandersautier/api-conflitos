@@ -28,7 +28,6 @@ RUN apt-get update -y \
     && docker-php-ext-install ctype \
     && docker-php-ext-install bcmath \
     && docker-php-ext-install zip \
-    #&& docker-php-ext-install opcache \
     && docker-php-ext-configure gd --with-jpeg=/usr/include --with-freetype=/usr/include \
     && docker-php-ext-install gd \
     && apt-get -y clean \
@@ -39,8 +38,6 @@ ENV TZ="America/Sao_Paulo"
 
 # Uploads.ini settings
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-#COPY ./docker/uploads.ini  "$PHP_INI_DIR/conf.d/uploads.ini"
-#COPY ./docker/extra-php.ini "$PHP_INI_DIR/99_extra.ini"
 
 # Apache settings
 COPY ./codigo-fonte/000-default.conf /etc/apache2/sites-enabled/000-default.conf
@@ -50,17 +47,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
-
-# Install Node.js, npm.
-#RUN apt-get update -y \
-#    && apt-get install -y \
-#        apt-transport-https \
-#        lsb-release \
-#        dos2unix \
-#    && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-#    && apt-get install -y nodejs \
-#    && apt-get -y clean \
-#    && rm -rf /var/lib/apt/lists/*
 
 # Change the working directory.
 WORKDIR /var/www/html
@@ -76,19 +62,8 @@ RUN composer update \
  --prefer-dist
 
 COPY ./codigo-fonte ./
-
-# Install the frontend application dependencies.
-#COPY codigo-fonte/package.json ./
-#COPY codigo-fonte/package-lock.json ./
-
-#COPY ./codigo-fonte ./
-
-# Copy the application source code.
-#COPY . .
-#COPY ./docker/.env ./.env
 COPY ./codigo-fonte/entrypoint.sh ./entrypoint.sh
 
-#RUN npm install --loglevel silly
 # Alterando permissoes
 RUN chmod +x /var/www/html/entrypoint.sh
 RUN dos2unix ./entrypoint.sh
@@ -97,11 +72,6 @@ RUN echo "* * * * * www-data php /var/www/html/artisan schedule:run >> /var/log/
 RUN touch /var/log/cron.log \
     && chown www-data:www-data /var/log/cron.log
 
-# Build the frontend application bundle.
-#RUN npm run prod
-
-# Generate REST API documentation.
-#RUN ./node_modules/.bin/apidoc -i ./src/api -o ./docs/rest_api/dist
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
