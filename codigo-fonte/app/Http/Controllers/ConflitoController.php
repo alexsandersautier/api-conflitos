@@ -216,6 +216,8 @@ class ConflitoController extends Controller
         $validator = Validator::make($request->all(), [
             'nome'                       => 'required|string|max:255',
             'descricao'                  => 'required|string',
+            'relato'                     => 'required|string',
+            'processoSei'                => 'required|string',
             'regiao'                     => 'required|string|max:100',
             'dataInicioConflito'         => 'required|date',
             'dataFimConflito'            => 'nullable|date|after_or_equal:dataInicioConflito',
@@ -323,7 +325,13 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflito = Conflito::find($id);
+        $conflito = Conflito::with(['assuntos',
+            'impactos_ambientais',
+            'impactos_saude',
+            'impactos_socio_economicos',
+            'povos',
+            'terras_indigenas',
+            'tipos_conflito'])->find($id);
         
         if (!$conflito) {
             return response()->json([
@@ -381,17 +389,20 @@ class ConflitoController extends Controller
         $validator = Validator::make($request->all(), [
             'nome'                       => 'required|string|max:255',
             'descricao'                  => 'required|string',
+            'relato'                     => 'required|string',
+            'processoSei'                => 'required|string',
             'regiao'                     => 'required|string|max:100',
-            'dataConflito'               => 'required|date',
-            'latitude'                   => 'required|numeric|between:-90,90',
-            'longitude'                  => 'required|numeric|between:-180,180',
+            'dataInicioConflito'         => 'required|date',
+            'dataFimConflito'            => 'nullable|date|after_or_equal:dataInicioConflito',
+            'latitude'                   => 'required|numeric',
+            'longitude'                  => 'required|numeric',
             'municipio'                  => 'required|string|max:100',
             'uf'                         => 'required|string|size:2',
-            'flagOcorrenciaAmeaca'       => 'sometimes|boolean',
-            'flagOcorrenciaViolencia'    => 'sometimes|boolean',
-            'flagOcorrenciaAssassinato'  => 'sometimes|boolean',
-            'flagOcorrenciaFeridos'      => 'sometimes|boolean',
-            'flagMembroProgramaProtecao' => 'sometimes|boolean'
+            'flagOcorrenciaAmeaca'       => 'required|string',
+            'flagOcorrenciaViolencia'    => 'required|string',
+            'flagOcorrenciaAssassinato'  => 'required|string',
+            'flagOcorrenciaFeridos'      => 'required|string',
+            'flagMembroProgramaProtecao' => 'required|string'
         ],[
             'nome.required'              => 'O título é obrigatório',
             'descricao.required'         => 'A descrição é obrigatória',

@@ -14,6 +14,8 @@ class Conflito extends Model
     
     protected $fillable = ['nome',
                            'descricao',
+                           'relato',
+                           'processoSei',
                            'regiao',
                            'dataInicioConflito',
                            'dataFimConflito',
