@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ator', function (Blueprint $table) {
-            $table->id('idAtor')->primary();
-            $table->string('nome', 200);
-        });
-        
-        Schema::create('categoria_ator', function (Blueprint $table) {
-            $table->id('idCategoriaAtor')->primary();
+        Schema::create('impacto_socio_economico', function (Blueprint $table) {
+            $table->id('idImpactoSocioEconomico')->primary();
             $table->string('nome', 100);
         });
     }
@@ -27,7 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ator');
-        Schema::dropIfExists('categoria_ator');
+        Schema::dropIfExists('impacto_socio_economico');
     }
 };

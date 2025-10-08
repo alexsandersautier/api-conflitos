@@ -6,149 +6,131 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('conflito', function (Blueprint $table) {
             $table->id('idConflito')->primary();
-            $table->string('nome', 200);
-            $table->longText('descricao')->nullable();
-            $table->string('regiao', 200)->nullable();
+            
+            // Campos principais
+            $table->decimal('latitude', 11, 8);
+            $table->decimal('longitude', 11, 8);
+            $table->string('nome');
+            $table->text('relato');
             $table->date('dataInicioConflito');
-            $table->date('dataFimConflito')->nullable();
-            $table->string('latitude', 200)->nullable();
-            $table->string('longitude', 200)->nullable();
-            $table->string('municipio', 200)->nullable();
-            $table->string('uf', 2)->nullable();
-            $table->string('flagOcorrenciaAmeaca', 14)->default('SEM INFORMAÇÃO');
-            $table->string('flagOcorrenciaViolencia', 14)->default('SEM INFORMAÇÃO');
-            $table->string('flagOcorrenciaAssassinato', 14)->default('SEM INFORMAÇÃO');
-            $table->string('flagOcorrenciaFeridos', 14)->default('SEM INFORMAÇÃO');
-            $table->string('flagMembroProgramaProtecao', 14)->default('SEM INFORMAÇÃO');
-            $table->longText('estrategiaColetiva')->nullable();
+            $table->date('dataAcionamentoMpiConflito')->nullable();
+            $table->string('regiaoPrioritaria')->nullable();
+            $table->string('classificacaoGravidadeConflitoDemed')->nullable();
+            $table->string('atualizacaoClassificacaoGravidadeConflito')->nullable();
+            $table->date('dataReferenciaMudancaClassificacao')->nullable();
+            $table->string('estrategiaGeralUtilizadaDemed')->nullable();
+            $table->text('observacoes')->nullable();
+            
+            // Flags como string
+            $table->string('flagHasImpactoAmbiental', 3)->default('NÃO');
+            $table->string('flagHasImpactoSaude', 3)->default('NÃO');
+            $table->string('flagHasImpactoSocioEconomico', 3)->default('NÃO');
+            $table->string('flagHasViolenciaIndigena', 3)->default('NÃO');
+            $table->string('flagHasMembroProgramaProtecao', 3)->default('NÃO');
+            $table->string('flagHasBOouNF', 3)->default('NÃO');
+            $table->string('flagHasInquerito', 3)->default('NÃO');
+            $table->string('flagHasProcessoJudicial', 3)->default('NÃO');
+            $table->string('flagHasAssistenciaJuridica', 3)->default('NÃO');
+            $table->string('flagHasRegiaoPrioritaria', 3)->default('NÃO');
+            $table->string('flagHasViolenciaPatrimonialIndigena', 3)->default('NÃO');
+            $table->string('flagHasEventoViolenciaIndigena', 3)->default('NÃO');
+            $table->string('flagHasAssassinatoPrisaoNaoIndigena', 3)->default('NÃO');
+            
+            // Programa de proteção
+            $table->string('numeroSeiProgramaProtecao')->nullable();
+            $table->string('idProgramaProtecao')->nullable();
+            $table->string('ufProgramaProtecao', 2)->nullable();
+                                    
+            // Status
+            $table->string('status')->default('EM ANÁLISE');
+            
             $table->timestamps();
-        });
-
-        Schema::create('povo_conflito', function (Blueprint $table) {
-            // Chaves estrangeiras
-            $table->unsignedBigInteger('idConflito');
-            $table->unsignedBigInteger('idPovo');
-            
-            // Chave primária composta
-            $table->primary(['idConflito', 'idPovo']);
-            
-            // Constraints de chave estrangeira
-            $table->foreign('idConflito')
-            ->references('idConflito')
-            ->on('conflito')
-            ->onDelete('cascade');
-            
-            $table->foreign('idPovo')
-            ->references('idPovo')
-            ->on('povo')
-            ->onDelete('cascade');
+            $table->softDeletes();
         });
         
-        Schema::create('terra_indigena_conflito', function (Blueprint $table) {
-            // Chaves estrangeiras
-            $table->unsignedBigInteger('idConflito');
-            $table->unsignedBigInteger('idTerraIndigena');
+        Schema::create('aldeia_conflito', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idAldeia')->constrained('aldeia')->onDelete('cascade');
+            $table->timestamps();
             
-            // Chave primária composta
-            $table->primary(['idConflito', 'idTerraIndigena']);
-            
-            // Constraints de chave estrangeira
-            $table->foreign('idConflito')
-            ->references('idConflito')
-            ->on('conflito')
-            ->onDelete('cascade');
-            
-            $table->foreign('idTerraIndigena')
-            ->references('idTerraIndigena')
-            ->on('terra_indigena')
-            ->onDelete('cascade');
+            $table->unique(['idConflito', 'idAldeia']);
         });
         
         Schema::create('assunto_conflito', function (Blueprint $table) {
-            // Chaves estrangeiras
-            $table->unsignedBigInteger('idConflito');
-            $table->unsignedBigInteger('idAssunto');
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idAssunto')->constrained('assunto')->onDelete('cascade');
+            $table->timestamps();
             
-            // Chave primária composta
-            $table->primary(['idConflito', 'idAssunto']);
+            $table->unique(['idConflito', 'idAssunto']);
+        });
+            
+        Schema::create('ator_conflito', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idAtor')->constrained('ator')->onDelete('cascade');
+            $table->timestamps();
+            
+            $table->unique(['idConflito', 'idAtor']);
+        });
+        
+        Schema::create('categoria_ator_conflito', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idCategoriaAtor')->constrained('categoria_ator')->onDelete('cascade');
+            $table->timestamps();
+            
+            $table->unique(['idConflito', 'idCategoriaAtor']);
+        });
 
-            // Constraints de chave estrangeira
-            $table->foreign('idConflito')
-                  ->references('idConflito')
-                  ->on('conflito')
-                  ->onDelete('cascade');
-
-            $table->foreign('idAssunto')
-                  ->references('idAssunto')
-                  ->on('assunto')
-                  ->onDelete('cascade');
+        Schema::create('povo_conflito', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idPovo')->constrained('povo')->onDelete('cascade');
+            $table->timestamps();
+            
+            $table->unique(['idConflito', 'idPovo']);
+        });
+        
+        Schema::create('terra_indigena_conflito', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idTerraIndigena')->constrained('terra_indigena')->onDelete('cascade');
+            $table->timestamps();
+            
+            $table->unique(['idConflito', 'idTerraIndigena']);
         });
 
         Schema::create('conflito_tipo_conflito', function (Blueprint $table) {
-            // Chaves estrangeiras
-            $table->unsignedBigInteger('idConflito');
-            $table->unsignedBigInteger('idTipoConflito');
-
-            // Chave primária composta
-            $table->primary(['idConflito', 'idTipoConflito']);
-
-            // Constraints de chave estrangeira
-            $table->foreign('idConflito')
-                  ->references('idConflito')
-                  ->on('conflito')
-                  ->onDelete('cascade');
-
-            $table->foreign('idTipoConflito')
-                  ->references('idTipoConflito')
-                  ->on('tipo_conflito')
-                  ->onDelete('cascade');
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idTipoConflito')->constrained('tipo_conflito')->onDelete('cascade');
+            $table->timestamps();
+            
+            $table->unique(['idConflito', 'idTipoConflito']);
         });
 
         Schema::create('impacto_ambiental_conflito', function (Blueprint $table) {
-            // Chaves estrangeiras
-            $table->unsignedBigInteger('idConflito');
-            $table->unsignedBigInteger('idImpactoAmbiental');
-
-            // Chave primária composta
-            $table->primary(['idConflito', 'idImpactoAmbiental']);
-
-            // Constraints de chave estrangeira
-            $table->foreign('idConflito')
-                  ->references('idConflito')
-                  ->on('conflito')
-                  ->onDelete('cascade');
-
-            $table->foreign('idImpactoAmbiental')
-                  ->references('idImpactoAmbiental')
-                  ->on('impacto_ambiental')
-                  ->onDelete('cascade');
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idImpactoAmbiental')->constrained('impacto_ambiental')->onDelete('cascade');
+            $table->timestamps();
+            
+            $table->unique(['idConflito', 'idImpactoAmbiental']);
         });
 
         Schema::create('impacto_saude_conflito', function (Blueprint $table) {
-            // Chaves estrangeiras
-            $table->unsignedBigInteger('idConflito');
-            $table->unsignedBigInteger('idImpactoSaude');
-
-            // Chave primária composta
-            $table->primary(['idConflito', 'idImpactoSaude']);
-
-            // Constraints de chave estrangeira
-            $table->foreign('idConflito')
-                  ->references('idConflito')
-                  ->on('conflito')
-                  ->onDelete('cascade');
-
-            $table->foreign('idImpactoSaude')
-                  ->references('idImpactoSaude')
-                  ->on('impacto_saude')
-                  ->onDelete('cascade');
+            $table->id();
+            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
+            $table->foreignId('idImpactoSaude')->constrained('impacto_saude')->onDelete('cascade');
+            $table->timestamps();
+            
+            $table->unique(['idConflito', 'idImpactoSaude']);
         });
 
         Schema::create('impacto_socio_economico_conflito', function (Blueprint $table) {
@@ -169,6 +151,7 @@ return new class extends Migration
                   ->references('idImpactoSocioEconomico')
                   ->on('impacto_socio_economico')
                   ->onDelete('cascade');
+            $table->timestamps();
         });
         
         Schema::create('tipo_conflito', function (Blueprint $table) {
@@ -180,26 +163,6 @@ return new class extends Migration
             $table->id('idAssunto')->primary();
             $table->string('nome', 50);
         });
-                
-        Schema::create('impacto_ambiental', function (Blueprint $table) {
-            $table->id('idImpactoAmbiental')->primary();
-            $table->string('nome', 50);
-        });
-                    
-        Schema::create('impacto_saude', function (Blueprint $table) {
-            $table->id('idImpactoSaude')->primary();
-            $table->string('nome', 100);
-        });
-                        
-        Schema::create('impacto_socio_economico', function (Blueprint $table) {
-            $table->id('idImpactoSocioEconomico')->primary();
-            $table->string('nome', 100);
-        });
-        
-        Schema::create('tipo_estrategia', function (Blueprint $table) {
-            $table->id('idTipoEstrategia')->primary();
-            $table->string('nome', 100);
-        });
     }
 
     /**
@@ -207,17 +170,18 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('assunto');
+        Schema::dropIfExists('aldeia_conflito');
         Schema::dropIfExists('assunto_conflito');
+        Schema::dropIfExists('ator_conflito');
+        Schema::dropIfExists('categoria_ator_conflito');
         Schema::dropIfExists('conflito_tipo_conflito');
         Schema::dropIfExists('impacto_ambiental_conflito');
         Schema::dropIfExists('impacto_saude_conflito');
         Schema::dropIfExists('impacto_socio_economico_conflito');
         Schema::dropIfExists('conflito');
         Schema::dropIfExists('tipo_conflito');
-        Schema::dropIfExists('assunto');
-        Schema::dropIfExists('impacto_ambiental');
-        Schema::dropIfExists('impacto_saude');
-        Schema::dropIfExists('impacto_socio_economico');
-        Schema::dropIfExists('tipo_estrategia');
+        Schema::dropIfExists('povo_conflito');
+        Schema::dropIfExists('terra_indigena_conflito');
     }
 };
