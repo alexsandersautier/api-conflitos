@@ -2053,16 +2053,16 @@ class ConflitoController extends Controller
             'dataInicioConflito' => ['required', 'date'],
 
             // Campos condicionais baseados nas flags
-            'dataAcionamentoMpiConflito' => [
-                'nullable',
-                'date',
-                function ($attribute, $value, $fail) {
-                    $dataInicio = request('dataInicioConflito');
-                    if ($dataInicio && $value && $value < $dataInicio) {
-                        $fail('A data de acionamento do MPI não pode ser anterior à data de início do conflito.');
-                    }
-                }
-                ],
+//             'dataAcionamentoMpiConflito' => [
+//                 'nullable',
+//                 'date',
+//                 function ($attribute, $value, $fail) {
+//                     $dataInicio = request('dataInicioConflito');
+//                     if ($dataInicio && $value && $value < $dataInicio) {
+//                         $fail('A data de acionamento do MPI não pode ser anterior à data de início do conflito.');
+//                     }
+//                 }
+//                 ],
                 
             // Flags (valores permitidos: SIM/NÃO)
             'flagHasImpactoAmbiental'               => ['required', 'in:SIM,NÃO'],
