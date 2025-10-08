@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('numero', 50);
             $table->string('tipoPoder');
             $table->string('orgaoApoio');
-            $table->string('numeroSei', 50);
+            $table->integer('numeroSei');
             $table->timestamps();
         });
     }
