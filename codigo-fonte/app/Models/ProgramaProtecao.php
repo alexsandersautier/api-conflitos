@@ -16,7 +16,7 @@ class ProgramaProtecao extends Model
                             'idConflito', 
                             'tipoPrograma', 
                             'uf',  
-                            'numerosei'];
+                            'numeroSei'];
     
     public function conflito() {
         return $this->belongsTo(Conflito::class, 'idConflito');

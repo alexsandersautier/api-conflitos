@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('idConflito')->constrained('conflito');
             $table->string('tipoPrograma');
             $table->string('uf',2);
-            $table->string('numeroSei', 20);
+            $table->integer('numeroSei');
             $table->timestamps();
         });
     }

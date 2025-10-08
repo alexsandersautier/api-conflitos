@@ -17,7 +17,7 @@ class ProcessoJudicial extends Model
                            'numero', 
                            'tipoPoder', 
                            'orgaoApoio', 
-                           'numerosei'];
+                           'numeroSei'];
     
     protected $cast = ['data' => 'date'];
 
