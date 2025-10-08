@@ -134,7 +134,25 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflitos = Conflito::orderBy('dataInicioConflito', 'desc')->get();
+        $conflitos = Conflito::with([
+                                        'aldeias',
+                                        'assuntos',
+                                        'atoresIdentificados',
+                                        'categoriasAtores',
+                                        'impactosAmbientais',
+                                        'impactosSaude',
+                                        'impactosSocioEconomicos',
+                                        'inqueritos',
+                                        'numerosSeiIdentificacaoConflito',
+                                        'povos',
+                                        'processosJudiciais',
+                                        'programasProtecao',
+                                        'terrasIndigenas',
+                                        'tiposConflito',
+                                        'violenciasPatrimoniais',
+                                        'violenciasPessoasIndigenas',
+                                        'violenciasPessoasNaoIndigenas',
+                                    ])->orderBy('dataInicioConflito', 'desc')->get();
         return response()->json($conflitos);
     }
     
@@ -304,7 +322,7 @@ class ConflitoController extends Controller
                         'numero'     => $inquerito['numero'] ?? null,
                         'orgao'      => $inquerito['orgao'] ?? null,
                         'tipoOrgao'  => $inquerito['tipoOrgao'] ?? null,
-                        'numeroSei'  => $inquerito['numeroSei'] ?? '' // Garantir string vazia se não houver
+                        'numeroSei'  => $inquerito['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -318,7 +336,7 @@ class ConflitoController extends Controller
                         'numero'     => $processo['numero'] ?? null,
                         'tipoPoder'  => $processo['tipoPoder'] ?? null,
                         'orgaoApoio' => $processo['orgaoApoio'] ?? null,
-                        'numeroSei'  => $processo['numeroSei']
+                        'numeroSei'  => $processo['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -330,7 +348,7 @@ class ConflitoController extends Controller
                         'idConflito'   => $conflito->idConflito,
                         'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
                         'uf'           => $programaProtecao['uf'] ?? null,
-                        'numeroSei'    => $programaProtecao['numeroSei']
+                        'numeroSei'    => $programaProtecao['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -451,9 +469,7 @@ class ConflitoController extends Controller
             
             return response()->json([
                 'message' => 'Erro ao criar conflito',
-                'error' => $e->getMessage().' - ',
-                'processos' => $request->processosJudiciais,
-                'programas' => $request->programasProtecao
+                'error' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -486,7 +502,24 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflito = Conflito::findOrFail($id);
+        $conflito = Conflito::with(['aldeias',
+                                    'assuntos',
+                                    'atoresIdentificados',
+                                    'categoriasAtores',
+                                    'impactosAmbientais',
+                                    'impactosSaude',
+                                    'impactosSocioEconomicos',
+                                    'inqueritos',
+                                    'numerosSeiIdentificacaoConflito',
+                                    'povos',
+                                    'processosJudiciais',
+                                    'programasProtecao',
+                                    'terrasIndigenas',
+                                    'tiposConflito',
+                                    'violenciasPatrimoniais',
+                                    'violenciasPessoasIndigenas',
+                                    'violenciasPessoasNaoIndigenas',
+                                ])->findOrFail($id);
         
         if (!$conflito) {
             return response()->json([
