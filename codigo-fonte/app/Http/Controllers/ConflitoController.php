@@ -25,6 +25,7 @@ use App\Models\Inquerito;
 use App\Models\ProgramaProtecao;
 use App\Models\ProcessoJudicial;
 use Illuminate\Support\Facades\Log;
+use App\Models\LocalidadeConflito;
 
 /**
  *  @OA\Schema(
@@ -327,6 +328,19 @@ class ConflitoController extends Controller
                 }
             }
             
+            // Criar localidadesConflito
+            if ($request->has('localidades') && is_array($request->localidades)) {
+                foreach ($request->localidades as $localidade) {
+                    LocalidadeConflito::create([
+                        'idConflito' => $conflito->idConflito,
+                        'regiao'     => $localidade['regiao'] ?? null,
+                        'uf'         => $localidade['uf'] ?? null,
+                        'municipio'  => $localidade['municipio'] ?? null
+                    ]);
+                }
+            }
+            
+            
             // Criar processosJudiciais
             if ($request->has('processosJudiciais') && is_array($request->processosJudiciais)) {
                 foreach ($request->processosJudiciais as $processo) {
@@ -451,6 +465,7 @@ class ConflitoController extends Controller
                 'impactosSaude',
                 'impactosSocioEconomicos',
                 'inqueritos',
+                'localidadesConflito',
                 'numerosSeiIdentificacaoConflito',
                 'povos',
                 'processosJudiciais',
@@ -510,6 +525,7 @@ class ConflitoController extends Controller
                                     'impactosSaude',
                                     'impactosSocioEconomicos',
                                     'inqueritos',
+                                    'localidadesConflito',
                                     'numerosSeiIdentificacaoConflito',
                                     'povos',
                                     'processosJudiciais',

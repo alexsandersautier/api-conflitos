@@ -202,6 +202,14 @@ class Conflito extends Model
     /**
      * Relacionamento um-para-muitos com IdentificacaoConflito
      */
+    public function localidadesConflito(): HasMany
+    {
+        return $this->hasMany(LocalidadeConflito::class, 'idConflito');
+    }
+    
+    /**
+     * Relacionamento um-para-muitos com IdentificacaoConflito
+     */
     public function numerosSeiIdentificacaoConflito(): HasMany
     {
         return $this->hasMany(NumeroSeiIdentificacaoConflito::class, 'idConflito');
