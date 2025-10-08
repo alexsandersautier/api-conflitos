@@ -12,7 +12,7 @@ use Illuminate\Http\Response;
  *     schema="Ator",
  *     type="object",
  *     @OA\Property(property="idAtor", type="integer", example="1"),
- *     @OA\Property(property="tipoAtor", type="object", ref="#/components/schemas/TipoAtor"),
+ *     @OA\Property(property="categoriaAtor", type="object", ref="#/components/schemas/CategoriaAtor"),
  *     @OA\Property(property="conflito", type="object", ref="#/components/schemas/Conflito"),
  *     @OA\Property(property="nome", type="string", example="Nome do ator")
  * )
@@ -59,8 +59,8 @@ class AtorController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"idTipoAtor", "idConflito", "nome"}, 
-     *             @OA\Property(property="idTipoAtor", type="integer", example="1"),
+     *             required={"idCategoriaAtor", "idConflito", "nome"}, 
+     *             @OA\Property(property="idCategoriaAtor", type="integer", example="1"),
      *             @OA\Property(property="idConflito", type="integer", example="1"),
      *             @OA\Property(property="nome", type="string", example="João da Silva")
      *         )
@@ -81,7 +81,7 @@ class AtorController extends Controller
         }
         
         $validatedData = $request->validate([
-            'idTipoAtor' => 'required|integer|exists:tipo_ator,idTipoAtor',
+            'idCategoriaAtor' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
             'idConflito' => 'required|integer|exists:conflito,idConflito',
             'nome' => 'required|string|max:100'
         ]);
@@ -137,8 +137,8 @@ class AtorController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"idTipoAtor", "idConflito", "nome"}, 
-     *             @OA\Property(property="idTipoAtor", type="integer", example="1"),
+     *             required={"idCategoriaAtor", "idConflito", "nome"}, 
+     *             @OA\Property(property="idCategoriaAtor", type="integer", example="1"),
      *             @OA\Property(property="idConflito", type="integer", example="1"),
      *             @OA\Property(property="nome", type="string", example="João da Silva")
      *         )
@@ -161,7 +161,7 @@ class AtorController extends Controller
         $ator = Ator::findOrFail($id);
 
         $validatedData = $request->validate([
-            'idTipoAtor' => 'required|integer|exists:tipo_ator,idTipoAtor',
+            'idCategoriaAtor' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
             'idConflito' => 'required|integer|exists:conflito,idConflito',
             'nome' => 'required|string|max:100'
         ]);
@@ -237,7 +237,7 @@ class AtorController extends Controller
                 ], Response::HTTP_UNAUTHORIZED);
             }
             
-            return Ator::with(['tipo_ator', 'conflito'])->where('idConflito', $idConflito)->get();
+            return Ator::with(['categoria_ator', 'conflito'])->where('idConflito', $idConflito)->get();
             
         } catch (\Exception $e) {
             return response()->json([

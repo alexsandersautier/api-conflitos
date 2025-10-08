@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('episodio', function (Blueprint $table) {
-            $table->id('idEpisodio')->primary();
+        Schema::create('violencia_pessoa_nao_indigena', function (Blueprint $table) {
+            $table->id('idViolenciaPessoaNaoIndigena')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
-            $table->string('titulo', 50);
-            $table->longText('descricao');
+            $table->string('tipoViolencia', 100);
+            $table->string('tipoPessoa', 100);
+            $table->date('data');
+            $table->string('nome', 200);
+            $table->string('numeroSei', 20);
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('episodio');
+        Schema::dropIfExists('violencia_pessoa_nao_indigena');
     }
 };

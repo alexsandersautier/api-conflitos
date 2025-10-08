@@ -5,21 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Episodio extends Model
+class Inquerito extends Model
 {
     use HasFactory;
 
-    protected $table = 'episodio';
-    protected $primaryKey = 'idEpisodio';
+    protected $table = 'inquerito';
+    protected $primaryKey = 'idInquerito';
 
     protected $fillable = [
         'idConflito',
-        'titulo',
-        'descricao',
-        'dataHora'
+        'data',
+        'numero',
+        'orgao',
+        'tipoOrgao',
+        'numeroSei'
     ];
-    
-    public $timestamps = false;
 
     public function conflito() {
         return $this->belongsTo(Conflito::class, 'idConflito');
