@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ator', function (Blueprint $table) {
-            $table->id('idAtor')->primary();
+        Schema::create('ator_identificado_conflito', function (Blueprint $table) {
+            $table->id('idAtorIdentificadoConflito');
+            $table->foreignId('idConflito')->constrained('conflito');
             $table->string('nome', 200);
-        });
-        
-        Schema::create('categoria_ator', function (Blueprint $table) {
-            $table->id('idCategoriaAtor')->primary();
-            $table->string('nome', 100);
         });
     }
 
@@ -27,7 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ator');
-        Schema::dropIfExists('categoria_ator');
+        Schema::dropIfExists('ator_identificado_conflito');
     }
 };

@@ -2,44 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Episodio;
+use App\Models\CategoriaAtor;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Schema(
- *     schema="Episodio",
+ *     schema="CategoriaAtor",
  *     type="object",
- *     @OA\Property(property="idEpisodio", type="integer", example=1),
- *     @OA\Property(property="titulo",   type="string",   example="Título do episodio"),
- *     @OA\Property(property="conflito", type="object",   description="Conflito vinculado", ref="#/components/schemas/Conflito"),
- *     @OA\Property(property="dataHora", type="datetime", example="Data/Hora do episodio"),
+ *     @OA\Property(property="idCategoriaAtor", type="integer"),
+ *     @OA\Property(property="nome", type="string", example="Latifundiário")
  * )
  * 
  * @OA\PathItem(
- *     path="/api/episodio"
+ *     path="/api/categoria-ator"
  * )
  *
  * @OA\Tag(
- *     name="Episodios",
- *     description="Endpoints para Episódios"
+ *     name="CategoriasAtor",
+ *     description="Endpoints para Categorias de Ator"
  * )
  */
-class EpisodioController extends Controller
+class CategoriaAtorController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/episodio",
-     *     tags={"Episodios"},
+     *     path="/api/categoria-ator",
+     *     tags={"CategoriasAtor"},
      *     security={ {"sanctum": {} } },
-     *     summary="Listar todos os episodios",
+     *     summary="Listar todos os categorias de ator",
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de episodios",
+     *         description="Lista de categorias de ator",
      *         @OA\JsonContent(
      *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Episodio")
+     *             @OA\Items(ref="#/components/schemas/CategoriaAtor")
      *         )
      *     )
      * )
@@ -49,30 +47,30 @@ class EpisodioController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $episodio = Episodio::all();
-        return response()->json($episodio);
+        $categoriaator = CategoriaAtor::all();
+        return response()->json($categoriaator);
     }
 
     /**
      * @OA\Post(
-     *     path="/api/episodio",
-     *     tags={"Episodios"},
+     *     path="/api/categoria-ator",
+     *     tags={"CategoriasAtor"},
      *     security={ {"sanctum": {} } },
-     *     summary="Criar um novo episodio",
+     *     summary="Criar um novo categoria de ator",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Departamento de TI")
+     *             @OA\Property(property="nome", type="string", example="Categoria de Ator do Conflito")
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="Episodio criado"
+     *         description="Categoria de Ator criado"
      *     )
      * )
      */
@@ -81,7 +79,7 @@ class EpisodioController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
@@ -89,16 +87,16 @@ class EpisodioController extends Controller
             'nome' => 'required|string|max:255',
         ]);
 
-        $episodio = Episodio::create($validatedData);
-        return response()->json($episodio, Response::HTTP_CREATED);
+        $categoriaator = CategoriaAtor::create($validatedData);
+        return response()->json($categoriaator, Response::HTTP_CREATED);
     }
 
     /**
      * @OA\Get(
-     *     path="/api/episodio/{id}",
-     *     tags={"Episodios"},
+     *     path="/api/categoria-ator/{id}",
+     *     tags={"CategoriasAtor"},
      *     security={ {"sanctum": {} } },
-     *     summary="Obter um episodio específico",
+     *     summary="Obter um categoria de ator específico",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -107,8 +105,8 @@ class EpisodioController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Dados do episodio",
-     *         @OA\JsonContent(ref="#/components/schemas/Episodio")
+     *         description="Dados do categoria de ator",
+     *         @OA\JsonContent(ref="#/components/schemas/CategoriaAtor")
      *     )
      * )
      */
@@ -117,20 +115,20 @@ class EpisodioController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $episodio = Episodio::findOrFail($id);
-        return response()->json($episodio);
+        $categoriaator = CategoriaAtor::findOrFail($id);
+        return response()->json($categoriaator);
     }
 
     /**
      * @OA\Put(
-     *     path="/api/episodio/{id}",
-     *     tags={"Episodios"},
+     *     path="/api/categoria-ator/{id}",
+     *     tags={"CategoriasAtor"},
      *     security={ {"sanctum": {} } },
-     *     summary="Atualizar um episodio específico",
+     *     summary="Atualizar um categoria de ator específico",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -141,13 +139,12 @@ class EpisodioController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Departamento de TI")
+     *             @OA\Property(property="nome", type="string", example="Categoria de Ator do Conflito")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Episodio atualizado",
-     *         @OA\JsonContent(ref="#/components/schemas/Episodio")
+     *         description="Categoria de Ator atualizado"
      *     )
      * )
      */
@@ -156,26 +153,26 @@ class EpisodioController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $episodio = Episodio::findOrFail($id);
+        $categoriaator = CategoriaAtor::findOrFail($id);
 
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
 
-        $episodio->update($validatedData);
-        return response()->json($episodio);
+        $categoriaator->update($validatedData);
+        return response()->json($categoriaator);
     }
 
     /**
      * @OA\Delete(
-     *     path="/api/episodio/{id}",
-     *     tags={"Episodios"},
+     *     path="/api/categoria-ator/{id}",
+     *     tags={"CategoriasAtor"},
      *     security={ {"sanctum": {} } },
-     *     summary="Excluir um episodio específico",
+     *     summary="Excluir um categoria de ator específico",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -184,7 +181,7 @@ class EpisodioController extends Controller
      *     ),
      *     @OA\Response(
      *         response=204,
-     *         description="Episodio excluído"
+     *         description="Categoria de Ator excluído"
      *     )
      * )
      */
@@ -193,12 +190,12 @@ class EpisodioController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $episodio = Episodio::findOrFail($id);
-        $episodio->delete();
+        $categoriaator = CategoriaAtor::findOrFail($id);
+        $categoriaator->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

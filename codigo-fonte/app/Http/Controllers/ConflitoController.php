@@ -16,6 +16,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 use App\Models\TerraIndigena;
 use App\Models\Povo;
+use App\Models\NumeroSeiIdentificacaoConflito;
+use App\Models\ViolenciaPessoaNaoIndigena;
+use App\Models\ViolenciaPessoaIndigena;
+use App\Models\ViolenciaPatrimonial;
+use App\Models\AtorIdentificadoConflito;
+use App\Models\Inquerito;
+use App\Models\ProgramaProtecao;
+use App\Models\ProcessoJudicial;
+use Illuminate\Support\Facades\Log;
 
 /**
  *  @OA\Schema(
@@ -80,6 +89,14 @@ use App\Models\Povo;
  *     )
  * )
  * 
+ * @OA\Schema(
+ *     schema="Localidade",
+ *     type="object",
+ *     @OA\Property(property="idLocalidade", type="integer", example="1"),
+ *     @OA\Property(property="regiao", type="string", example="AMAZÔNIA"),
+ *     @OA\Property(property="uf", type="string", example="PA"),
+ *     @OA\Property(property="municipio", type="string", example="Belém")
+ * )
  * 
  * @OA\PathItem(
  *     path="/api/conflitos"
@@ -117,7 +134,7 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflitos = Conflito::all();
+        $conflitos = Conflito::orderBy('dataInicioConflito', 'desc')->get();
         return response()->json($conflitos);
     }
     
@@ -176,13 +193,11 @@ class ConflitoController extends Controller
      *         @OA\JsonContent(
      *             required={"nome","descricao","regiao","dataConflito","latitude","longitude","municipio","uf","flagOcorrenciaAmeaca","flagOcorrenciaViolencia","flagOcorrenciaAssassinato","flagOcorrenciaFeridos", "flagMembroProgramaProtecao"},
      *             @OA\Property(property="nome", type="string", example="nome do conflito"),
-     *             @OA\Property(property="descrição", type="string", example="descrição do conflito"),
+     *             @OA\Property(property="relato", type="string", example="Relato do conflito"),
      *             @OA\Property(property="regiao", type="string", example="norte"),
      *             @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
      *             @OA\Property(property="latitude", type="string", example="41.40338"),
      *             @OA\Property(property="longitude", type="string", example="2.17403"),
-     *             @OA\Property(property="municipio", type="string", example="Marabá"),
-     *             @OA\Property(property="uf", type="string", example="PA"),
      *             @OA\Property(property="flagOcorrenciaAmeaca", type="boolean", example="1"),
      *             @OA\Property(property="flagOcorrenciaViolencia", type="boolean", example="0"),
      *             @OA\Property(property="flagOcorrenciaAssassinato", type="boolean", example="1"),
@@ -213,86 +228,232 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $validator = Validator::make($request->all(), [
-            'nome'                       => 'required|string|max:255',
-            'descricao'                  => 'required|string',
-            'relato'                     => 'required|string',
-            'processoSei'                => 'required|string',
-            'regiao'                     => 'required|string|max:100',
-            'dataInicioConflito'         => 'required|date',
-            'dataFimConflito'            => 'nullable|date|after_or_equal:dataInicioConflito',
-            'latitude'                   => 'required|numeric',
-            'longitude'                  => 'required|numeric',
-            'municipio'                  => 'required|string|max:100',
-            'uf'                         => 'required|string|size:2',
-            'flagOcorrenciaAmeaca'       => 'required|string',
-            'flagOcorrenciaViolencia'    => 'required|string',
-            'flagOcorrenciaAssassinato'  => 'required|string',
-            'flagOcorrenciaFeridos'      => 'required|string',
-            'flagMembroProgramaProtecao' => 'required|string'
-        ],[
-            'nome.required'              => 'O título é obrigatório',
-            'descricao.required'         => 'A descrição é obrigatória',
-        ]);
+        $validator = Validator::make($request->all(), $this->getRegrasValidacao());
         
         if ($validator->fails()) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro de validação',
                 'errors' => $validator->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         try {
+            
+            Log::info('Processos Judiciais:', ['processos' => $request->processosJudiciais]);
+            Log::info('Programa Protecao:', ['programasProtecao' => $request->programasProtecao]);
+            
             DB::beginTransaction();
-        
-            $conflito = Conflito::create($validator->validated());
+            
+            // Criar o conflito principal
+            $conflitoData = $request->only([
+                'latitude',
+                'longitude',
+                'nome',
+                'relato',
+                'dataInicioConflito',
+                'dataAcionamentoMpiConflito',
+                'observacoes',
+                'flagHasImpactoAmbiental',
+                'flagHasImpactoSaude',
+                'flagHasImpactoSocioEconomico',
+                'flagHasViolenciaIndigena',
+                'flagHasMembroProgramaProtecao',
+                'flagHasBOouNF',
+                'flagHasInquerito',
+                'flagHasProcessoJudicial',
+                'flagHasAssistenciaJuridica',
+                'flagHasRegiaoPrioritaria',
+                'flagHasViolenciaPatrimonialIndigena',
+                'flagHasEventoViolenciaIndigena',
+                'flagHasAssassinatoPrisaoNaoIndigena'
+            ]);
+            
+            $conflito = Conflito::create($conflitoData);
+            
+            // Criar números SEI de identificação
+            if ($request->has('atores_identificados') && is_array($request->atores_identificados)) {
+                foreach ($request->atores_identificados as $ator) {
+                    if (!empty(trim($ator))) {
+                        AtorIdentificadoConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'nome' => trim($ator)
+                        ]);
+                    }
+                }
+            }
+            
+            // Cadastrar processos SEI de identificação
+            if ($request->has('numerosSeiIdentificacaoConflito') && is_array($request->numerosSeiIdentificacaoConflito)) {
+                foreach ($request->numerosSeiIdentificacaoConflito as $numeroSei) {
+                    if (!empty(trim($numeroSei))) {
+                        NumeroSeiIdentificacaoConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'numeroSei' => trim($numeroSei)
+                        ]);
+                    }
+                }
+            }
+            
+            // Criar inqueritos
+            if ($request->has('inqueritos') && is_array($request->inqueritos)) {
+                foreach ($request->inqueritos as $inquerito) {
+                    Inquerito::create([
+                        'idConflito' => $conflito->idConflito,
+                        'data'       => $inquerito['data'] ?? null,
+                        'numero'     => $inquerito['numero'] ?? null,
+                        'orgao'      => $inquerito['orgao'] ?? null,
+                        'tipoOrgao'  => $inquerito['tipoOrgao'] ?? null,
+                        'numeroSei'  => $inquerito['numeroSei'] ?? '' // Garantir string vazia se não houver
+                    ]);
+                }
+            }
+            
+            // Criar processosJudiciais
+            if ($request->has('processosJudiciais') && is_array($request->processosJudiciais)) {
+                foreach ($request->processosJudiciais as $processo) {
+                    ProcessoJudicial::create([
+                        'idConflito' => $conflito->idConflito,
+                        'data'       => $processo['data'] ?? null,
+                        'numero'     => $processo['numero'] ?? null,
+                        'tipoPoder'  => $processo['tipoPoder'] ?? null,
+                        'orgaoApoio' => $processo['orgaoApoio'] ?? null,
+                        'numeroSei'  => $processo['numeroSei']
+                    ]);
+                }
+            }
+            
+            // Criar programasProtecao
+            if ($request->has('programasProtecao') && is_array($request->programasProtecao)) {
+                foreach ($request->programasProtecao as $programaProtecao) {
+                    ProgramaProtecao::create([
+                        'idConflito'   => $conflito->idConflito,
+                        'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
+                        'uf'           => $programaProtecao['uf'] ?? null,
+                        'numeroSei'    => $programaProtecao['numeroSei']
+                    ]);
+                }
+            }
+            
+            // Criar violências patrimoniais
+            if ($request->has('violenciasPatrimoniais') && is_array($request->violenciasPatrimoniais)) {
+                foreach ($request->violenciasPatrimoniais as $violenciaPatrimonial) {
+                    ViolenciaPatrimonial::create([
+                        'idConflito' => $conflito->idConflito,
+                        'tipoViolencia' => $violenciaPatrimonial['tipoViolencia'] ?? null,
+                        'data' => $violenciaPatrimonial['data'] ?? null,
+                        'numeroSei' => $violenciaPatrimonial['numeroSei'] ?? null
+                    ]);
+                }
+            }
+            
+            // Criar violências contra pessoas indígenas
+            if ($request->has('violenciasPessoasIndigenas') && is_array($request->violenciasPessoasIndigenas)) {
+                foreach ($request->violenciasPessoasIndigenas as $violenciaIndigena) {
+                    ViolenciaPessoaIndigena::create([
+                        'idConflito' => $conflito->idConflito,
+                        'tipoViolencia' => $violenciaIndigena['tipoViolencia'] ?? null,
+                        'data' => $violenciaIndigena['data'] ?? null,
+                        'nome' => $violenciaIndigena['nome'] ?? null,
+                        'idade' => $violenciaIndigena['idade'] ?? null,
+                        'faixaEtaria' => $violenciaIndigena['faixaEtaria'] ?? null,
+                        'genero' => $violenciaIndigena['genero'] ?? null,
+                        'instrumentoViolencia' => $violenciaIndigena['instrumentoViolencia'] ?? null,
+                        'numeroSei' => $violenciaIndigena['numeroSei'] ?? null
+                    ]);
+                }
+            }
+            
+            // Criar violências contra pessoas não indígenas
+            if ($request->has('violenciasPessoasNaoIndigenas') && is_array($request->violenciasPessoasNaoIndigenas)) {
+                foreach ($request->violenciasPessoasNaoIndigenas as $violenciaNaoIndigena) {
+                    ViolenciaPessoaNaoIndigena::create([
+                        'idConflito' => $conflito->idConflito,
+                        'tipoViolencia' => $violenciaNaoIndigena['tipoViolencia'] ?? null,
+                        'tipoPessoa' => $violenciaNaoIndigena['tipoPessoa'] ?? null,
+                        'data' => $violenciaNaoIndigena['data'] ?? null,
+                        'nome' => $violenciaNaoIndigena['nome'] ?? null,
+                        'numeroSei' => $violenciaNaoIndigena['numeroSei'] ?? null
+                    ]);
+                }
+            }
             
             // Sincroniza relações N:M
-            if ($request->has('assuntos')) {
-                $idsAssuntos = array_column($request->assuntos, 'idAssunto');
-                $conflito->assuntos()->sync($idsAssuntos);
+            if ($request->has('aldeias') && is_array($request->aldeias)) {
+                $conflito->aldeias()->sync($request->aldeias);
             }
             
-            if ($request->has('impactos_ambientais')) {
-                $idsImpactosAmbientais = array_column($request->impactos_ambientais, 'idImpactoAmbiental');
-                $conflito->impactos_ambientais()->sync($idsImpactosAmbientais);
+            if ($request->has('assuntos') && is_array($request->assuntos)) {
+                $conflito->assuntos()->sync($request->assuntos);
             }
             
-            if ($request->has('impactos_saude')) {
-                $idImpactosSaude = array_column($request->impactos_saude, 'idImpactoSaude');
-                $conflito->impactos_saude()->sync($idImpactosSaude);
+            if ($request->has('impactos_ambientais') && is_array($request->impactos_ambientais)) {
+                $conflito->impactosAmbientais()->sync($request->impactos_ambientais);
             }
             
-            if ($request->has('impactos_socio_economicos')) {
-                $idsImpactoSocioEconomico = array_column($request->impactos_socio_economicos, 'idImpactoSocioEconomico');
-                $conflito->impactos_socio_economicos()->sync($idsImpactoSocioEconomico);
+            if ($request->has('impactos_saude') && is_array($request->impactos_saude)) {
+                $conflito->impactosSaude()->sync($request->impactos_saude);
             }
             
-            if ($request->has('povos')) {
-                $idsPovo = array_column($request->povos, 'idPovo');
-                $conflito->povos()->sync($idsPovo);
+            if ($request->has('impactos_socio_economicos') && is_array($request->impactos_socio_economicos)) {
+                $conflito->impactosSocioEconomicos()->sync($request->impactos_socio_economicos);
             }
             
-            if ($request->has('terras_indigenas')) {
-                $idsTerraIndigena = array_column($request->terras_indigenas, 'idTerraIndigena');
-                $conflito->terras_indigenas()->sync($idsTerraIndigena);
+            if ($request->has('povos') && is_array($request->povos)) {
+                $conflito->povos()->sync($request->povos);
             }
             
-            if ($request->has('tipos_conflito')) {
-                $idsTipoConflito = array_column($request->tipos_conflito, 'idTipoConflito');
-                $conflito->tipos_conflito()->sync($idsTipoConflito);
+            if ($request->has('terras_indigenas') && is_array($request->terras_indigenas)) {
+                $conflito->terrasIndigenas()->sync($request->terras_indigenas);
+            }
+            
+            if ($request->has('tipos_conflito') && is_array($request->tipos_conflito)) {
+                $conflito->tiposConflito()->sync($request->tipos_conflito);
+            }
+            
+            // Sincronizar categorias de atores
+            if ($request->has('categorias_atores') && is_array($request->categorias_atores)) {
+                $conflito->categoriasAtores()->sync($request->categorias_atores);
+            }
+            
+            // Sincronizar atores identificados
+            if ($request->has('atoresIdentificados') && is_array($request->atoresIdentificados)) {
+                $conflito->atores()->sync($request->atoresIdentificados);
             }
             
             DB::commit();
             
-            return response()->json($conflito, Response::HTTP_CREATED);
+            // Carregar relacionamentos para retornar o conflito completo
+            $conflitoCompleto = Conflito::with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas',
+            ])->find($conflito->idConflito);
+            
+            return response()->json($conflitoCompleto, Response::HTTP_CREATED);
             
         } catch (\Exception $e) {
             DB::rollBack();
             
             return response()->json([
                 'message' => 'Erro ao criar conflito',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage().' - ',
+                'processos' => $request->processosJudiciais,
+                'programas' => $request->programasProtecao
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -325,13 +486,7 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflito = Conflito::with(['assuntos',
-            'impactos_ambientais',
-            'impactos_saude',
-            'impactos_socio_economicos',
-            'povos',
-            'terras_indigenas',
-            'tipos_conflito'])->find($id);
+        $conflito = Conflito::findOrFail($id);
         
         if (!$conflito) {
             return response()->json([
@@ -1016,7 +1171,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $impactosAmbientais = $conflito->impactos_ambientais()->get();
+        $impactosAmbientais = $conflito->impactosAmbientais()->get();
         
         return response()->json($impactosAmbientais);
     }
@@ -1183,7 +1338,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $impactosSaude = $conflito->impactos_saude()->get();
+        $impactosSaude = $conflito->impactosSaude()->get();
         
         return response()->json($impactosSaude);
     }
@@ -1356,7 +1511,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $impactosSocioEconomicos = $conflito->impactos_socio_economicos()->get();
+        $impactosSocioEconomicos = $conflito->impactosSocioEconomicos()->get();
         
         return response()->json($impactosSocioEconomicos);
     }
@@ -1499,6 +1654,182 @@ class ConflitoController extends Controller
     
     /**
      * @OA\Get(
+     *     path="/api/conflito/{id}/localidades",
+     *     tags={"Conflitos"},
+     *     security={{"sanctum":{}}},
+     *     summary="Obter as localideds de um conflito específico",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Localidades de um conflito",
+     *         @OA\JsonContent(
+     *              type="array",
+     *              @OA\Items(ref="#/components/schemas/Localidade")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *          response=401,
+     *          description="Não autorizado"
+     *     )
+     * )
+     */
+    public function getLocalidades($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $conflito = Conflito::findOrFail($id);
+        $localidades = $conflito->localidades()->get();
+        
+        return response()->json($localidades);
+    }
+    
+    /**
+     * Adiciona uma Localidade a um conflito
+     *
+     * @OA\Post(
+     *     path="/api/conflito/{id}/localidade",
+     *     tags={"Conflitos"},
+     *     security={{"sanctum":{}}},
+     *     summary="Associa uma Localidade a um conflito",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID do conflito",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"idLocalidade"},
+     *             @OA\Property(property="idLocalidade", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Localidade associado com sucesso",
+     *         @OA\JsonContent(ref="#/components/schemas/Conflito")
+     *     ),
+     *     @OA\Response(
+     *          response=401,
+     *          description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *          response=404,
+     *          description="Conflito ou Localidade não encontrado"
+     *     ),
+     *     @OA\Response(
+     *          response=422,
+     *          description="Validação falhou"
+     *     )
+     * )
+     */
+    public function attachLocalidade(Request $request, $id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $request->validate([
+            'idLocalidade' => 'required|integer|exists:localidade,idLocalidade'
+        ]);
+        
+        $conflito = Conflito::findOrFail($id);
+        $idLocalidade = $request->input('idLocalidade');
+        
+        if(!$conflito->exists()){
+            return response()->json([
+                'message' => 'Conflito não encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        // Verifica se a relação já existe
+        if ($conflito->localidades()->where('localidade.idLocalidade', $idLocalidade)->exists()) {
+            return response()->json([
+                'message' => 'Essa Localidade já está associada ao conflito'
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        
+        // Cria a relação
+        $conflito->localidades()->attach($idLocalidade);
+        
+        // Retorna o conflito com os assuntos atualizados
+        return response()->json([
+            'message' => 'Localidade adicionada com sucesso',
+            'data' => $conflito->load('localidades')
+        ]);
+    }
+    
+    /**
+     * Remove uma Localidade de um conflito
+     *
+     * @OA\Delete(
+     *     path="/api/conflito/{idConflito}/localidade/{idLocalidade}",
+     *     tags={"Conflitos"},
+     *     security={{"sanctum":{}}},
+     *     summary="Remove a associação de uma Localidade com um conflito",
+     *     @OA\Parameter(
+     *         name="idConflito",
+     *         in="path",
+     *         description="ID do conflito",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="idLocalidade",
+     *         in="path",
+     *         description="ID da Localidade",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Localidade desassociada com sucesso",
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     )
+     * )
+     */
+    public function detachLocalidade($idConflito, $idLocalidade)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $conflito = Conflito::findOrFail($idConflito);
+        
+        // Verifica se o assunto existe
+        ImpactoSocioEconomico::findOrFail($idLocalidade);
+        
+        // Remove a relação
+        $conflito->localidades()->detach($idLocalidade);
+        
+        return response()->json([
+            'message' => 'Localidade removida com sucesso',
+            'data' => $conflito->load('localidades')
+        ]);
+    }
+    
+    /**
+     * @OA\Get(
      *     path="/api/conflito/{id}/tipos-conflito",
      *     tags={"Conflitos"},
      *     security={{"sanctum":{}}},
@@ -1533,7 +1864,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $tiposConflito = $conflito->tipos_conflito()->get();
+        $tiposConflito = $conflito->tiposConflito()->get();
         
         return response()->json($tiposConflito);
     }
@@ -1672,4 +2003,196 @@ class ConflitoController extends Controller
         ]);
     }
     
+    /**
+     * Regras de validação do formulário de conflito
+     * 
+     * @param array $conflito
+     * @return array
+     */
+    private function getRegrasValidacao()
+    {
+        return [
+            // Campos obrigatórios básicos
+            'latitude'           => ['required', 'numeric', 'between:-90,90'],
+            'longitude'          => ['required', 'numeric', 'between:-180,180'],
+            'nome'               => ['required', 'string', 'max:255'],
+            'relato'             => ['required', 'string'],
+            'dataInicioConflito' => ['required', 'date'],
+
+            // Campos condicionais baseados nas flags
+            'dataAcionamentoMpiConflito' => [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) {
+                    $dataInicio = request('dataInicioConflito');
+                    if ($dataInicio && $value && $value < $dataInicio) {
+                        $fail('A data de acionamento do MPI não pode ser anterior à data de início do conflito.');
+                    }
+                }
+                ],
+                
+            // Flags (valores permitidos: SIM/NÃO)
+            'flagHasImpactoAmbiental'               => ['required', 'in:SIM,NÃO'],
+            'flagHasImpactoSaude'                   => ['required', 'in:SIM,NÃO'],
+            'flagHasImpactoSocioEconomico'          => ['required', 'in:SIM,NÃO'],
+            'flagHasViolenciaIndigena'              => ['required', 'in:SIM,NÃO'],
+            'flagHasMembroProgramaProtecao'         => ['required', 'in:SIM,NÃO'],
+            'flagHasBOouNF'                         => ['required', 'in:SIM,NÃO'],
+            'flagHasInquerito'                      => ['required', 'in:SIM,NÃO'],
+            'flagHasProcessoJudicial'               => ['required', 'in:SIM,NÃO'],
+            'flagHasAssistenciaJuridica'            => ['required', 'in:SIM,NÃO'],
+            'flagHasRegiaoPrioritaria'              => ['required', 'in:SIM,NÃO'],
+            'flagHasViolenciaPatrimonialIndigena'   => ['required', 'in:SIM,NÃO'],
+            'flagHasEventoViolenciaIndigena'        => ['required', 'in:SIM,NÃO'],
+            'flagHasAssassinatoPrisaoNaoIndigena'   => ['required', 'in:SIM,NÃO'],
+                
+            // Validações condicionais para arrays
+            'impactos_ambientais' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $hasImpacto = request('flagHasImpactoAmbiental') === 'SIM';
+                    if ($hasImpacto && empty($value)) {
+                        $fail('Quando há impacto ambiental, pelo menos um tipo de impacto deve ser selecionado.');
+                    }
+                }
+                ],
+                    
+            'impactos_saude' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $hasImpacto = request('flagHasImpactoSaude') === 'SIM';
+                    if ($hasImpacto && empty($value)) {
+                        $fail('Quando há impacto na saúde, pelo menos um tipo de impacto deve ser selecionado.');
+                    }
+                }
+                ],
+                        
+            'impactos_socio_economicos' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $hasImpacto = request('flagHasImpactoSocioEconomico') === 'SIM';
+                    if ($hasImpacto && empty($value)) {
+                        $fail('Quando há impacto socioeconômico, pelo menos um tipo de impacto deve ser selecionado.');
+                    }
+                }
+                ],
+                    
+            'violenciasPatrimoniais' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $hasViolencia = request('flagHasViolenciaPatrimonialIndigena') === 'SIM';
+                    if ($hasViolencia && empty($value)) {
+                        $fail('Quando há violência patrimonial indígena, pelo menos uma ocorrência deve ser informada.');
+                    }
+                }
+                ],
+                                
+            'violenciasPessoasIndigenas' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $hasViolencia = request('flagHasEventoViolenciaIndigena') === 'SIM';
+                    if ($hasViolencia && empty($value)) {
+                        $fail('Quando há evento de violência indígena, pelo menos uma ocorrência deve ser informada.');
+                    }
+                }
+                ],
+                                    
+            'violenciasPessoasNaoIndigenas' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $hasViolencia = request('flagHasAssassinatoPrisaoNaoIndigena') === 'SIM';
+                    if ($hasViolencia && empty($value)) {
+                        $fail('Quando há assassinato ou prisão de não indígena, pelo menos uma ocorrência deve ser informada.');
+                    }
+                }
+                ],
+                                    
+            // Regras para elementos dos arrays
+            'numerosSeiIdentificacaoConflito' => 'nullable|array',
+            'numerosSeiIdentificacaoConflito.*' => 'string|max:50',
+            
+            'atores_identificados' => 'nullable|array',
+            'atores_identificados.*' => 'string|max:200',
+            
+            'aldeias' => 'nullable|array',
+            'aldeias.*' => 'required|integer|exists:aldeia,idAldeia',
+            
+            'assuntos' => 'nullable|array',
+            'assuntos.*' => 'required|integer|exists:assunto,idAssunto',
+            
+            'impactos_ambientais' => 'nullable|array',
+            'impactos_ambientais.*' => 'required|integer|exists:impacto_ambiental,idImpactoAmbiental',
+            
+            'impactos_saude' => 'nullable|array',
+            'impactos_saude.*' => 'required|integer|exists:impacto_saude,idImpactoSaude',
+            
+            'impactos_socio_economicos' => 'nullable|array',
+            'impactos_socio_economicos.*' => 'required|integer|exists:impacto_socio_economico,idImpactoSocioEconomico',
+            
+            'povos' => 'nullable|array',
+            'povos.*' => 'required|integer|exists:povo,idPovo',
+            
+            'terras_indigenas' => 'nullable|array',
+            'terras_indigenas.*' => 'required|integer|exists:terra_indigena,idTerraIndigena',
+            
+            'tipos_conflito' => 'nullable|array',
+            'tipos_conflito.*' => 'required|integer|exists:tipo_conflito,idTipoConflito',
+            
+            'categorias_atores' => 'nullable|array',
+            'categorias_atores.*' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
+                        
+            'violenciasPatrimoniais.*.tipoViolencia' => 'required|string|max:100',
+            'violenciasPatrimoniais.*.data' => 'required|date',
+            'violenciasPatrimoniais.*.numeroSei' => 'nullable|string|max:50',
+            
+            'violenciasPessoasIndigenas.*.tipoViolencia' => 'required|string|max:100',
+            'violenciasPessoasIndigenas.*.data' => 'required|date',
+            'violenciasPessoasIndigenas.*.nome' => 'required|string|max:255',
+            'violenciasPessoasIndigenas.*.idade' => 'nullable|string|max:20',
+            'violenciasPessoasIndigenas.*.faixaEtaria' => 'nullable|string|max:50',
+            'violenciasPessoasIndigenas.*.genero' => 'nullable|string|max:50',
+            'violenciasPessoasIndigenas.*.instrumentoViolencia' => 'nullable|string|max:255',
+            'violenciasPessoasIndigenas.*.numeroSei' => 'nullable|string|max:50',
+            
+            'violenciasPessoasNaoIndigenas.*.tipoViolencia' => 'required|string|max:100',
+            'violenciasPessoasNaoIndigenas.*.tipoPessoa' => 'required|string|max:100',
+            'violenciasPessoasNaoIndigenas.*.data' => 'required|date',
+            'violenciasPessoasNaoIndigenas.*.nome' => 'required|string|max:255',
+            'violenciasPessoasNaoIndigenas.*.numeroSei' => 'nullable|string|max:50',
+            ];
+    }
+    
+    /**
+     * Método auxiliar para extrair IDs de forma segura
+     * 
+     * @param array $data
+     * @param string $idField
+     * @return array
+     */
+    private function extrairIds(array $data, string $idField): array
+    {
+//         $ids = [];
+//         foreach ($data as $item) {
+//             if (is_array($item) && isset($item[$idField])) {
+//                 $ids[] = $item[$idField];
+//             } elseif (is_object($item) && isset($item->{$idField})) {
+//                 $ids[] = $item->{$idField};
+//             } elseif (is_numeric($item)) {
+//                 // Se for apenas um array de IDs numéricos
+//                 $ids[] = $item;
+//             }
+//         }
+        
+//         return array_filter($ids);
+
+        return array_map(function ($item) use ($idField) {
+            return $item[$idField] ?? null; // Aqui ele extrai apenas o valor do ID.
+        }, $data); 
+    }
 }

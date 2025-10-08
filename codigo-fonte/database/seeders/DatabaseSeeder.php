@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder {
 
         Usuario::factory()->create(['nome' => 'Luiz Leão',
                                     'email' => 'luizleao@gmail.com',
+                                    'senha' => Hash::make('senha'),
                                     'idOrgao' => 2,
                                     'idPerfil' => 1]);
         
@@ -24,29 +25,36 @@ class DatabaseSeeder extends Seeder {
                                     'senha' => Hash::make('senha123456'),
                                     'idOrgao' => 1,
                                     'idPerfil' => 1]);
+        
         Usuario::factory()->create(['nome' => 'Paulo Dias',
                                     'email' => 'paulo.dias@iieb.com.br',
                                     'senha' => Hash::make('senha123456'),
                                     'idOrgao' => 3,
                                     'idPerfil' => 1]);
-
+        
+        Usuario::factory()->create(['nome' => 'Lais Souza',
+                                    'email' => 'lais-l.souza@povosindigenas.gov.br',
+                                    'senha' => Hash::make('senha123456'),
+                                    'idOrgao' => 3,
+                                    'idPerfil' => 1]);
+        
+        
+        
         $this->call([
                     AssuntoTableSeeder::class,
+                    AtorTableSeeder::class,
+                    AldeiaTableSeeder::class,
                     ImpactoAmbientalTableSeeder::class,
                     ImpactoSaudeTableSeeder::class,
                     ImpactoSocioEconomicoTableSeeder::class,
                     OrgaoTableSeeder::class,
                     SituacaoFundiariaTableSeeder::class,
-                    TipoAtorTableSeeder::class,
+                    CategoriaAtorTableSeeder::class,
                     TipoConflitoTableSeeder::class,
                     PovoTableSeeder::class,
                     PerfilTableSeeder::class,
                     TerraIndigenaTableSeeder::class,
-                    TipoInqueritoPolicialTableSeeder::class,
-                    ConflitoTableSeeder::class,
-                    TipoProcessoSeiTableSeeder::class,
-                    TipoResponsavelTableSeeder::class,
-                    TipoEstrategiaTableSeeder::class
+                    ConflitoTableSeeder::class
                 ]);
 
     }
