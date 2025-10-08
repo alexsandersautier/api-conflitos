@@ -2051,19 +2051,7 @@ class ConflitoController extends Controller
             'nome'               => ['required', 'string', 'max:255'],
             'relato'             => ['required', 'string'],
             'dataInicioConflito' => ['required', 'date'],
-
-            // Campos condicionais baseados nas flags
-//             'dataAcionamentoMpiConflito' => [
-//                 'nullable',
-//                 'date',
-//                 function ($attribute, $value, $fail) {
-//                     $dataInicio = request('dataInicioConflito');
-//                     if ($dataInicio && $value && $value < $dataInicio) {
-//                         $fail('A data de acionamento do MPI não pode ser anterior à data de início do conflito.');
-//                     }
-//                 }
-//                 ],
-                
+            
             // Flags (valores permitidos: SIM/NÃO)
             'flagHasImpactoAmbiental'               => ['required', 'in:SIM,NÃO'],
             'flagHasImpactoSaude'                   => ['required', 'in:SIM,NÃO'],
@@ -2075,10 +2063,41 @@ class ConflitoController extends Controller
             'flagHasProcessoJudicial'               => ['required', 'in:SIM,NÃO'],
             'flagHasAssistenciaJuridica'            => ['required', 'in:SIM,NÃO'],
             'flagHasRegiaoPrioritaria'              => ['required', 'in:SIM,NÃO'],
-            'flagHasViolenciaPatrimonialIndigena'   => ['required', 'in:SIM,NÃO'],
-            'flagHasEventoViolenciaIndigena'        => ['required', 'in:SIM,NÃO'],
-            'flagHasAssassinatoPrisaoNaoIndigena'   => ['required', 'in:SIM,NÃO'],
+            
+            // Flags de violência - CONDICIONAIS
+            'flagHasViolenciaPatrimonialIndigena' => [
+                'nullable',
+                'in:SIM,NÃO',
+                function ($attribute, $value, $fail) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    if ($hasViolenciaIndigena && empty($value)) {
+                        $fail('Quando há violência indígena, é obrigatório informar se há violência patrimonial indígena.');
+                    }
+                }
+                ],
                 
+            'flagHasEventoViolenciaIndigena' => [
+                'nullable',
+                'in:SIM,NÃO',
+                function ($attribute, $value, $fail) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    if ($hasViolenciaIndigena && empty($value)) {
+                        $fail('Quando há violência indígena, é obrigatório informar se há evento de violência indígena.');
+                    }
+                }
+                ],
+                    
+            'flagHasAssassinatoPrisaoNaoIndigena' => [
+                'nullable',
+                'in:SIM,NÃO',
+                function ($attribute, $value, $fail) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    if ($hasViolenciaIndigena && empty($value)) {
+                        $fail('Quando há violência indígena, é obrigatório informar se há assassinato ou prisão de não indígena.');
+                    }
+                }
+                ],
+                        
             // Validações condicionais para arrays
             'impactos_ambientais' => [
                 'nullable',
@@ -2090,7 +2109,7 @@ class ConflitoController extends Controller
                     }
                 }
                 ],
-                    
+                            
             'impactos_saude' => [
                 'nullable',
                 'array',
@@ -2101,7 +2120,7 @@ class ConflitoController extends Controller
                     }
                 }
                 ],
-                        
+                                
             'impactos_socio_economicos' => [
                 'nullable',
                 'array',
@@ -2112,40 +2131,50 @@ class ConflitoController extends Controller
                     }
                 }
                 ],
-                    
+                                    
+            // Validações condicionais para violências - ATUALIZADAS
             'violenciasPatrimoniais' => [
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) {
                     $hasViolencia = request('flagHasViolenciaPatrimonialIndigena') === 'SIM';
-                    if ($hasViolencia && empty($value)) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    
+                    // Só valida se houver violência indígena E violência patrimonial marcada como SIM
+                    if ($hasViolenciaIndigena && $hasViolencia && empty($value)) {
                         $fail('Quando há violência patrimonial indígena, pelo menos uma ocorrência deve ser informada.');
                     }
                 }
                 ],
-                                
+                                        
             'violenciasPessoasIndigenas' => [
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) {
                     $hasViolencia = request('flagHasEventoViolenciaIndigena') === 'SIM';
-                    if ($hasViolencia && empty($value)) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    
+                    // Só valida se houver violência indígena E evento de violência marcada como SIM
+                    if ($hasViolenciaIndigena && $hasViolencia && empty($value)) {
                         $fail('Quando há evento de violência indígena, pelo menos uma ocorrência deve ser informada.');
                     }
                 }
                 ],
-                                    
+                                            
             'violenciasPessoasNaoIndigenas' => [
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) {
                     $hasViolencia = request('flagHasAssassinatoPrisaoNaoIndigena') === 'SIM';
-                    if ($hasViolencia && empty($value)) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    
+                    // Só valida se houver violência indígena E assassinato/prisão marcada como SIM
+                    if ($hasViolenciaIndigena && $hasViolencia && empty($value)) {
                         $fail('Quando há assassinato ou prisão de não indígena, pelo menos uma ocorrência deve ser informada.');
                     }
                 }
                 ],
-                                    
+                                                
             // Regras para elementos dos arrays
             'numerosSeiIdentificacaoConflito' => 'nullable|array',
             'numerosSeiIdentificacaoConflito.*' => 'string|max:50',
@@ -2179,7 +2208,7 @@ class ConflitoController extends Controller
             
             'categorias_atores' => 'nullable|array',
             'categorias_atores.*' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
-                        
+            
             'violenciasPatrimoniais.*.tipoViolencia' => 'required|string|max:100',
             'violenciasPatrimoniais.*.data' => 'required|date',
             'violenciasPatrimoniais.*.numeroSei' => 'nullable|string|max:50',
