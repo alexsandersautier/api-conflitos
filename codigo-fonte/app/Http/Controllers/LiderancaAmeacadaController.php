@@ -138,7 +138,7 @@ class LiderancaAmeacadaController extends Controller
         $liderancaAmeacada = LiderancaAmeacada::findOrFail($id);
 
         $validatedData = $request->validate([
-            'idConflito'         => 'required|integer|exists:conflitos,idConflito',
+            'idConflito'         => 'required|integer|exists:conflito,idConflito',
             'nome'               => 'required|string|max:100',
             'distancia_conflito' => 'numeric|decimal:0,2'
         ]);

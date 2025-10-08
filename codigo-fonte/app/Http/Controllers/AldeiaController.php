@@ -2,75 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TipoAtor;
+use App\Models\Aldeia;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 /**
  * @OA\Schema(
- *     schema="TipoAtor",
+ *     schema="Aldeia",
  *     type="object",
- *     @OA\Property(property="idTipoAtor", type="integer"),
- *     @OA\Property(property="nome", type="string", example="Latifundiário")
+ *     @OA\Property(property="idAldeia", type="integer", example=1),
+ *     @OA\Property(property="nome", type="string", example="nome do aldeia"),
  * )
- * 
  * @OA\PathItem(
- *     path="/api/tipo-ator"
+ *     path="/api/aldeia"
  * )
  *
  * @OA\Tag(
- *     name="TiposAtor",
- *     description="Endpoints para Tipos de Ator"
+ *     name="Aldeias",
+ *     description="Endpoints para Aldeias"
  * )
  */
-class TipoAtorController extends Controller
+class AldeiaController extends Controller
 {
+    
     /**
      * @OA\Get(
-     *     path="/api/tipo-ator",
-     *     tags={"TiposAtor"},
+     *     path="/api/aldeia",
+     *     tags={"Aldeias"},
      *     security={ {"sanctum": {} } },
-     *     summary="Listar todos os tipos de ator",
+     *     summary="Listar todos os aldeias",
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de tipos de ator",
+     *         description="Lista de aldeias",
      *         @OA\JsonContent(
      *             type="array",
-     *             @OA\Items(ref="#/components/schemas/TipoAtor")
+     *             @OA\Items(ref="#/components/schemas/Aldeia")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Acesso não autorizado"
      *     )
      * )
      */
-    public function index()
-    {
+    public function index(Request $request){
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status' => Response::HTTP_UNAUTHORIZED
+                'status'  => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $tipoator = TipoAtor::all();
-        return response()->json($tipoator);
+        $aldeia = Aldeia::all();
+        return response()->json($aldeia);
     }
-
+    
     /**
      * @OA\Post(
-     *     path="/api/tipo-ator",
-     *     tags={"TiposAtor"},
+     *     path="/api/aldeia",
+     *     tags={"Aldeias"},
      *     security={ {"sanctum": {} } },
-     *     summary="Criar um novo tipo de ator",
+     *     summary="Criar um novo aldeia",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Tipo de Ator do Conflito")
+     *             @OA\Property(property="nome", type="string", example="Departamento de TI")
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="Tipo de Ator criado"
+     *         description="Aldeia criado"
      *     )
      * )
      */
@@ -86,17 +90,17 @@ class TipoAtorController extends Controller
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
-
-        $tipoator = TipoAtor::create($validatedData);
-        return response()->json($tipoator, Response::HTTP_CREATED);
+        
+        $aldeia = Aldeia::create($validatedData);
+        return response()->json($aldeia, Response::HTTP_CREATED);
     }
-
+    
     /**
      * @OA\Get(
-     *     path="/api/tipo-ator/{id}",
-     *     tags={"TiposAtor"},
+     *     path="/api/aldeia/{id}",
+     *     tags={"Aldeias"},
      *     security={ {"sanctum": {} } },
-     *     summary="Obter um tipo de ator específico",
+     *     summary="Obter um aldeia específico",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -105,8 +109,8 @@ class TipoAtorController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Dados do tipo de ator",
-     *         @OA\JsonContent(ref="#/components/schemas/TipoAtor")
+     *         description="Dados do aldeia",
+     *         @OA\JsonContent(ref="#/components/schemas/Aldeia")
      *     )
      * )
      */
@@ -115,20 +119,20 @@ class TipoAtorController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status' => Response::HTTP_UNAUTHORIZED
+                'status'  => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $tipoator = TipoAtor::findOrFail($id);
-        return response()->json($tipoator);
+        $aldeia = Aldeia::findOrFail($id);
+        return response()->json($aldeia);
     }
-
+    
     /**
      * @OA\Put(
-     *     path="/api/tipo-ator/{id}",
-     *     tags={"TiposAtor"},
+     *     path="/api/aldeia/{id}",
+     *     tags={"Aldeias"},
      *     security={ {"sanctum": {} } },
-     *     summary="Atualizar um tipo de ator específico",
+     *     summary="Atualizar um aldeia específico",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -139,12 +143,13 @@ class TipoAtorController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Tipo de Ator do Conflito")
+     *             @OA\Property(property="nome", type="string", example="Grilagem")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Tipo de Ator atualizado"
+     *         description="Aldeia atualizado",
+     *         @OA\JsonContent(ref="#/components/schemas/Aldeia")
      *     )
      * )
      */
@@ -153,26 +158,26 @@ class TipoAtorController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status' => Response::HTTP_UNAUTHORIZED
+                'status'  => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $tipoator = TipoAtor::findOrFail($id);
-
+        $aldeia = Aldeia::findOrFail($id);
+        
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
         ]);
-
-        $tipoator->update($validatedData);
-        return response()->json($tipoator);
+        
+        $aldeia->update($validatedData);
+        return response()->json($aldeia);
     }
-
+    
     /**
      * @OA\Delete(
-     *     path="/api/tipo-ator/{id}",
-     *     tags={"TiposAtor"},
+     *     path="/api/aldeia/{id}",
+     *     tags={"Aldeias"},
      *     security={ {"sanctum": {} } },
-     *     summary="Excluir um tipo de ator específico",
+     *     summary="Excluir um aldeia específico",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -181,7 +186,7 @@ class TipoAtorController extends Controller
      *     ),
      *     @OA\Response(
      *         response=204,
-     *         description="Tipo de Ator excluído"
+     *         description="Aldeia excluído"
      *     )
      * )
      */
@@ -190,12 +195,12 @@ class TipoAtorController extends Controller
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status' => Response::HTTP_UNAUTHORIZED
+                'status'  => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $tipoator = TipoAtor::findOrFail($id);
-        $tipoator->delete();
+        $aldeia = Aldeia::findOrFail($id);
+        $aldeia->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

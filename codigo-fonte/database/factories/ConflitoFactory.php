@@ -41,6 +41,8 @@ class ConflitoFactory extends Factory
                             ]
                         ];
         
+        $opcoesFlag = ['SIM', 'NÃO'];
+        
         $regioes = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
         
         $ufs['Norte']        = ['AC', 'AM', 'PA', 'RO', 'RR', 'AP', 'TO'];
@@ -63,22 +65,27 @@ class ConflitoFactory extends Factory
         $uf     = $this->faker->randomElement($ufs[$regiao]);
         
         return [
-            'nome'                       => $this->faker->sentence(3),
-            'descricao'                  => $this->faker->paragraph(3),
-            'regiao'                     => $this->faker->randomElement($regioes),
-            'dataInicioConflito'         => $this->faker->dateTimeBetween('-5 years', 'now'),
-            'dataFimConflito'            => $this->faker->dateTimeBetween('-4 years', 'now'),
-            'latitude'                   => $this->faker->latitude($brasilBounds['latitude']['min'],
-                                                                   $brasilBounds['latitude']['max']),
-            'longitude'                  => $this->faker->longitude($brasilBounds['longitude']['min'],
-                                                                    $brasilBounds['longitude']['max']),
-            'municipio'                  => $this->faker->city,
-            'uf'                         => $uf,
-            'flagOcorrenciaAmeaca'       => $this->faker->boolean(30),
-            'flagOcorrenciaViolencia'    => $this->faker->boolean(20),
-            'flagOcorrenciaAssassinato'  => $this->faker->boolean(10),
-            'flagOcorrenciaFeridos'      => $this->faker->boolean(15),
-            'flagMembroProgramaProtecao' => $this->faker->boolean(25),
+            'nome'                                 => $this->faker->sentence(3),
+            'relato'                               => $this->faker->paragraph(3),
+            'dataInicioConflito'                   => $this->faker->dateTimeBetween('-5 years', 'now'),
+            'dataAcionamentoMpiConflito'           => $this->faker->dateTimeBetween('-4 years', 'now'),
+            'latitude'                             => $this->faker->latitude($brasilBounds['latitude']['min'],
+                                                                             $brasilBounds['latitude']['max']),
+            'longitude'                            => $this->faker->longitude($brasilBounds['longitude']['min'],
+                                                                              $brasilBounds['longitude']['max']),
+            'flagHasImpactoAmbiental'              => $this->faker->randomElement($opcoesFlag),
+            'flagHasImpactoSaude'                  => $this->faker->randomElement($opcoesFlag),
+            'flagHasImpactoSocioEconomico'         => $this->faker->randomElement($opcoesFlag),
+            'flagHasViolenciaIndigena'             => $this->faker->randomElement($opcoesFlag),
+            'flagHasMembroProgramaProtecao'        => $this->faker->randomElement($opcoesFlag),
+            'flagHasBOouNF'                        => $this->faker->randomElement($opcoesFlag),
+            'flagHasInquerito'                     => $this->faker->randomElement($opcoesFlag),
+            'flagHasProcessoJudicial'              => $this->faker->randomElement($opcoesFlag),
+            'flagHasAssistenciaJuridica'           => $this->faker->randomElement($opcoesFlag),
+            'flagHasRegiaoPrioritaria'             => $this->faker->randomElement($opcoesFlag),
+            'flagHasViolenciaPatrimonialIndigena'  => $this->faker->randomElement($opcoesFlag),
+            'flagHasEventoViolenciaIndigena'       => $this->faker->randomElement($opcoesFlag),
+            'flagHasAssassinatoPrisaoNaoIndigena'  => $this->faker->randomElement($opcoesFlag),
         ];
     }
 }

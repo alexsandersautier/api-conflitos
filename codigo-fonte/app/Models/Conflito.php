@@ -4,57 +4,407 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Conflito extends Model
 {
     use HasFactory;
-
+    
     protected $table = 'conflito';
+    
     protected $primaryKey = 'idConflito';
     
-    protected $fillable = ['nome',
-                           'descricao',
-                           'relato',
-                           'processoSei',
-                           'regiao',
-                           'dataInicioConflito',
-                           'dataFimConflito',
-                           'latitude',
-                           'longitude',
-                           'municipio',
-                           'uf',
-                           'flagOcorrenciaAmeaca',
-                           'flagOcorrenciaViolencia',
-                           'flagOcorrenciaAssassinato',
-                           'flagOcorrenciaFeridos',
-                           'flagMembroProgramaProtecao'];
+    protected $fillable = [ 'latitude',
+                            'longitude',
+                            'nome',
+                            'relato',
+                            'dataInicioConflito',
+                            'dataAcionamentoMpiConflito',
+                            'observacoes',
+                            'flagHasImpactoAmbiental',
+                            'flagHasImpactoSaude',
+                            'flagHasImpactoSocioEconomico',
+                            'flagHasViolenciaIndigena',
+                            'flagHasMembroProgramaProtecao',
+                            'flagHasBOouNF',
+                            'flagHasInquerito',
+                            'flagHasProcessoJudicial',
+                            'flagHasAssistenciaJuridica',
+                            'flagHasRegiaoPrioritaria',
+                            'flagHasViolenciaPatrimonialIndigena',
+                            'flagHasEventoViolenciaIndigena',
+                            'flagHasAssassinatoPrisaoNaoIndigena'];
     
-    public function assuntos(){
-        return $this->belongsToMany(Assunto::class, 'assunto_conflito', 'idConflito', 'idAssunto');
+    protected $casts = ['dataInicioConflito' => 'date',
+                        'dataAcionamentoMpiConflito' => 'date',
+                        'numerosSeiIdentificacaoConflito' => 'array',
+                        'created_at' => 'datetime',
+                        'updated_at' => 'datetime'];
+    
+    /**
+     * Accessor para numerosSeiIdentificacaoConflito
+     */
+    public function getNumerosSeiIdentificacaoConflitoAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+        return $value ?? [];
+    }
+    
+    /**
+     * Mutator para numerosSeiIdentificacaoConflito
+     */
+    public function setNumerosSeiIdentificacaoConflitoAttribute($value)
+    {
+        $this->attributes['numerosSeiIdentificacaoConflito'] = is_array($value) ? json_encode($value) : $value;
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Aldeias
+     */
+    public function aldeias(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Aldeia::class,
+            'aldeia_conflito',
+            'idConflito',
+            'idAldeia'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Assuntos
+     */
+    public function assuntos(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Assunto::class,
+            'assunto_conflito',
+            'idConflito',
+            'idAssunto'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Terras Indígenas
+     */
+    public function terrasIndigenas(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            TerraIndigena::class,
+            'terra_indigena_conflito',
+            'idConflito',
+            'idTerraIndigena'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Povos
+     */
+    public function povos(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Povo::class,
+            'povo_conflito',
+            'idConflito',
+            'idPovo'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Tipos de Conflito
+     */
+    public function tiposConflito(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            TipoConflito::class,
+            'conflito_tipo_conflito',
+            'idConflito',
+            'idTipoConflito'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Categorias de Atores
+     */
+    public function categoriasAtores(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            CategoriaAtor::class,
+            'categoria_ator_conflito',
+            'idConflito',
+            'idCategoriaAtor'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Atores Identificados
+     */
+    public function atoresIdentificados(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Ator::class,
+            'ator_conflito',
+            'idConflito',
+            'idAtor'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Impactos Ambientais
+     */
+    public function impactosAmbientais(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ImpactoAmbiental::class,
+            'impacto_ambiental_conflito',
+            'idConflito',
+            'idImpactoAmbiental'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Impactos na Saúde
+     */
+    public function impactosSaude(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ImpactoSaude::class,
+            'impacto_saude_conflito',
+            'idConflito',
+            'idImpactoSaude'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento muitos-para-muitos com Impactos Socioeconômicos
+     */
+    public function impactosSocioEconomicos(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ImpactoSocioEconomico::class,
+            'impacto_socio_economico_conflito',
+            'idConflito',
+            'idImpactoSocioEconomico'
+            )->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento um-para-muitos com inqueritos
+     */
+    public function inqueritos(): HasMany
+    {
+        return $this->hasMany(Inquerito::class, 'idConflito');
+    }
+    
+    /**
+     * Relacionamento um-para-muitos com IdentificacaoConflito
+     */
+    public function numerosSeiIdentificacaoConflito(): HasMany
+    {
+        return $this->hasMany(NumeroSeiIdentificacaoConflito::class, 'idConflito');
+    }
+    
+    /**
+     * Relacionamento um-para-muitos com inqueritos
+     */
+    public function processosJudiciais(): HasMany
+    {
+        return $this->hasMany(ProcessoJudicial::class, 'idConflito');
+    }
+    
+    /**
+     * Relacionamento um-para-muitos com programas de protecao
+     */
+    public function programasProtecao(): HasMany
+    {
+        return $this->hasMany(ProgramaProtecao::class, 'idConflito');
     }
 
-    public function impactos_ambientais(){
-        return $this->belongsToMany(ImpactoAmbiental::class, 'impacto_ambiental_conflito', 'idConflito', 'idImpactoAmbiental');
+    /**
+     * Relacionamento um-para-muitos com Violências Patrimoniais
+     */
+    public function violenciasPatrimoniais(): HasMany
+    {
+        return $this->hasMany(ViolenciaPatrimonial::class, 'idConflito');
     }
     
-    public function impactos_saude(){
-        return $this->belongsToMany(ImpactoSaude::class, 'impacto_saude_conflito', 'idConflito', 'idImpactoSaude');
+    /**
+     * Relacionamento um-para-muitos com Violências contra Pessoas Indígenas
+     */
+    public function violenciasPessoasIndigenas(): HasMany
+    {
+        return $this->hasMany(ViolenciaPessoaIndigena::class, 'idConflito');
     }
     
-    public function impactos_socio_economicos(){
-        return $this->belongsToMany(ImpactoSocioEconomico::class, 'impacto_socio_economico_conflito', 'idConflito', 'idImpactoSocioEconomico');
+    /**
+     * Relacionamento um-para-muitos com Violências contra Pessoas Não Indígenas
+     */
+    public function violenciasPessoasNaoIndigenas(): HasMany
+    {
+        return $this->hasMany(ViolenciaPessoaNaoIndigena::class, 'idConflito');
     }
     
-    public function povos() {
-        return $this->belongsToMany(Povo::class, 'povo_conflito', 'idConflito', 'idPovo');
+    /**
+     * Scope para conflitos com impacto ambiental
+     */
+    public function scopeComImpactoAmbiental($query)
+    {
+        return $query->where('flagHasImpactoAmbiental', 'SIM');
     }
     
-    public function terras_indigenas() {
-        return $this->belongsToMany(TerraIndigena::class, 'terra_indigena_conflito', 'idConflito', 'idTerraIndigena');
+    /**
+     * Scope para conflitos com violência indígena
+     */
+    public function scopeComViolenciaIndigena($query)
+    {
+        return $query->where('flagHasViolenciaIndigena', 'SIM');
     }
     
-    public function tipos_conflito(){
-        return $this->belongsToMany(TipoConflito::class, 'conflito_tipo_conflito', 'idConflito', 'idTipoConflito');
+    /**
+     * Scope para conflitos por região
+     */
+    public function scopePorRegiao($query, $regiao)
+    {
+        return $query->where('regiao', $regiao);
     }
     
+    /**
+     * Scope para conflitos por UF
+     */
+    public function scopePorUf($query, $uf)
+    {
+        return $query->where('uf', $uf);
+    }
+    
+    /**
+     * Scope para conflitos por município
+     */
+    public function scopePorMunicipio($query, $municipio)
+    {
+        return $query->where('municipio', $municipio);
+    }
+    
+    /**
+     * Scope para conflitos por data de início
+     */
+    public function scopePorDataInicio($query, $dataInicio, $dataFim = null)
+    {
+        if ($dataFim) {
+            return $query->whereBetween('dataInicioConflito', [$dataInicio, $dataFim]);
+        }
+        return $query->where('dataInicioConflito', $dataInicio);
+    }
+    
+    /**
+     * Verifica se o conflito tem violências patrimoniais
+     */
+    public function hasViolenciasPatrimoniais(): bool
+    {
+        return $this->violenciasPatrimoniais->isNotEmpty();
+    }
+    
+    /**
+     * Verifica se o conflito tem violências contra pessoas indígenas
+     */
+    public function hasViolenciasPessoasIndigenas(): bool
+    {
+        return $this->violenciasPessoasIndigenas->isNotEmpty();
+    }
+    
+    /**
+     * Verifica se o conflito tem violências contra pessoas não indígenas
+     */
+    public function hasViolenciasPessoasNaoIndigenas(): bool
+    {
+        return $this->violenciasPessoasNaoIndigenas->isNotEmpty();
+    }
+    
+    /**
+     * Retorna todos os números SEI relacionados ao conflito
+     */
+    public function getAllNumerosSei(): array
+    {
+        $numerosSei = $this->numerosSeiIdentificacaoConflito;
+        
+        // Adiciona números SEI das violências patrimoniais
+        foreach ($this->violenciasPatrimoniais as $violencia) {
+            if (!empty($violencia->numeroSei)) {
+                $numerosSei[] = $violencia->numeroSei;
+            }
+        }
+        
+        // Adiciona números SEI das violências contra pessoas indígenas
+        foreach ($this->violenciasPessoasIndigenas as $violencia) {
+            if (!empty($violencia->numeroSei)) {
+                $numerosSei[] = $violencia->numeroSei;
+            }
+        }
+        
+        // Adiciona números SEI das violências contra pessoas não indígenas
+        foreach ($this->violenciasPessoasNaoIndigenas as $violencia) {
+            if (!empty($violencia->numeroSei)) {
+                $numerosSei[] = $violencia->numeroSei;
+            }
+        }
+        
+        // Remove duplicados e valores vazios
+        return array_unique(array_filter($numerosSei));
+    }
+    
+    /**
+     * Retorna a contagem de violências por tipo
+     */
+    public function getContagemViolencias(): array
+    {
+        return [
+            'patrimoniais' => $this->violenciasPatrimoniais->count(),
+            'pessoas_indigenas' => $this->violenciasPessoasIndigenas->count(),
+            'pessoas_nao_indigenas' => $this->violenciasPessoasNaoIndigenas->count(),
+            'total' => $this->violenciasPatrimoniais->count() +
+            $this->violenciasPessoasIndigenas->count() +
+            $this->violenciasPessoasNaoIndigenas->count()
+        ];
+    }
+    
+    /**
+     * Retorna os tipos de conflito como array de strings
+     */
+    public function getTiposConflitoNomes(): array
+    {
+        return $this->tiposConflito->pluck('nome')->toArray();
+    }
+    
+    /**
+     * Retorna os nomes dos povos envolvidos
+     */
+    public function getPovosNomes(): array
+    {
+        return $this->povos->pluck('nome')->toArray();
+    }
+    
+    /**
+     * Retorna os nomes das terras indígenas envolvidas
+     */
+    public function getTerrasIndigenasNomes(): array
+    {
+        return $this->terrasIndigenas->pluck('nome')->toArray();
+    }
+    
+    /**
+     * Boot do model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Evento para deletar relacionamentos um-para-muitos
+        static::deleting(function ($conflito) {
+            $conflito->violenciasPatrimoniais()->delete();
+            $conflito->violenciasPessoasIndigenas()->delete();
+            $conflito->violenciasPessoasNaoIndigenas()->delete();
+        });
+    }
 }

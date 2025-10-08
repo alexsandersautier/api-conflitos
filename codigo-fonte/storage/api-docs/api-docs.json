@@ -9,6 +9,74 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/aldeia": {
+            "get": {
+                "tags": [
+                    "Aldeias"
+                ],
+                "summary": "Listar todos os aldeias",
+                "operationId": "57f7d001bcd451ba7ec4be86157d591a",
+                "responses": {
+                    "200": {
+                        "description": "Lista de aldeias",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Aldeia"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Acesso não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Aldeias"
+                ],
+                "summary": "Criar um novo aldeia",
+                "operationId": "22a8f4b8a05b318d94548519cfb62ddd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nome"
+                                ],
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Departamento de TI"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Aldeia criado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/assunto": {
             "get": {
                 "tags": [
@@ -117,12 +185,12 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "idTipoAtor",
+                                    "idCategoriaAtor",
                                     "idConflito",
                                     "nome"
                                 ],
                                 "properties": {
-                                    "idTipoAtor": {
+                                    "idCategoriaAtor": {
                                         "type": "integer",
                                         "example": "1"
                                     },
@@ -152,23 +220,22 @@
                 ]
             }
         },
-        "/api/conflitos": {},
-        "/api/episodio": {
+        "/api/categoria-ator": {
             "get": {
                 "tags": [
-                    "Episodios"
+                    "CategoriasAtor"
                 ],
-                "summary": "Listar todos os episodios",
-                "operationId": "3bce3ddd0fe392aebbf75ed53007dec3",
+                "summary": "Listar todos os categorias de ator",
+                "operationId": "27c55f48fe5eab09484a2936615f302a",
                 "responses": {
                     "200": {
-                        "description": "Lista de episodios",
+                        "description": "Lista de categorias de ator",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Episodio"
+                                        "$ref": "#/components/schemas/CategoriaAtor"
                                     }
                                 }
                             }
@@ -183,10 +250,10 @@
             },
             "post": {
                 "tags": [
-                    "Episodios"
+                    "CategoriasAtor"
                 ],
-                "summary": "Criar um novo episodio",
-                "operationId": "18a7b11d3e2e11f46fab0ca1eae27ccf",
+                "summary": "Criar um novo categoria de ator",
+                "operationId": "5f74cce59b62442ae173e48e686b76b8",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -198,7 +265,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Departamento de TI"
+                                        "example": "Categoria de Ator do Conflito"
                                     }
                                 },
                                 "type": "object"
@@ -208,7 +275,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Episodio criado"
+                        "description": "Categoria de Ator criado"
                     }
                 },
                 "security": [
@@ -218,6 +285,7 @@
                 ]
             }
         },
+        "/api/conflitos": {},
         "/api/impacto-ambiental": {
             "get": {
                 "tags": [
@@ -404,95 +472,6 @@
                 "responses": {
                     "201": {
                         "description": "Impacto Sócio Econômicos criado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/inquerito-policial": {
-            "get": {
-                "tags": [
-                    "InqueritosPoliciais"
-                ],
-                "summary": "Listar todos os inqueritos policiais",
-                "operationId": "495af559970c9eb965c99ca8a768f06a",
-                "responses": {
-                    "200": {
-                        "description": "Lista de Inqueritos Policiais",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/InqueritoPolicial"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "InqueritosPoliciais"
-                ],
-                "summary": "Criar uma novo inquerito policial",
-                "operationId": "c8c0f96f6cbac2a89395c4f821097e9a",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "idConflito",
-                                    "idTipoInqueritoPolicial",
-                                    "numero_bo",
-                                    "data",
-                                    "assistencia_juridica"
-                                ],
-                                "properties": {
-                                    "idConflito": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "idTipoInqueritoPolicial": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "numero_bo": {
-                                        "type": "string",
-                                        "example": "123.456.789"
-                                    },
-                                    "data": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "yyyy-mm-dd"
-                                    },
-                                    "assistencia_juridica": {
-                                        "type": "string",
-                                        "example": "Inquerito Policial"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Inquerito Policial criado"
-                    },
-                    "401": {
-                        "description": "Não autorizado"
                     }
                 },
                 "security": [
@@ -851,103 +830,6 @@
                 ]
             }
         },
-        "/api/processo-sei": {
-            "get": {
-                "tags": [
-                    "ProcessosSei"
-                ],
-                "summary": "Listar todos os processos SEI",
-                "operationId": "5ab17202f3143a034977874da3683bd5",
-                "responses": {
-                    "200": {
-                        "description": "Lista de processos SEI",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ProcessoSei"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "ProcessosSei"
-                ],
-                "summary": "Criar um novo processosei",
-                "operationId": "4f72c712a2e9df6ecf603b6d0699e64d",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "idTipoProcessoSei",
-                                    "idConflito",
-                                    "numero",
-                                    "assunto",
-                                    "especificacao",
-                                    "interessado"
-                                ],
-                                "properties": {
-                                    "idTipoProcessoSei": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "idConflito": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "numero": {
-                                        "type": "string",
-                                        "example": "123.456.789.123"
-                                    },
-                                    "assunto": {
-                                        "type": "string",
-                                        "example": "Descrição do assunto"
-                                    },
-                                    "especificacao": {
-                                        "type": "string",
-                                        "example": "Detalhar especificação"
-                                    },
-                                    "interessado": {
-                                        "type": "string",
-                                        "example": "João da Silva, Maria José,..."
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Processo SEI criado",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ProcessoSei"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
         "/api/situacao-fundiaria": {
             "get": {
                 "tags": [
@@ -1078,71 +960,6 @@
                 ]
             }
         },
-        "/api/tipo-ator": {
-            "get": {
-                "tags": [
-                    "TiposAtor"
-                ],
-                "summary": "Listar todos os tipos de ator",
-                "operationId": "69c2f7a62c8df6d683f04f8eb21187d3",
-                "responses": {
-                    "200": {
-                        "description": "Lista de tipos de ator",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/TipoAtor"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "TiposAtor"
-                ],
-                "summary": "Criar um novo tipo de ator",
-                "operationId": "aec4e802ea378a3cc1f9192dfb4ecbb1",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "nome"
-                                ],
-                                "properties": {
-                                    "nome": {
-                                        "type": "string",
-                                        "example": "Tipo de Ator do Conflito"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Tipo de Ator criado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
         "/api/tipo-conflito": {
             "get": {
                 "tags": [
@@ -1199,71 +1016,6 @@
                 "responses": {
                     "201": {
                         "description": "Tipo de Conflito criado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/tipo-inquerito-policial": {
-            "get": {
-                "tags": [
-                    "TiposInqueritoPolicial"
-                ],
-                "summary": "Listar todos os tipos de Inquerito Policial",
-                "operationId": "1567920eeb77f861d9d475fb01841943",
-                "responses": {
-                    "200": {
-                        "description": "Lista de tipos de Inquerito Policial",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/TipoInqueritoPolicial"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "TiposInqueritoPolicial"
-                ],
-                "summary": "Criar um novo tipo de Inquerito Policial",
-                "operationId": "d0dc250ef860c3dca9a116ba22453224",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "nome"
-                                ],
-                                "properties": {
-                                    "nome": {
-                                        "type": "string",
-                                        "example": "Tipo de Inquerito Policial"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Tipo de Inquerito Policial criado"
                     }
                 },
                 "security": [
@@ -1506,6 +1258,122 @@
                 ]
             }
         },
+        "/api/aldeia/{id}": {
+            "get": {
+                "tags": [
+                    "Aldeias"
+                ],
+                "summary": "Obter um aldeia específico",
+                "operationId": "376ecd1b56321f28f17288f529a4ed4f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do aldeia",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Aldeia"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Aldeias"
+                ],
+                "summary": "Atualizar um aldeia específico",
+                "operationId": "20f3a6515e4454fe1472aaf28696951e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nome"
+                                ],
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Grilagem"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Aldeia atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Aldeia"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Aldeias"
+                ],
+                "summary": "Excluir um aldeia específico",
+                "operationId": "cf7dcf0880ec1d29390a3e3f5f8e628f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Aldeia excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/assunto/{id}": {
             "get": {
                 "tags": [
@@ -1679,12 +1547,12 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "idTipoAtor",
+                                    "idCategoriaAtor",
                                     "idConflito",
                                     "nome"
                                 ],
                                 "properties": {
-                                    "idTipoAtor": {
+                                    "idCategoriaAtor": {
                                         "type": "integer",
                                         "example": "1"
                                     },
@@ -1977,6 +1845,115 @@
                 ]
             }
         },
+        "/api/categoria-ator/{id}": {
+            "get": {
+                "tags": [
+                    "CategoriasAtor"
+                ],
+                "summary": "Obter um categoria de ator específico",
+                "operationId": "f43e2b84c26c4ea9f0ca6b17977d0e1b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do categoria de ator",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CategoriaAtor"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "CategoriasAtor"
+                ],
+                "summary": "Atualizar um categoria de ator específico",
+                "operationId": "2b705f7ab4b3010414ff3dfb929fff51",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nome"
+                                ],
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Categoria de Ator do Conflito"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categoria de Ator atualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "CategoriasAtor"
+                ],
+                "summary": "Excluir um categoria de ator específico",
+                "operationId": "0a14418bec14cba8cd9a61048f7ef9a4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Categoria de Ator excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/conflito": {
             "get": {
                 "tags": [
@@ -2036,9 +2013,9 @@
                                         "type": "string",
                                         "example": "nome do conflito"
                                     },
-                                    "descrição": {
+                                    "relato": {
                                         "type": "string",
-                                        "example": "descrição do conflito"
+                                        "example": "Relato do conflito"
                                     },
                                     "regiao": {
                                         "type": "string",
@@ -2056,14 +2033,6 @@
                                     "longitude": {
                                         "type": "string",
                                         "example": "2.17403"
-                                    },
-                                    "municipio": {
-                                        "type": "string",
-                                        "example": "Marabá"
-                                    },
-                                    "uf": {
-                                        "type": "string",
-                                        "example": "PA"
                                     },
                                     "flagOcorrenciaAmeaca": {
                                         "type": "boolean",
@@ -3155,6 +3124,157 @@
                 ]
             }
         },
+        "/api/conflito/{id}/localidades": {
+            "get": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Obter as localideds de um conflito específico",
+                "operationId": "fa931c23462916e6edc6d4b1bf26ff75",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Localidades de um conflito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Localidade"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{id}/localidade": {
+            "post": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Associa uma Localidade a um conflito",
+                "description": "Adiciona uma Localidade a um conflito",
+                "operationId": "74a01f03f23b11631eb17cb2bbe66791",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "idLocalidade"
+                                ],
+                                "properties": {
+                                    "idLocalidade": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Localidade associado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Conflito"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    },
+                    "404": {
+                        "description": "Conflito ou Localidade não encontrado"
+                    },
+                    "422": {
+                        "description": "Validação falhou"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{idConflito}/localidade/{idLocalidade}": {
+            "delete": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Remove a associação de uma Localidade com um conflito",
+                "description": "Remove uma Localidade de um conflito",
+                "operationId": "b8cb945db7c1e50e72ef6d4915859a9a",
+                "parameters": [
+                    {
+                        "name": "idConflito",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "idLocalidade",
+                        "in": "path",
+                        "description": "ID da Localidade",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Localidade desassociada com sucesso"
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/conflito/{id}/tipos-conflito": {
             "get": {
                 "tags": [
@@ -3297,122 +3417,6 @@
                     },
                     "401": {
                         "description": "Não autorizado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/episodio/{id}": {
-            "get": {
-                "tags": [
-                    "Episodios"
-                ],
-                "summary": "Obter um episodio específico",
-                "operationId": "563a65f443da2d0d3ee73fc1f71b09ce",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dados do episodio",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Episodio"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "Episodios"
-                ],
-                "summary": "Atualizar um episodio específico",
-                "operationId": "b3bf8408be8c6c66a8b8a302207d7ff8",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "nome"
-                                ],
-                                "properties": {
-                                    "nome": {
-                                        "type": "string",
-                                        "example": "Departamento de TI"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Episodio atualizado",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Episodio"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Episodios"
-                ],
-                "summary": "Excluir um episodio específico",
-                "operationId": "094b732effea4fa0cb1b8af4717c6df8",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Episodio excluído"
                     }
                 },
                 "security": [
@@ -3754,168 +3758,6 @@
                 "responses": {
                     "204": {
                         "description": "Impacto Sócio Econômico excluído"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/inquerito-policial/{id}": {
-            "get": {
-                "tags": [
-                    "InqueritosPoliciais"
-                ],
-                "summary": "Obter um inquerito policial específico",
-                "operationId": "2e8ceba7e816357ad9c7c678409e4a15",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dados do inquerito policial",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/InqueritoPolicial"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "InqueritosPoliciais"
-                ],
-                "summary": "Atualizar um inquerito policial específico",
-                "operationId": "7ee6abadf2cc7f4333870fcafef5b036",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "idConflito",
-                                    "idTipoInqueritoPolicial",
-                                    "numero_bo",
-                                    "data",
-                                    "assistencia_juridica"
-                                ],
-                                "properties": {
-                                    "idConflito": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "idTipoInqueritoPolicial": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "numero_bo": {
-                                        "type": "string",
-                                        "example": "123.456.789"
-                                    },
-                                    "data": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "yyyy-mm-dd"
-                                    },
-                                    "assistencia_juridica": {
-                                        "type": "string",
-                                        "example": "Inquerito Policial"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Inquerito Policial atualizado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "InqueritosPoliciais"
-                ],
-                "summary": "Excluir um inquerito policial específico",
-                "operationId": "9946090d2e9b27775502bde38713d448",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Inquerito Policial excluída"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/inquerito-policial/conflito/{idConflito}": {
-            "get": {
-                "tags": [
-                    "InqueritosPoliciais"
-                ],
-                "summary": "Listar todos os inqueritos policiais de um Conflito",
-                "operationId": "3800bdac6e032ae2b4a02834d7da1238",
-                "parameters": [
-                    {
-                        "name": "idConflito",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lista de inqueritos policiais"
-                    },
-                    "500": {
-                        "description": "Erro na consulta"
                     }
                 },
                 "security": [
@@ -4558,165 +4400,6 @@
                 ]
             }
         },
-        "/api/processo-sei/{id}": {
-            "get": {
-                "tags": [
-                    "ProcessosSei"
-                ],
-                "summary": "Obter um processo SEI específico",
-                "operationId": "84df39349d4a4b78acda88662609c22d",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dados do processo sei"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "ProcessosSei"
-                ],
-                "summary": "Atualizar um processo SEI específico",
-                "operationId": "03ebc92a61a9fa12075a352e1c663dd7",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "idTipoProcessoSei",
-                                    "idConflito",
-                                    "numero",
-                                    "assunto",
-                                    "especificacao",
-                                    "interessado"
-                                ],
-                                "properties": {
-                                    "idTipoProcessoSei": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "idConflito": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "numero": {
-                                        "type": "string",
-                                        "example": "123.456.789.123"
-                                    },
-                                    "assunto": {
-                                        "type": "string",
-                                        "example": "Descrição do assunto"
-                                    },
-                                    "especificacao": {
-                                        "type": "string",
-                                        "example": "Detalhar especificação"
-                                    },
-                                    "interessado": {
-                                        "type": "string",
-                                        "example": "João da Silva, Maria José,..."
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Processo SEI atualizado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "ProcessosSei"
-                ],
-                "summary": "Excluir um processo Sei específico",
-                "operationId": "171ccb1866145cbbc271ac909242ff16",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Processo SEI excluído"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/processo-sei/conflito/{idConflito}": {
-            "get": {
-                "tags": [
-                    "ProcessosSei"
-                ],
-                "summary": "Listar todos os processos SEI de um Conflito",
-                "operationId": "c34a22efadd55b25d876ccca94010e2b",
-                "parameters": [
-                    {
-                        "name": "idConflito",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lista de processos SEI"
-                    },
-                    "400": {
-                        "description": "Termo de pesquisa não fornecido"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
         "/api/situacao-fundiaria/{id}": {
             "get": {
                 "tags": [
@@ -4984,115 +4667,6 @@
                 ]
             }
         },
-        "/api/tipo-ator/{id}": {
-            "get": {
-                "tags": [
-                    "TiposAtor"
-                ],
-                "summary": "Obter um tipo de ator específico",
-                "operationId": "21e88a7a38f1d56713df00b423bca08b",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dados do tipo de ator",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TipoAtor"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "TiposAtor"
-                ],
-                "summary": "Atualizar um tipo de ator específico",
-                "operationId": "77e8679c1e49d163a12cabe5ec4bfbc5",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "nome"
-                                ],
-                                "properties": {
-                                    "nome": {
-                                        "type": "string",
-                                        "example": "Tipo de Ator do Conflito"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Tipo de Ator atualizado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "TiposAtor"
-                ],
-                "summary": "Excluir um tipo de ator específico",
-                "operationId": "30a4f6415546cddedcdab3ded492f1e6",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Tipo de Ator excluído"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
         "/api/tipo-conflito/{id}": {
             "get": {
                 "tags": [
@@ -5193,115 +4767,6 @@
                 "responses": {
                     "204": {
                         "description": "Tipo de Conflito excluído"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/tipo-inquerito-policial/{id}": {
-            "get": {
-                "tags": [
-                    "TiposInqueritoPolicial"
-                ],
-                "summary": "Obter um tipo de Inquerito Policial específico",
-                "operationId": "d37bb6c6cbfc2754b8f77a3b1f7befa0",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dados do tipo de Inquerito Policial",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TipoInqueritoPolicial"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "TiposInqueritoPolicial"
-                ],
-                "summary": "Atualizar um tipo de Inquerito Policial específico",
-                "operationId": "e9b8d703b8a89a847e3d8ded38480b12",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "nome"
-                                ],
-                                "properties": {
-                                    "nome": {
-                                        "type": "string",
-                                        "example": "Tipo de Inquerito Policial"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Tipo de Inquerito Policial atualizado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "TiposInqueritoPolicial"
-                ],
-                "summary": "Excluir um tipo de Inquerito Policial específico",
-                "operationId": "1d7c982a628a48316c210fac54469172",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Tipo de Inquerito Policial excluído"
                     }
                 },
                 "security": [
@@ -5788,6 +5253,19 @@
     },
     "components": {
         "schemas": {
+            "Aldeia": {
+                "properties": {
+                    "idAldeia": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "nome": {
+                        "type": "string",
+                        "example": "nome do aldeia"
+                    }
+                },
+                "type": "object"
+            },
             "Assunto": {
                 "properties": {
                     "idAssunto": {
@@ -5807,8 +5285,8 @@
                         "type": "integer",
                         "example": "1"
                     },
-                    "tipoAtor": {
-                        "$ref": "#/components/schemas/TipoAtor"
+                    "categoriaAtor": {
+                        "$ref": "#/components/schemas/CategoriaAtor"
                     },
                     "conflito": {
                         "$ref": "#/components/schemas/Conflito"
@@ -5816,6 +5294,18 @@
                     "nome": {
                         "type": "string",
                         "example": "Nome do ator"
+                    }
+                },
+                "type": "object"
+            },
+            "CategoriaAtor": {
+                "properties": {
+                    "idCategoriaAtor": {
+                        "type": "integer"
+                    },
+                    "nome": {
+                        "type": "string",
+                        "example": "Latifundiário"
                     }
                 },
                 "type": "object"
@@ -5935,23 +5425,23 @@
                 },
                 "type": "object"
             },
-            "Episodio": {
+            "Localidade": {
                 "properties": {
-                    "idEpisodio": {
+                    "idLocalidade": {
                         "type": "integer",
-                        "example": 1
+                        "example": "1"
                     },
-                    "titulo": {
+                    "regiao": {
                         "type": "string",
-                        "example": "Título do episodio"
+                        "example": "AMAZÔNIA"
                     },
-                    "conflito": {
-                        "$ref": "#/components/schemas/Conflito"
-                    },
-                    "dataHora": {
+                    "uf": {
                         "type": "string",
-                        "format": "date-time",
-                        "example": "Data/Hora do episodio"
+                        "example": "PA"
+                    },
+                    "municipio": {
+                        "type": "string",
+                        "example": "Belém"
                     }
                 },
                 "type": "object"
@@ -5991,34 +5481,6 @@
                     "nome": {
                         "type": "string",
                         "example": "Nome do ImpactoSocioEconomico"
-                    }
-                },
-                "type": "object"
-            },
-            "InqueritoPolicial": {
-                "properties": {
-                    "idInqueritoPolicial": {
-                        "type": "integer",
-                        "example": "1"
-                    },
-                    "conflito": {
-                        "$ref": "#/components/schemas/Conflito"
-                    },
-                    "tipoInqueritoPolicial": {
-                        "$ref": "#/components/schemas/TipoInqueritoPolicial"
-                    },
-                    "numero_bo": {
-                        "type": "string",
-                        "example": "5465466546"
-                    },
-                    "data": {
-                        "type": "string",
-                        "format": "date",
-                        "example": "yyyy-mm-dd"
-                    },
-                    "assistencia_juridica": {
-                        "type": "string",
-                        "example": "DPE"
                     }
                 },
                 "type": "object"
@@ -6121,34 +5583,6 @@
                     "qtd_ti_povo": {
                         "type": "integer",
                         "example": "3"
-                    }
-                },
-                "type": "object"
-            },
-            "ProcessoSei": {
-                "properties": {
-                    "idProcessoSei": {
-                        "type": "integer",
-                        "example": "1"
-                    },
-                    "tipoProcessoSei": {
-                        "$ref": "#/components/schemas/TipoProcessoSei"
-                    },
-                    "numero": {
-                        "type": "string",
-                        "example": "59004.000960/2024-68"
-                    },
-                    "assunto": {
-                        "type": "string",
-                        "example": "Conflito"
-                    },
-                    "especificacao": {
-                        "type": "string",
-                        "example": "Especificação do processo"
-                    },
-                    "interessado": {
-                        "type": "string",
-                        "example": "Luiz Silva"
                     }
                 },
                 "type": "object"
@@ -6261,18 +5695,6 @@
                 },
                 "type": "object"
             },
-            "TipoAtor": {
-                "properties": {
-                    "idTipoAtor": {
-                        "type": "integer"
-                    },
-                    "nome": {
-                        "type": "string",
-                        "example": "Latifundiário"
-                    }
-                },
-                "type": "object"
-            },
             "TipoConflito": {
                 "properties": {
                     "idTipoConflito": {
@@ -6282,19 +5704,6 @@
                     "nome": {
                         "type": "string",
                         "example": "Prevenção e acompanhamento de conflito: Disputas territoriais"
-                    }
-                },
-                "type": "object"
-            },
-            "TipoInqueritoPolicial": {
-                "properties": {
-                    "idTipoInqueritoPolicial": {
-                        "type": "integer",
-                        "example": "3"
-                    },
-                    "nome": {
-                        "type": "string",
-                        "example": "Processos em tramitação na justica federal"
                     }
                 },
                 "type": "object"
@@ -6368,6 +5777,10 @@
     },
     "tags": [
         {
+            "name": "Aldeias",
+            "description": "Endpoints para Aldeias"
+        },
+        {
             "name": "Assuntos",
             "description": "Endpoints para Assuntos"
         },
@@ -6380,12 +5793,12 @@
             "description": "Endpoints para Autenticação"
         },
         {
-            "name": "Conflitos",
-            "description": "Endpoints para Conflitos"
+            "name": "CategoriasAtor",
+            "description": "Endpoints para Categorias de Ator"
         },
         {
-            "name": "Episodios",
-            "description": "Endpoints para Episódios"
+            "name": "Conflitos",
+            "description": "Endpoints para Conflitos"
         },
         {
             "name": "ImpactosAmbientais",
@@ -6398,10 +5811,6 @@
         {
             "name": "ImpactoSocioEconomico",
             "description": "Endpoints para Impactos Sócio Econômicos"
-        },
-        {
-            "name": "InqueritosPoliciais",
-            "description": "Endpoints para Inqueritos Policiais"
         },
         {
             "name": "LiderancasAmeacadas",
@@ -6424,10 +5833,6 @@
             "description": "Endpoints para Povos"
         },
         {
-            "name": "ProcessosSei",
-            "description": "Endpoints para Processos SEI"
-        },
-        {
             "name": "SituacaoFundiarias",
             "description": "Endpoints para Situações Fundiárias"
         },
@@ -6436,16 +5841,8 @@
             "description": "Endpoints para Terras Indigenas"
         },
         {
-            "name": "TiposAtor",
-            "description": "Endpoints para Tipos de Ator"
-        },
-        {
             "name": "TiposConflito",
             "description": "Endpoints para Tipos de Conflito"
-        },
-        {
-            "name": "TiposInqueritoPolicial",
-            "description": "Endpoints para Tipos de Inquerito Policial"
         },
         {
             "name": "TiposProcessoSei",

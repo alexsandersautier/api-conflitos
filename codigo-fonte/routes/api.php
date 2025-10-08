@@ -12,7 +12,7 @@ use App\Http\Controllers\PovoController;
 use App\Http\Controllers\ProcessoSeiController;
 use App\Http\Controllers\SituacaoFundiariaController;
 use App\Http\Controllers\TerraIndigenaController;
-use App\Http\Controllers\TipoAtorController;
+use App\Http\Controllers\CategoriaAtorController;
 use App\Http\Controllers\TipoConflitoController;
 use App\Http\Controllers\TipoInqueritoPolicialController;
 use App\Http\Controllers\TipoProcessoSeiController;
@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrigemDadoController;
 use App\Http\Controllers\TipoResponsavelController;
 use App\Http\Controllers\HealthCheckController;
+use App\Http\Controllers\AldeiaController;
 
 Route::get('/healthcheck', HealthCheckController::class);
 
@@ -35,6 +36,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me',      [AuthController::class, 'me']);
 });
+
+Route::apiResource('aldeia', AldeiaController::class)->middleware('auth:sanctum');
+
+// Rotas adicionais
+Route::prefix('aldeia')->group(function () {
+    Route::get('ativas', [AldeiaController::class, 'ativas']);
+    Route::get('regiao/{regiao}', [AldeiaController::class, 'porRegiao']);
+    Route::patch('{id}/restore', [AldeiaController::class, 'restore']);
+    Route::delete('{id}/force', [AldeiaController::class, 'forceDelete']);
+})->middleware('auth:sanctum');
 
 Route::prefix('assunto')->group(function () {
     Route::get('/',        [AssuntoController::class, 'index']);
@@ -57,7 +68,7 @@ Route::prefix('ator')->group(function () {
     Route::get('/conflito/{idConflito}', [AtorController::class, 'getAllByConflito']);
 })->middleware('auth:sanctum');
 
-Route::get('/conflito/paginar', [ConflitoController::class, 'getAllPage'])->middleware('auth:sanctum');
+Route::get('/conflito-paginar', [ConflitoController::class, 'getAllPage'])->middleware('auth:sanctum');
 
 Route::prefix('conflito')->group(function () {
     Route::get('/',        [ConflitoController::class, 'index']);
@@ -68,26 +79,9 @@ Route::prefix('conflito')->group(function () {
     Route::patch('/{id}',  [ConflitoController::class, 'update']);
     Route::delete('/{id}', [ConflitoController::class, 'destroy']);
 
-    
-    Route::get('/{id}/terras-indigenas',                                    [ConflitoController::class, 'getTerrasIndigenas']);
-    Route::post('/{id}/terra-indigena',                                     [ConflitoController::class, 'attachTerraIndigena']);
-    Route::delete('/{idConflito}/terra-indigena/{idTerraIndigena}',         [ConflitoController::class, 'detachTerraIndigena']);
-    
-    Route::get('/{id}/povos',                                               [ConflitoController::class, 'getPovos']);
-    Route::post('/{id}/povo',                                               [ConflitoController::class, 'attachPovo']);
-    Route::delete('/{idConflito}/povo/{idPovo}',                            [ConflitoController::class, 'detachPovo']);
-    
     Route::get('/{id}/assuntos',                                            [ConflitoController::class, 'getAssuntos']);
     Route::post('/{id}/assunto',                                            [ConflitoController::class, 'attachAssunto']);
     Route::delete('/{idConflito}/assunto/{idAssunto}',                      [ConflitoController::class, 'detachAssunto']);
-    
-    Route::get('/{id}/tipos-conflito',                                      [ConflitoController::class, 'getTiposConflito']);
-    Route::post('/{id}/tipo-conflito',                                      [ConflitoController::class, 'attachTipoConflito']);
-    Route::delete('/{idConflito}/tipo-conflito/{idTipoConflito}',           [ConflitoController::class, 'detachTipoConflito']);
-        
-    Route::get('/{id}/inqueritos-policiais',                                [ConflitoController::class, 'getInqueritosPoliciais']);
-    Route::post('/{id}/inquerito-policial',                                 [ConflitoController::class, 'attachInqueritoPolicial']);
-    Route::delete('/{idConflito}/inquerito-policial/{idInqueritoPolicial}', [ConflitoController::class, 'detachInqueritoPolicial']);
     
     Route::get('/{id}/impactos-ambientais',                                 [ConflitoController::class, 'getImpactosAmbientais']);
     Route::post('/{id}/impacto-ambiental',                                  [ConflitoController::class, 'attachImpactoAmbiental']);
@@ -100,15 +94,23 @@ Route::prefix('conflito')->group(function () {
     Route::get('/{id}/impactos-socio-economicos',                           [ConflitoController::class, 'getImpactosSocioEconomicos']);
     Route::post('/{id}/impacto-socio-economico',                            [ConflitoController::class, 'attachImpactoSocioEconomico']);
     Route::delete('/{idConflito}/impacto-socio-economico/{idImpactoSaude}', [ConflitoController::class, 'detachImpactoSocioEconomico']);
-})->middleware('auth:sanctum');
-
-Route::prefix('episodio')->group(function () {
-    Route::get('/',        [EpisodioController::class, 'index']);
-    Route::post('/',       [EpisodioController::class, 'store']);
-    Route::get('/{id}',    [EpisodioController::class, 'show']);
-    Route::put('/{id}',    [EpisodioController::class, 'update']);
-    Route::patch('/{id}',  [EpisodioController::class, 'update']);
-    Route::delete('/{id}', [EpisodioController::class, 'destroy']);
+        
+    Route::get('/{id}/localidades',                                         [ConflitoController::class, 'getLocalidades']);
+    Route::post('/{id}/localidade',                                         [ConflitoController::class, 'attachLocalidade']);
+    Route::delete('/{idConflito}/localidade/{idLocalidade}',                [ConflitoController::class, 'detachLocalidade']);
+    
+    Route::get('/{id}/terras-indigenas',                                    [ConflitoController::class, 'getTerrasIndigenas']);
+    Route::post('/{id}/terra-indigena',                                     [ConflitoController::class, 'attachTerraIndigena']);
+    Route::delete('/{idConflito}/terra-indigena/{idTerraIndigena}',         [ConflitoController::class, 'detachTerraIndigena']);
+    
+    Route::get('/{id}/povos',                                               [ConflitoController::class, 'getPovos']);
+    Route::post('/{id}/povo',                                               [ConflitoController::class, 'attachPovo']);
+    Route::delete('/{idConflito}/povo/{idPovo}',                            [ConflitoController::class, 'detachPovo']);
+        
+    Route::get('/{id}/tipos-conflito',                                      [ConflitoController::class, 'getTiposConflito']);
+    Route::post('/{id}/tipo-conflito',                                      [ConflitoController::class, 'attachTipoConflito']);
+    Route::delete('/{idConflito}/tipo-conflito/{idTipoConflito}',           [ConflitoController::class, 'detachTipoConflito']);
+    
 })->middleware('auth:sanctum');
 
 Route::prefix('impacto-ambiental')->group(function () {
@@ -231,13 +233,13 @@ Route::prefix('terra-indigena')->group(function () {
     
 })->middleware('auth:sanctum');
 
-Route::prefix('tipo-ator')->group(function () {
-    Route::get('/',        [TipoAtorController::class, 'index']);
-    Route::post('/',       [TipoAtorController::class, 'store']);
-    Route::get('/{id}',    [TipoAtorController::class, 'show']);
-    Route::put('/{id}',    [TipoAtorController::class, 'update']);
-    Route::patch('/{id}',  [TipoAtorController::class, 'update']);
-    Route::delete('/{id}', [TipoAtorController::class, 'destroy']);
+Route::prefix('categoria-ator')->group(function () {
+    Route::get('/',        [CategoriaAtorController::class, 'index']);
+    Route::post('/',       [CategoriaAtorController::class, 'store']);
+    Route::get('/{id}',    [CategoriaAtorController::class, 'show']);
+    Route::put('/{id}',    [CategoriaAtorController::class, 'update']);
+    Route::patch('/{id}',  [CategoriaAtorController::class, 'update']);
+    Route::delete('/{id}', [CategoriaAtorController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
 Route::prefix('tipo-conflito')->group(function () {

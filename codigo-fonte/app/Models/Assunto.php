@@ -11,8 +11,6 @@ class Assunto extends Model
 
     protected $table = 'assunto';
     protected $primaryKey = 'idAssunto';
-
-    public $timestamps = false;
     
     protected $fillable = [
         'nome'
