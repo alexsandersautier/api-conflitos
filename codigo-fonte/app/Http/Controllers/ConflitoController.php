@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\TipoConflito;
-use App\Models\ProcessoSei;
 use App\Models\ImpactoAmbiental;
 use App\Models\ImpactoSaude;
 use App\Models\ImpactoSocioEconomico;
@@ -265,28 +264,27 @@ class ConflitoController extends Controller
             DB::beginTransaction();
             
             // Criar o conflito principal
-            $conflitoData = $request->only([
-                'latitude',
-                'longitude',
-                'nome',
-                'relato',
-                'dataInicioConflito',
-                'dataAcionamentoMpiConflito',
-                'observacoes',
-                'flagHasImpactoAmbiental',
-                'flagHasImpactoSaude',
-                'flagHasImpactoSocioEconomico',
-                'flagHasViolenciaIndigena',
-                'flagHasMembroProgramaProtecao',
-                'flagHasBOouNF',
-                'flagHasInquerito',
-                'flagHasProcessoJudicial',
-                'flagHasAssistenciaJuridica',
-                'flagHasRegiaoPrioritaria',
-                'flagHasViolenciaPatrimonialIndigena',
-                'flagHasEventoViolenciaIndigena',
-                'flagHasAssassinatoPrisaoNaoIndigena'
-            ]);
+            $conflitoData = $request->only(['latitude',
+                                            'longitude',
+                                            'nome',
+                                            'relato',
+                                            'dataInicioConflito',
+                                            'dataAcionamentoMpiConflito',
+                                            'observacoes',
+                                            'flagHasImpactoAmbiental',
+                                            'flagHasImpactoSaude',
+                                            'flagHasImpactoSocioEconomico',
+                                            'flagHasViolenciaIndigena',
+                                            'flagHasMembroProgramaProtecao',
+                                            'flagHasBOouNF',
+                                            'flagHasInquerito',
+                                            'flagHasProcessoJudicial',
+                                            'flagHasAssistenciaJuridica',
+                                            'flagHasRegiaoPrioritaria',
+                                            'flagHasViolenciaPatrimonialIndigena',
+                                            'flagHasEventoViolenciaIndigena',
+                                            'flagHasAssassinatoPrisaoNaoIndigena'
+                                        ]);
             
             $conflito = Conflito::create($conflitoData);
             
@@ -456,26 +454,25 @@ class ConflitoController extends Controller
             DB::commit();
             
             // Carregar relacionamentos para retornar o conflito completo
-            $conflitoCompleto = Conflito::with([
-                'aldeias',
-                'assuntos',
-                'atoresIdentificados',
-                'categoriasAtores',
-                'impactosAmbientais',
-                'impactosSaude',
-                'impactosSocioEconomicos',
-                'inqueritos',
-                'localidadesConflito',
-                'numerosSeiIdentificacaoConflito',
-                'povos',
-                'processosJudiciais',
-                'programasProtecao',
-                'terrasIndigenas',
-                'tiposConflito',
-                'violenciasPatrimoniais',
-                'violenciasPessoasIndigenas',
-                'violenciasPessoasNaoIndigenas',
-            ])->find($conflito->idConflito);
+            $conflitoCompleto = Conflito::with(['aldeias',
+                                                'assuntos',
+                                                'atoresIdentificados',
+                                                'categoriasAtores',
+                                                'impactosAmbientais',
+                                                'impactosSaude',
+                                                'impactosSocioEconomicos',
+                                                'inqueritos',
+                                                'localidadesConflito',
+                                                'numerosSeiIdentificacaoConflito',
+                                                'povos',
+                                                'processosJudiciais',
+                                                'programasProtecao',
+                                                'terrasIndigenas',
+                                                'tiposConflito',
+                                                'violenciasPatrimoniais',
+                                                'violenciasPessoasIndigenas',
+                                                'violenciasPessoasNaoIndigenas'
+                                            ])->find($conflito->idConflito);
             
             return response()->json($conflitoCompleto, Response::HTTP_CREATED);
             
@@ -590,30 +587,11 @@ class ConflitoController extends Controller
         
         $conflito = Conflito::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
-            'nome'                       => 'required|string|max:255',
-            'descricao'                  => 'required|string',
-            'relato'                     => 'required|string',
-            'processoSei'                => 'required|string',
-            'regiao'                     => 'required|string|max:100',
-            'dataInicioConflito'         => 'required|date',
-            'dataFimConflito'            => 'nullable|date|after_or_equal:dataInicioConflito',
-            'latitude'                   => 'required|numeric',
-            'longitude'                  => 'required|numeric',
-            'municipio'                  => 'required|string|max:100',
-            'uf'                         => 'required|string|size:2',
-            'flagOcorrenciaAmeaca'       => 'required|string',
-            'flagOcorrenciaViolencia'    => 'required|string',
-            'flagOcorrenciaAssassinato'  => 'required|string',
-            'flagOcorrenciaFeridos'      => 'required|string',
-            'flagMembroProgramaProtecao' => 'required|string'
-        ],[
-            'nome.required'              => 'O título é obrigatório',
-            'descricao.required'         => 'A descrição é obrigatória',
-        ]);
-
+        $validator = Validator::make($request->all(), $this->getRegrasValidacao());
+        
         if ($validator->fails()) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro de validação',
                 'errors' => $validator->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -621,20 +599,6 @@ class ConflitoController extends Controller
         
         $validatedData = $validator->validated();
         
-        // Define valores padrão para flags booleanas caso não sejam fornecidas
-        $booleanFields = [
-            'flagOcorrenciaAmeaca',
-            'flagOcorrenciaViolencia',
-            'flagOcorrenciaAssassinato',
-            'flagOcorrenciaFeridos',
-            'flagMembroProgramaProtecao'
-        ];
-        
-        foreach ($booleanFields as $field) {
-            if (!isset($validatedData[$field])) {
-                $validatedData[$field] = false;
-            }
-        }
 
         $conflito->update($validatedData);
         return response()->json($conflito);
@@ -2244,33 +2208,5 @@ class ConflitoController extends Controller
             'violenciasPessoasNaoIndigenas.*.nome' => 'required|string|max:255',
             'violenciasPessoasNaoIndigenas.*.numeroSei' => 'nullable|string|max:50',
             ];
-    }
-    
-    /**
-     * Método auxiliar para extrair IDs de forma segura
-     * 
-     * @param array $data
-     * @param string $idField
-     * @return array
-     */
-    private function extrairIds(array $data, string $idField): array
-    {
-//         $ids = [];
-//         foreach ($data as $item) {
-//             if (is_array($item) && isset($item[$idField])) {
-//                 $ids[] = $item[$idField];
-//             } elseif (is_object($item) && isset($item->{$idField})) {
-//                 $ids[] = $item->{$idField};
-//             } elseif (is_numeric($item)) {
-//                 // Se for apenas um array de IDs numéricos
-//                 $ids[] = $item;
-//             }
-//         }
-        
-//         return array_filter($ids);
-
-        return array_map(function ($item) use ($idField) {
-            return $item[$idField] ?? null; // Aqui ele extrai apenas o valor do ID.
-        }, $data); 
     }
 }

@@ -46,11 +46,11 @@ return [
     |
     */
 
-    'expiration' => 60 * 24,
+    'expiration' => null, //60 * 24,
 
     /*
     |--------------------------------------------------------------------------
-    | Token Prefix
+    | Token Prefix0
     |--------------------------------------------------------------------------
     |
     | Sanctum can prefix new tokens in order to take advantage of numerous
