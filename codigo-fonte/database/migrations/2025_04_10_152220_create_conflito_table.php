@@ -14,7 +14,7 @@ return new class extends Migration
             // Campos principais
             $table->decimal('latitude', 11, 8);
             $table->decimal('longitude', 11, 8);
-            $table->string('nome');
+            $table->string('nome', 255);
             $table->text('relato');
             $table->date('dataInicioConflito');
             $table->date('dataAcionamentoMpiConflito')->nullable();
