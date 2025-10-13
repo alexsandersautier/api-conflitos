@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('atualizacaoClassificacaoGravidadeConflito')->nullable();
             $table->date('dataReferenciaMudancaClassificacao')->nullable();
             $table->string('estrategiaGeralUtilizadaDemed')->nullable();
+            $table->text('estrategiaColetiva')->nullable();
             $table->text('observacoes')->nullable();
             
             // Flags como string
