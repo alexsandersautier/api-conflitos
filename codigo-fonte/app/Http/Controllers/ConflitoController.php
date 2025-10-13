@@ -25,6 +25,7 @@ use App\Models\ProgramaProtecao;
 use App\Models\ProcessoJudicial;
 use Illuminate\Support\Facades\Log;
 use App\Models\LocalidadeConflito;
+use App\Models\RegistroBoNf;
 
 /**
  *  @OA\Schema(
@@ -283,8 +284,16 @@ class ConflitoController extends Controller
                                             'flagHasRegiaoPrioritaria',
                                             'flagHasViolenciaPatrimonialIndigena',
                                             'flagHasEventoViolenciaIndigena',
-                                            'flagHasAssassinatoPrisaoNaoIndigena'
-                                        ]);
+                                            'flagHasAssassinatoPrisaoNaoIndigena',
+                                            'tipoInstituicaoAssistenciaJuridica',
+                                            'advogadoInstituicaoAssistenciaJuridica',
+                                            'regiaoPrioritaria',
+                                            'classificacaoGravidadeConflitoDemed',
+                                            'atualizacaoClassificacaoGravidadeConflito',
+                                            'dataReferenciaMudancaClassificacao',
+                                            'estrategiaGeralUtilizadaDemed',
+                
+            ]);
             
             $conflito = Conflito::create($conflitoData);
             
@@ -361,6 +370,20 @@ class ConflitoController extends Controller
                         'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
                         'uf'           => $programaProtecao['uf'] ?? null,
                         'numeroSei'    => $programaProtecao['numeroSei'] ?? null
+                    ]);
+                }
+            }
+            
+            //Criar registrosBOouNF
+            if ($request->has('registrosBOouNF') && is_array($request->registrosBOouNF)) {
+                foreach ($request->registrosBOouNF as $registro) {
+                    RegistroBoNf::create([
+                        'idConflito'   => $conflito->idConflito,
+                        'data'=> $registro['data'] ?? null,
+                        'numero'=> $registro['numero'] ?? null,
+                        'orgao' => $registro['numeroSei'] ?? null,
+                        'tipoOrgao' => $registro['orgao'] ?? null,
+                        'numeroSei' => $registro['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -467,6 +490,7 @@ class ConflitoController extends Controller
                                                 'povos',
                                                 'processosJudiciais',
                                                 'programasProtecao',
+                                                'registrosBOouNF',
                                                 'terrasIndigenas',
                                                 'tiposConflito',
                                                 'violenciasPatrimoniais',
@@ -527,11 +551,12 @@ class ConflitoController extends Controller
                                     'povos',
                                     'processosJudiciais',
                                     'programasProtecao',
+                                    'registrosBOouNF',
                                     'terrasIndigenas',
                                     'tiposConflito',
                                     'violenciasPatrimoniais',
                                     'violenciasPessoasIndigenas',
-                                    'violenciasPessoasNaoIndigenas',
+                                    'violenciasPessoasNaoIndigenas'
                                 ])->findOrFail($id);
         
         if (!$conflito) {
@@ -585,8 +610,6 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflito = Conflito::findOrFail($id);
-
         $validator = Validator::make($request->all(), $this->getRegrasValidacao());
         
         if ($validator->fails()) {
@@ -597,11 +620,292 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
-        $validatedData = $validator->validated();
-        
-
-        $conflito->update($validatedData);
-        return response()->json($conflito);
+        try {
+            DB::beginTransaction();
+            
+            // Buscar o conflito existente
+            $conflito = Conflito::findOrFail($id);
+            
+            // Atualizar o conflito principal
+            $conflitoData = $request->only(['latitude',
+                                            'longitude',
+                                            'nome',
+                                            'relato',
+                                            'dataInicioConflito',
+                                            'dataAcionamentoMpiConflito',
+                                            'observacoes',
+                                            'flagHasImpactoAmbiental',
+                                            'flagHasImpactoSaude',
+                                            'flagHasImpactoSocioEconomico',
+                                            'flagHasViolenciaIndigena',
+                                            'flagHasMembroProgramaProtecao',
+                                            'flagHasBOouNF',
+                                            'flagHasInquerito',
+                                            'flagHasProcessoJudicial',
+                                            'flagHasAssistenciaJuridica',
+                                            'flagHasRegiaoPrioritaria',
+                                            'flagHasViolenciaPatrimonialIndigena',
+                                            'flagHasEventoViolenciaIndigena',
+                                            'flagHasAssassinatoPrisaoNaoIndigena',
+                                            'tipoInstituicaoAssistenciaJuridica',
+                                            'advogadoInstituicaoAssistenciaJuridica',
+                                            'regiaoPrioritaria',
+                                            'classificacaoGravidadeConflitoDemed',
+                                            'atualizacaoClassificacaoGravidadeConflito',
+                                            'dataReferenciaMudancaClassificacao',
+                                            'estrategiaGeralUtilizadaDemed']);
+            
+            $conflito->update($conflitoData);
+            
+            // ATUALIZAR: Atores identificados - deletar e recriar
+            if ($request->has('atores_identificados')) {
+                $conflito->atoresIdentificadosConflito()->delete();
+                if (is_array($request->atores_identificados)) {
+                    foreach ($request->atores_identificados as $ator) {
+                        if (!empty(trim($ator))) {
+                            AtorIdentificadoConflito::create([
+                                'idConflito' => $conflito->idConflito,
+                                'nome' => trim($ator)
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Números SEI de identificação - deletar e recriar
+            if ($request->has('numerosSeiIdentificacaoConflito')) {
+                $conflito->numerosSeiIdentificacao()->delete();
+                if (is_array($request->numerosSeiIdentificacaoConflito)) {
+                    foreach ($request->numerosSeiIdentificacaoConflito as $numeroSei) {
+                        if (!empty(trim($numeroSei))) {
+                            NumeroSeiIdentificacaoConflito::create([
+                                'idConflito' => $conflito->idConflito,
+                                'numeroSei' => trim($numeroSei)
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Inquéritos - deletar e recriar
+            if ($request->has('inqueritos')) {
+                $conflito->inqueritos()->delete();
+                if (is_array($request->inqueritos)) {
+                    foreach ($request->inqueritos as $inquerito) {
+                        Inquerito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'data'       => $inquerito['data'] ?? null,
+                            'numero'     => $inquerito['numero'] ?? null,
+                            'orgao'      => $inquerito['orgao'] ?? null,
+                            'tipoOrgao'  => $inquerito['tipoOrgao'] ?? null,
+                            'numeroSei'  => $inquerito['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Localidades - deletar e recriar
+            if ($request->has('localidades')) {
+                $conflito->localidadesConflito()->delete();
+                if (is_array($request->localidades)) {
+                    foreach ($request->localidades as $localidade) {
+                        LocalidadeConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'regiao'     => $localidade['regiao'] ?? null,
+                            'uf'         => $localidade['uf'] ?? null,
+                            'municipio'  => $localidade['municipio'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Processos judiciais - deletar e recriar
+            if ($request->has('processosJudiciais')) {
+                $conflito->processosJudiciais()->delete();
+                if (is_array($request->processosJudiciais)) {
+                    foreach ($request->processosJudiciais as $processo) {
+                        ProcessoJudicial::create([
+                            'idConflito' => $conflito->idConflito,
+                            'data'       => $processo['data'] ?? null,
+                            'numero'     => $processo['numero'] ?? null,
+                            'tipoPoder'  => $processo['tipoPoder'] ?? null,
+                            'orgaoApoio' => $processo['orgaoApoio'] ?? null,
+                            'numeroSei'  => $processo['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Programas de proteção - deletar e recriar
+            if ($request->has('programasProtecao')) {
+                $conflito->programasProtecao()->delete();
+                if (is_array($request->programasProtecao)) {
+                    foreach ($request->programasProtecao as $programaProtecao) {
+                        ProgramaProtecao::create([
+                            'idConflito'   => $conflito->idConflito,
+                            'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
+                            'uf'           => $programaProtecao['uf'] ?? null,
+                            'numeroSei'    => $programaProtecao['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Violências patrimoniais - deletar e recriar
+            if ($request->has('violenciasPatrimoniais')) {
+                $conflito->violenciasPatrimoniais()->delete();
+                if (is_array($request->violenciasPatrimoniais)) {
+                    foreach ($request->violenciasPatrimoniais as $violenciaPatrimonial) {
+                        ViolenciaPatrimonial::create([
+                            'idConflito' => $conflito->idConflito,
+                            'tipoViolencia' => $violenciaPatrimonial['tipoViolencia'] ?? null,
+                            'data' => $violenciaPatrimonial['data'] ?? null,
+                            'numeroSei' => $violenciaPatrimonial['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Violências contra pessoas indígenas - deletar e recriar
+            if ($request->has('violenciasPessoasIndigenas')) {
+                $conflito->violenciasPessoasIndigenas()->delete();
+                if (is_array($request->violenciasPessoasIndigenas)) {
+                    foreach ($request->violenciasPessoasIndigenas as $violenciaIndigena) {
+                        ViolenciaPessoaIndigena::create([
+                            'idConflito' => $conflito->idConflito,
+                            'tipoViolencia' => $violenciaIndigena['tipoViolencia'] ?? null,
+                            'data' => $violenciaIndigena['data'] ?? null,
+                            'nome' => $violenciaIndigena['nome'] ?? null,
+                            'idade' => $violenciaIndigena['idade'] ?? null,
+                            'faixaEtaria' => $violenciaIndigena['faixaEtaria'] ?? null,
+                            'genero' => $violenciaIndigena['genero'] ?? null,
+                            'instrumentoViolencia' => $violenciaIndigena['instrumentoViolencia'] ?? null,
+                            'numeroSei' => $violenciaIndigena['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Violências contra pessoas não indígenas - deletar e recriar
+            if ($request->has('violenciasPessoasNaoIndigenas')) {
+                $conflito->violenciasPessoasNaoIndigenas()->delete();
+                if (is_array($request->violenciasPessoasNaoIndigenas)) {
+                    foreach ($request->violenciasPessoasNaoIndigenas as $violenciaNaoIndigena) {
+                        ViolenciaPessoaNaoIndigena::create([
+                            'idConflito' => $conflito->idConflito,
+                            'tipoViolencia' => $violenciaNaoIndigena['tipoViolencia'] ?? null,
+                            'tipoPessoa' => $violenciaNaoIndigena['tipoPessoa'] ?? null,
+                            'data' => $violenciaNaoIndigena['data'] ?? null,
+                            'nome' => $violenciaNaoIndigena['nome'] ?? null,
+                            'numeroSei' => $violenciaNaoIndigena['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Relações N:M - usar sync (já faz update automático)
+            if ($request->has('aldeias') && is_array($request->aldeias)) {
+                $conflito->aldeias()->sync($request->aldeias);
+            } else {
+                $conflito->aldeias()->sync([]);
+            }
+            
+            if ($request->has('assuntos') && is_array($request->assuntos)) {
+                $conflito->assuntos()->sync($request->assuntos);
+            } else {
+                $conflito->assuntos()->sync([]);
+            }
+            
+            if ($request->has('impactos_ambientais') && is_array($request->impactos_ambientais)) {
+                $conflito->impactosAmbientais()->sync($request->impactos_ambientais);
+            } else {
+                $conflito->impactosAmbientais()->sync([]);
+            }
+            
+            if ($request->has('impactos_saude') && is_array($request->impactos_saude)) {
+                $conflito->impactosSaude()->sync($request->impactos_saude);
+            } else {
+                $conflito->impactosSaude()->sync([]);
+            }
+            
+            if ($request->has('impactos_socio_economicos') && is_array($request->impactos_socio_economicos)) {
+                $conflito->impactosSocioEconomicos()->sync($request->impactos_socio_economicos);
+            } else {
+                $conflito->impactosSocioEconomicos()->sync([]);
+            }
+            
+            if ($request->has('povos') && is_array($request->povos)) {
+                $conflito->povos()->sync($request->povos);
+            } else {
+                $conflito->povos()->sync([]);
+            }
+            
+            if ($request->has('terras_indigenas') && is_array($request->terras_indigenas)) {
+                $conflito->terrasIndigenas()->sync($request->terras_indigenas);
+            } else {
+                $conflito->terrasIndigenas()->sync([]);
+            }
+            
+            if ($request->has('tipos_conflito') && is_array($request->tipos_conflito)) {
+                $conflito->tiposConflito()->sync($request->tipos_conflito);
+            } else {
+                $conflito->tiposConflito()->sync([]);
+            }
+            
+            // ATUALIZAR: Categorias de atores
+            if ($request->has('categorias_atores') && is_array($request->categorias_atores)) {
+                $conflito->categoriasAtores()->sync($request->categorias_atores);
+            } else {
+                $conflito->categoriasAtores()->sync([]);
+            }
+            
+            // ATUALIZAR: Atores identificados (relação N:M)
+            if ($request->has('atoresIdentificados') && is_array($request->atoresIdentificados)) {
+                $conflito->atores()->sync($request->atoresIdentificados);
+            } else {
+                $conflito->atores()->sync([]);
+            }
+            
+            DB::commit();
+            
+            // Carregar relacionamentos para retornar o conflito completo
+            $conflitoCompleto = Conflito::with(['aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'localidadesConflito',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'registrosBOouNF',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'
+            ])->find($conflito->idConflito);
+            
+            return response()->json($conflitoCompleto, Response::HTTP_OK);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Erro ao atualizar conflito:', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Erro ao atualizar conflito',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**

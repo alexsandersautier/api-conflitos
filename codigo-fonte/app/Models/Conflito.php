@@ -34,7 +34,14 @@ class Conflito extends Model
                             'flagHasRegiaoPrioritaria',
                             'flagHasViolenciaPatrimonialIndigena',
                             'flagHasEventoViolenciaIndigena',
-                            'flagHasAssassinatoPrisaoNaoIndigena'];
+                            'flagHasAssassinatoPrisaoNaoIndigena',
+                            'tipoInstituicaoAssistenciaJuridica',
+                            'advogadoInstituicaoAssistenciaJuridica',
+                            'regiaoPrioritaria',
+                            'classificacaoGravidadeConflitoDemed',
+                            'atualizacaoClassificacaoGravidadeConflito',
+                            'dataReferenciaMudancaClassificacao',
+                            'estrategiaGeralUtilizadaDemed'];
     
     protected $casts = ['dataInicioConflito' => 'date',
                         'dataAcionamentoMpiConflito' => 'date',
@@ -66,12 +73,7 @@ class Conflito extends Model
      */
     public function aldeias(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Aldeia::class,
-            'aldeia_conflito',
-            'idConflito',
-            'idAldeia'
-            )->withTimestamps();
+        return $this->belongsToMany(Aldeia::class,'aldeia_conflito','idConflito','idAldeia')->withTimestamps();
     }
     
     /**
@@ -79,12 +81,7 @@ class Conflito extends Model
      */
     public function assuntos(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Assunto::class,
-            'assunto_conflito',
-            'idConflito',
-            'idAssunto'
-            )->withTimestamps();
+        return $this->belongsToMany(Assunto::class,'assunto_conflito','idConflito','idAssunto')->withTimestamps();
     }
     
     /**
@@ -92,12 +89,7 @@ class Conflito extends Model
      */
     public function terrasIndigenas(): BelongsToMany
     {
-        return $this->belongsToMany(
-            TerraIndigena::class,
-            'terra_indigena_conflito',
-            'idConflito',
-            'idTerraIndigena'
-            )->withTimestamps();
+        return $this->belongsToMany(TerraIndigena::class,'terra_indigena_conflito','idConflito','idTerraIndigena')->withTimestamps();
     }
     
     /**
@@ -105,12 +97,7 @@ class Conflito extends Model
      */
     public function povos(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Povo::class,
-            'povo_conflito',
-            'idConflito',
-            'idPovo'
-            )->withTimestamps();
+        return $this->belongsToMany(Povo::class,'povo_conflito','idConflito','idPovo')->withTimestamps();
     }
     
     /**
@@ -118,12 +105,7 @@ class Conflito extends Model
      */
     public function tiposConflito(): BelongsToMany
     {
-        return $this->belongsToMany(
-            TipoConflito::class,
-            'conflito_tipo_conflito',
-            'idConflito',
-            'idTipoConflito'
-            )->withTimestamps();
+        return $this->belongsToMany(TipoConflito::class,'conflito_tipo_conflito','idConflito','idTipoConflito')->withTimestamps();
     }
     
     /**
@@ -131,12 +113,7 @@ class Conflito extends Model
      */
     public function categoriasAtores(): BelongsToMany
     {
-        return $this->belongsToMany(
-            CategoriaAtor::class,
-            'categoria_ator_conflito',
-            'idConflito',
-            'idCategoriaAtor'
-            )->withTimestamps();
+        return $this->belongsToMany(CategoriaAtor::class,'categoria_ator_conflito','idConflito','idCategoriaAtor')->withTimestamps();
     }
     
     /**
@@ -144,12 +121,7 @@ class Conflito extends Model
      */
     public function atoresIdentificados(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Ator::class,
-            'ator_conflito',
-            'idConflito',
-            'idAtor'
-            )->withTimestamps();
+        return $this->belongsToMany(Ator::class,'ator_conflito','idConflito','idAtor')->withTimestamps();
     }
     
     /**
@@ -157,12 +129,7 @@ class Conflito extends Model
      */
     public function impactosAmbientais(): BelongsToMany
     {
-        return $this->belongsToMany(
-            ImpactoAmbiental::class,
-            'impacto_ambiental_conflito',
-            'idConflito',
-            'idImpactoAmbiental'
-            )->withTimestamps();
+        return $this->belongsToMany(ImpactoAmbiental::class,'impacto_ambiental_conflito','idConflito','idImpactoAmbiental')->withTimestamps();
     }
     
     /**
@@ -170,12 +137,7 @@ class Conflito extends Model
      */
     public function impactosSaude(): BelongsToMany
     {
-        return $this->belongsToMany(
-            ImpactoSaude::class,
-            'impacto_saude_conflito',
-            'idConflito',
-            'idImpactoSaude'
-            )->withTimestamps();
+        return $this->belongsToMany(ImpactoSaude::class,'impacto_saude_conflito','idConflito','idImpactoSaude')->withTimestamps();
     }
     
     /**
@@ -183,12 +145,7 @@ class Conflito extends Model
      */
     public function impactosSocioEconomicos(): BelongsToMany
     {
-        return $this->belongsToMany(
-            ImpactoSocioEconomico::class,
-            'impacto_socio_economico_conflito',
-            'idConflito',
-            'idImpactoSocioEconomico'
-            )->withTimestamps();
+        return $this->belongsToMany(ImpactoSocioEconomico::class,'impacto_socio_economico_conflito','idConflito','idImpactoSocioEconomico')->withTimestamps();
     }
     
     /**
@@ -230,6 +187,15 @@ class Conflito extends Model
     {
         return $this->hasMany(ProgramaProtecao::class, 'idConflito');
     }
+    
+    /**
+     * Relacionamento um-para-muitos com registros BO ou NF
+     */
+    public function registrosBOouNF(): HasMany
+    {
+        return $this->hasMany(RegistroBoNf::class, 'idConflito');
+    }
+    
 
     /**
      * Relacionamento um-para-muitos com Violências Patrimoniais
@@ -371,9 +337,7 @@ class Conflito extends Model
             'patrimoniais' => $this->violenciasPatrimoniais->count(),
             'pessoas_indigenas' => $this->violenciasPessoasIndigenas->count(),
             'pessoas_nao_indigenas' => $this->violenciasPessoasNaoIndigenas->count(),
-            'total' => $this->violenciasPatrimoniais->count() +
-            $this->violenciasPessoasIndigenas->count() +
-            $this->violenciasPessoasNaoIndigenas->count()
+            'total' => $this->violenciasPatrimoniais->count() + $this->violenciasPessoasIndigenas->count() + $this->violenciasPessoasNaoIndigenas->count()
         ];
     }
     
