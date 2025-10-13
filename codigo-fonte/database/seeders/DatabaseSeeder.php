@@ -39,6 +39,20 @@ class DatabaseSeeder extends Seeder {
                                     'idPerfil' => 1]);
         
         
+        Usuario::factory()->create(['nome' => 'Beatriz Oliveira',
+                                    'email' => 'beatrizoliveiravieirafsa@gmail.com',
+                                    'senha' => Hash::make('senha123456'),
+                                    'idOrgao' => 3,
+                                    'idPerfil' => 1]);
+        
+        Usuario::factory()->create(['nome' => 'Luísa Nascimento',
+                                    'email' => 'luisanascimento_@outlook.com',
+                                    'senha' => Hash::make('senha123456'),
+                                    'idOrgao' => 3,
+                                    'idPerfil' => 1]);
+        
+        
+        
         
         $this->call([
                     AssuntoTableSeeder::class,
@@ -53,8 +67,8 @@ class DatabaseSeeder extends Seeder {
                     TipoConflitoTableSeeder::class,
                     PovoTableSeeder::class,
                     PerfilTableSeeder::class,
-                    TerraIndigenaTableSeeder::class,
-                    ConflitoTableSeeder::class
+                    TerraIndigenaTableSeeder::class
+                    //,ConflitoTableSeeder::class
                 ]);
 
     }

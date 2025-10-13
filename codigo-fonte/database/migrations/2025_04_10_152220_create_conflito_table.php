@@ -40,10 +40,9 @@ return new class extends Migration
             $table->string('flagHasEventoViolenciaIndigena', 3)->default('NÃO');
             $table->string('flagHasAssassinatoPrisaoNaoIndigena', 3)->default('NÃO');
             
-            // Programa de proteção
-            $table->string('numeroSeiProgramaProtecao')->nullable();
-            $table->string('idProgramaProtecao')->nullable();
-            $table->string('ufProgramaProtecao', 2)->nullable();
+            // Assistencia juridica
+            $table->string('tipoInstituicaoAssistenciaJuridica');
+            $table->string('advogadoInstituicaoAssistenciaJuridica');
                                     
             // Status
             $table->string('status')->default('EM ANÁLISE');
