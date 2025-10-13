@@ -41,7 +41,8 @@ class Conflito extends Model
                             'classificacaoGravidadeConflitoDemed',
                             'atualizacaoClassificacaoGravidadeConflito',
                             'dataReferenciaMudancaClassificacao',
-                            'estrategiaGeralUtilizadaDemed'];
+                            'estrategiaGeralUtilizadaDemed',
+                            'estrategiaColetiva'];
     
     protected $casts = ['dataInicioConflito' => 'date',
                         'dataAcionamentoMpiConflito' => 'date',
@@ -116,13 +117,6 @@ class Conflito extends Model
         return $this->belongsToMany(CategoriaAtor::class,'categoria_ator_conflito','idConflito','idCategoriaAtor')->withTimestamps();
     }
     
-    /**
-     * Relacionamento muitos-para-muitos com Atores Identificados
-     */
-    public function atoresIdentificados(): BelongsToMany
-    {
-        return $this->belongsToMany(Ator::class,'ator_conflito','idConflito','idAtor')->withTimestamps();
-    }
     
     /**
      * Relacionamento muitos-para-muitos com Impactos Ambientais
@@ -146,6 +140,14 @@ class Conflito extends Model
     public function impactosSocioEconomicos(): BelongsToMany
     {
         return $this->belongsToMany(ImpactoSocioEconomico::class,'impacto_socio_economico_conflito','idConflito','idImpactoSocioEconomico')->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento um-para-muitos com atores identificados
+     */
+    public function atoresIdentificados(): HasMany
+    {
+        return $this->hasMany(AtorIdentificadoConflito::class, 'idConflito');
     }
     
     /**

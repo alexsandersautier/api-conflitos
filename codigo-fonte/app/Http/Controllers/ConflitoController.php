@@ -292,8 +292,7 @@ class ConflitoController extends Controller
                                             'atualizacaoClassificacaoGravidadeConflito',
                                             'dataReferenciaMudancaClassificacao',
                                             'estrategiaGeralUtilizadaDemed',
-                
-            ]);
+                                            'estrategiaColetiva']);
             
             $conflito = Conflito::create($conflitoData);
             
@@ -653,7 +652,8 @@ class ConflitoController extends Controller
                                             'classificacaoGravidadeConflitoDemed',
                                             'atualizacaoClassificacaoGravidadeConflito',
                                             'dataReferenciaMudancaClassificacao',
-                                            'estrategiaGeralUtilizadaDemed']);
+                                            'estrategiaGeralUtilizadaDemed',
+                                            'estrategiaColetiva']);
             
             $conflito->update($conflitoData);
             
