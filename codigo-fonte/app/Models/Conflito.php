@@ -44,10 +44,7 @@ class Conflito extends Model
                             'estrategiaGeralUtilizadaDemed',
                             'estrategiaColetiva'];
     
-    protected $casts = ['dataInicioConflito' => 'date',
-                        'dataAcionamentoMpiConflito' => 'date',
-                        'numerosSeiIdentificacaoConflito' => 'array',
-                        'created_at' => 'datetime',
+    protected $casts = ['created_at' => 'datetime',
                         'updated_at' => 'datetime'];
     
     /**
@@ -328,19 +325,6 @@ class Conflito extends Model
         
         // Remove duplicados e valores vazios
         return array_unique(array_filter($numerosSei));
-    }
-    
-    /**
-     * Retorna a contagem de violências por tipo
-     */
-    public function getContagemViolencias(): array
-    {
-        return [
-            'patrimoniais' => $this->violenciasPatrimoniais->count(),
-            'pessoas_indigenas' => $this->violenciasPessoasIndigenas->count(),
-            'pessoas_nao_indigenas' => $this->violenciasPessoasNaoIndigenas->count(),
-            'total' => $this->violenciasPatrimoniais->count() + $this->violenciasPessoasIndigenas->count() + $this->violenciasPessoasNaoIndigenas->count()
-        ];
     }
     
     /**

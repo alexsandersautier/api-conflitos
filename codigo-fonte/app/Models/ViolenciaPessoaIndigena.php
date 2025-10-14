@@ -22,10 +22,6 @@ class ViolenciaPessoaIndigena extends Model
                             'instrumentoViolencia',
                             'numeroSei'];
 
-    protected $casts = [
-        'data' => 'date'
-    ];
-
     /**
      * Relacionamento com Conflito
      */

@@ -26,6 +26,36 @@ use App\Http\Controllers\OrigemDadoController;
 use App\Http\Controllers\TipoResponsavelController;
 use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\AldeiaController;
+use App\Http\Controllers\DashboardController;
+
+
+Route::prefix('dashboard')->group(function () {
+    // Dados completos do dashboard
+    Route::get('/dados', [DashboardController::class, 'getDadosDashboard']);
+    
+    // Dados do dashboard com filtro por período
+    Route::get('/dados-filtrados', [DashboardController::class, 'getDadosDashboardComFiltro']);
+    
+    // Dados específicos com filtros avançados
+    Route::get('/dados-avancados', [DashboardController::class, 'getDadosFiltradosAvancados']);
+    
+    // Métricas em tempo real (sem cache)
+    Route::get('/metricas-tempo-real', [DashboardController::class, 'getMetricasTempoReal']);
+    
+    // Endpoints individuais
+    Route::get('/totais-gerais', [DashboardController::class, 'getTotaisGerais']);
+    Route::get('/distribuicao-geografica', [DashboardController::class, 'getDistribuicaoGeografica']);
+    Route::get('/conflitos-por-uf', [DashboardController::class, 'getConflitosPorUF']);
+    Route::get('/conflitos-por-regiao', [DashboardController::class, 'getConflitosPorRegiao']);
+    Route::get('/conflitos-por-municipio', [DashboardController::class, 'getConflitosPorMunicipio']);
+    Route::get('/conflitos-por-ano', [DashboardController::class, 'getConflitosPorAno']);
+    Route::get('/estatisticas-violencias', [DashboardController::class, 'getEstatisticasViolencias']);
+    
+    // Administração
+    Route::get('/limpar-cache', [DashboardController::class, 'clearCache']);
+    Route::get('/health-check', [DashboardController::class, 'healthCheck']);
+});
+
 
 Route::get('/healthcheck', HealthCheckController::class);
 
@@ -140,17 +170,6 @@ Route::prefix('impacto-socio-economico')->group(function () {
     Route::delete('/{id}', [ImpactoSocioEconomicoController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
-Route::prefix('inquerito-policial')->group(function () {
-    Route::get('/',        [InqueritoPolicialController::class, 'index']);
-    Route::post('/',       [InqueritoPolicialController::class, 'store']);
-    Route::get('/{id}',    [InqueritoPolicialController::class, 'show']);
-    Route::put('/{id}',    [InqueritoPolicialController::class, 'update']);
-    Route::patch('/{id}',  [InqueritoPolicialController::class, 'update']);
-    Route::delete('/{id}', [InqueritoPolicialController::class, 'destroy']);
-    
-    Route::get('/conflito/{idConflito}', [InqueritoPolicialController::class, 'getAllByConflito']);
-})->middleware('auth:sanctum');
-
 Route::prefix('lideranca-ameacada')->group(function () {
     Route::get('/',        [LiderancaAmeacadaController::class, 'index']);
     Route::post('/',       [LiderancaAmeacadaController::class, 'store']);
@@ -198,17 +217,6 @@ Route::prefix('povo')->group(function () {
     Route::delete('/{id}', [PovoController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
-Route::prefix('processo-sei')->group(function () {
-    Route::get('/',        [ProcessoSeiController::class, 'index']);
-    Route::post('/',       [ProcessoSeiController::class, 'store']);
-    Route::get('/{id}',    [ProcessoSeiController::class, 'show']);
-    Route::put('/{id}',    [ProcessoSeiController::class, 'update']);
-    Route::patch('/{id}',  [ProcessoSeiController::class, 'update']);
-    Route::delete('/{id}', [ProcessoSeiController::class, 'destroy']);
-    
-    Route::get('/conflito/{idConflito}', [ProcessoSeiController::class, 'getAllByConflito']);
-})->middleware('auth:sanctum');
-
 Route::prefix('situacao-fundiaria')->group(function () {
     Route::get('/',        [SituacaoFundiariaController::class, 'index']);
     Route::post('/',       [SituacaoFundiariaController::class, 'store']);
@@ -249,24 +257,6 @@ Route::prefix('tipo-conflito')->group(function () {
     Route::put('/{id}',    [TipoConflitoController::class, 'update']);
     Route::patch('/{id}',  [TipoConflitoController::class, 'update']);
     Route::delete('/{id}', [TipoConflitoController::class, 'destroy']);
-})->middleware('auth:sanctum');
-
-Route::prefix('tipo-inquerito-policial')->group(function () {
-    Route::get('/',        [TipoInqueritoPolicialController::class, 'index']);
-    Route::post('/',       [TipoInqueritoPolicialController::class, 'store']);
-    Route::get('/{id}',    [TipoInqueritoPolicialController::class, 'show']);
-    Route::put('/{id}',    [TipoInqueritoPolicialController::class, 'update']);
-    Route::patch('/{id}',  [TipoInqueritoPolicialController::class, 'update']);
-    Route::delete('/{id}', [TipoInqueritoPolicialController::class, 'destroy']);
-})->middleware('auth:sanctum');
-
-Route::prefix('tipo-processo-sei')->group(function () {
-    Route::get('/',        [TipoProcessoSeiController::class, 'index']);
-    Route::post('/',       [TipoProcessoSeiController::class, 'store']);
-    Route::get('/{id}',    [TipoProcessoSeiController::class, 'show']);
-    Route::put('/{id}',    [TipoProcessoSeiController::class, 'update']);
-    Route::patch('/{id}',  [TipoProcessoSeiController::class, 'update']);
-    Route::delete('/{id}', [TipoProcessoSeiController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
 Route::prefix('tipo-responsavel')->group(function () {

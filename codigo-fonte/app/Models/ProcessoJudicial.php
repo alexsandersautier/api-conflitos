@@ -18,10 +18,7 @@ class ProcessoJudicial extends Model
                            'tipoPoder', 
                            'orgaoApoio', 
                            'numeroSei'];
-    
-    protected $cast = ['data' => 'date'];
-
-    
+        
     public function conflito() {
         return $this->belongsTo(Conflito::class, 'idConflito');
     }
