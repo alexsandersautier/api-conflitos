@@ -16,11 +16,6 @@ class ViolenciaPatrimonial extends Model
                             'tipoViolencia',
                             'data',
                             'numeroSei'];
-
-    protected $casts = [
-        'data' => 'date',
-    ];
-
     /**
      * Relacionamento com Conflito
      */

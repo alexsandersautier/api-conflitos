@@ -19,11 +19,6 @@ class ViolenciaPessoaNaoIndigena extends Model
                             'nome',
                             'numeroSei'
                             ];
-    
-    protected $casts = [
-        'data' => 'date'
-    ];
-    
     /**
      * Relacionamento com Conflito
      */
