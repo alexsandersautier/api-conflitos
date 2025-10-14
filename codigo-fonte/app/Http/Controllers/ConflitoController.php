@@ -377,12 +377,12 @@ class ConflitoController extends Controller
             if ($request->has('registrosBOouNF') && is_array($request->registrosBOouNF)) {
                 foreach ($request->registrosBOouNF as $registro) {
                     RegistroBoNf::create([
-                        'idConflito'   => $conflito->idConflito,
-                        'data'=> $registro['data'] ?? null,
-                        'numero'=> $registro['numero'] ?? null,
-                        'orgao' => $registro['numeroSei'] ?? null,
-                        'tipoOrgao' => $registro['orgao'] ?? null,
-                        'numeroSei' => $registro['numeroSei'] ?? null
+                        'idConflito' => $conflito->idConflito,
+                        'data'       => $registro['data'] ?? null,
+                        'numero'     => $registro['numero'] ?? null,
+                        'orgao'      => $registro['orgao'] ?? null,
+                        'tipoOrgao'  => $registro['tipoOrgao'] ?? null,
+                        'numeroSei'  => $registro['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -391,10 +391,10 @@ class ConflitoController extends Controller
             if ($request->has('violenciasPatrimoniais') && is_array($request->violenciasPatrimoniais)) {
                 foreach ($request->violenciasPatrimoniais as $violenciaPatrimonial) {
                     ViolenciaPatrimonial::create([
-                        'idConflito' => $conflito->idConflito,
+                        'idConflito'    => $conflito->idConflito,
                         'tipoViolencia' => $violenciaPatrimonial['tipoViolencia'] ?? null,
-                        'data' => $violenciaPatrimonial['data'] ?? null,
-                        'numeroSei' => $violenciaPatrimonial['numeroSei'] ?? null
+                        'data'          => $violenciaPatrimonial['data'] ?? null,
+                        'numeroSei'     => $violenciaPatrimonial['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -404,14 +404,14 @@ class ConflitoController extends Controller
                 foreach ($request->violenciasPessoasIndigenas as $violenciaIndigena) {
                     ViolenciaPessoaIndigena::create([
                         'idConflito' => $conflito->idConflito,
-                        'tipoViolencia' => $violenciaIndigena['tipoViolencia'] ?? null,
-                        'data' => $violenciaIndigena['data'] ?? null,
-                        'nome' => $violenciaIndigena['nome'] ?? null,
-                        'idade' => $violenciaIndigena['idade'] ?? null,
-                        'faixaEtaria' => $violenciaIndigena['faixaEtaria'] ?? null,
-                        'genero' => $violenciaIndigena['genero'] ?? null,
+                        'tipoViolencia'        => $violenciaIndigena['tipoViolencia'] ?? null,
+                        'data'                 => $violenciaIndigena['data'] ?? null,
+                        'nome'                 => $violenciaIndigena['nome'] ?? null,
+                        'idade'                => $violenciaIndigena['idade'] ?? null,
+                        'faixaEtaria'          => $violenciaIndigena['faixaEtaria'] ?? null,
+                        'genero'               => $violenciaIndigena['genero'] ?? null,
                         'instrumentoViolencia' => $violenciaIndigena['instrumentoViolencia'] ?? null,
-                        'numeroSei' => $violenciaIndigena['numeroSei'] ?? null
+                        'numeroSei'            => $violenciaIndigena['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -420,12 +420,12 @@ class ConflitoController extends Controller
             if ($request->has('violenciasPessoasNaoIndigenas') && is_array($request->violenciasPessoasNaoIndigenas)) {
                 foreach ($request->violenciasPessoasNaoIndigenas as $violenciaNaoIndigena) {
                     ViolenciaPessoaNaoIndigena::create([
-                        'idConflito' => $conflito->idConflito,
+                        'idConflito'    => $conflito->idConflito,
                         'tipoViolencia' => $violenciaNaoIndigena['tipoViolencia'] ?? null,
-                        'tipoPessoa' => $violenciaNaoIndigena['tipoPessoa'] ?? null,
-                        'data' => $violenciaNaoIndigena['data'] ?? null,
-                        'nome' => $violenciaNaoIndigena['nome'] ?? null,
-                        'numeroSei' => $violenciaNaoIndigena['numeroSei'] ?? null
+                        'tipoPessoa'    => $violenciaNaoIndigena['tipoPessoa'] ?? null,
+                        'data'          => $violenciaNaoIndigena['data'] ?? null,
+                        'nome'          => $violenciaNaoIndigena['nome'] ?? null,
+                        'numeroSei'     => $violenciaNaoIndigena['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -751,6 +751,21 @@ class ConflitoController extends Controller
                 }
             }
             
+            //ATUALIZAR: Registros BO ou NF - deletar e recriar
+            if ($request->has('registrosBOouNF') && is_array($request->registrosBOouNF)) {
+                $conflito->programasNF()->delete();
+                foreach ($request->registrosBOouNF as $registro) {
+                    RegistroBoNf::create([
+                        'idConflito' => $conflito->idConflito,
+                        'data'       => $registro['data'] ?? null,
+                        'numero'     => $registro['numero'] ?? null,
+                        'orgao'      => $registro['orgao'] ?? null,
+                        'tipoOrgao'  => $registro['tipoOrgao'] ?? null,
+                        'numeroSei'  => $registro['numeroSei'] ?? null
+                    ]);
+                }
+            }
+            
             // ATUALIZAR: Violências patrimoniais - deletar e recriar
             if ($request->has('violenciasPatrimoniais')) {
                 $conflito->violenciasPatrimoniais()->delete();
@@ -802,6 +817,8 @@ class ConflitoController extends Controller
                     }
                 }
             }
+            
+             
             
             // ATUALIZAR: Relações N:M - usar sync (já faz update automático)
             if ($request->has('aldeias') && is_array($request->aldeias)) {
@@ -859,10 +876,11 @@ class ConflitoController extends Controller
                 $conflito->categoriasAtores()->sync([]);
             }
             
-            // ATUALIZAR: Atores identificados (relação N:M)
+            // ATUALIZAR: Sincronizar atores identificados
             if ($request->has('atoresIdentificados') && is_array($request->atoresIdentificados)) {
                 $conflito->atores()->sync($request->atoresIdentificados);
-            } else {
+            }
+            else {
                 $conflito->atores()->sync([]);
             }
             
