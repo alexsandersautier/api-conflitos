@@ -309,8 +309,8 @@ class ConflitoController extends Controller
             }
             
             // Cadastrar processos SEI de identificação
-            if ($request->has('numerosSeiIdentificacaoConflito') && is_array($request->numerosSeiIdentificacaoConflito)) {
-                foreach ($request->numerosSeiIdentificacaoConflito as $numeroSei) {
+            if ($request->has('numeros_sei_identificacao_conflito') && is_array($request->numeros_sei_identificacao_conflito)) {
+                foreach ($request->numeros_sei_identificacao_conflito as $numeroSei) {
                     if (!empty(trim($numeroSei))) {
                         NumeroSeiIdentificacaoConflito::create([
                             'idConflito' => $conflito->idConflito,
@@ -335,8 +335,8 @@ class ConflitoController extends Controller
             }
             
             // Criar localidadesConflito
-            if ($request->has('localidades') && is_array($request->localidades)) {
-                foreach ($request->localidades as $localidade) {
+            if ($request->has('localidades_conflito') && is_array($request->localidades_conflito)) {
+                foreach ($request->localidades_conflito as $localidade) {
                     LocalidadeConflito::create([
                         'idConflito' => $conflito->idConflito,
                         'regiao'     => $localidade['regiao'] ?? null,
@@ -348,8 +348,8 @@ class ConflitoController extends Controller
             
             
             // Criar processosJudiciais
-            if ($request->has('processosJudiciais') && is_array($request->processosJudiciais)) {
-                foreach ($request->processosJudiciais as $processo) {
+            if ($request->has('processos_judiciais') && is_array($request->processos_judiciais)) {
+                foreach ($request->processos_judiciais as $processo) {
                     ProcessoJudicial::create([
                         'idConflito' => $conflito->idConflito,
                         'data'       => $processo['data'] ?? null,
@@ -362,8 +362,8 @@ class ConflitoController extends Controller
             }
             
             // Criar programasProtecao
-            if ($request->has('programasProtecao') && is_array($request->programasProtecao)) {
-                foreach ($request->programasProtecao as $programaProtecao) {
+            if ($request->has('programas_protecao') && is_array($request->programas_protecao)) {
+                foreach ($request->programas_protecao as $programaProtecao) {
                     ProgramaProtecao::create([
                         'idConflito'   => $conflito->idConflito,
                         'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
@@ -373,9 +373,9 @@ class ConflitoController extends Controller
                 }
             }
             
-            //Criar registrosBOouNF
-            if ($request->has('registrosBOouNF') && is_array($request->registrosBOouNF)) {
-                foreach ($request->registrosBOouNF as $registro) {
+            //Criar 
+            if ($request->has('registros_b_oou_n_f') && is_array($request->registros_b_oou_n_f)) {
+                foreach ($request->registros_b_oou_n_f as $registro) {
                     RegistroBoNf::create([
                         'idConflito' => $conflito->idConflito,
                         'data'       => $registro['data'] ?? null,
@@ -388,8 +388,8 @@ class ConflitoController extends Controller
             }
             
             // Criar violências patrimoniais
-            if ($request->has('violenciasPatrimoniais') && is_array($request->violenciasPatrimoniais)) {
-                foreach ($request->violenciasPatrimoniais as $violenciaPatrimonial) {
+            if ($request->has('violencias_patrimoniais') && is_array($request->violencias_patrimoniais)) {
+                foreach ($request->violencias_patrimoniais as $violenciaPatrimonial) {
                     ViolenciaPatrimonial::create([
                         'idConflito'    => $conflito->idConflito,
                         'tipoViolencia' => $violenciaPatrimonial['tipoViolencia'] ?? null,
@@ -400,8 +400,8 @@ class ConflitoController extends Controller
             }
             
             // Criar violências contra pessoas indígenas
-            if ($request->has('violenciasPessoasIndigenas') && is_array($request->violenciasPessoasIndigenas)) {
-                foreach ($request->violenciasPessoasIndigenas as $violenciaIndigena) {
+            if ($request->has('violencias_pessoas_indigenas') && is_array($request->violencias_pessoas_indigenas)) {
+                foreach ($request->violencias_pessoas_indigenas as $violenciaIndigena) {
                     ViolenciaPessoaIndigena::create([
                         'idConflito' => $conflito->idConflito,
                         'tipoViolencia'        => $violenciaIndigena['tipoViolencia'] ?? null,
@@ -417,8 +417,8 @@ class ConflitoController extends Controller
             }
             
             // Criar violências contra pessoas não indígenas
-            if ($request->has('violenciasPessoasNaoIndigenas') && is_array($request->violenciasPessoasNaoIndigenas)) {
-                foreach ($request->violenciasPessoasNaoIndigenas as $violenciaNaoIndigena) {
+            if ($request->has('violencias_pessoas_nao_indigenas') && is_array($request->violencias_pessoas_nao_indigenas)) {
+                foreach ($request->violencias_pessoas_nao_indigenas as $violenciaNaoIndigena) {
                     ViolenciaPessoaNaoIndigena::create([
                         'idConflito'    => $conflito->idConflito,
                         'tipoViolencia' => $violenciaNaoIndigena['tipoViolencia'] ?? null,
@@ -466,11 +466,6 @@ class ConflitoController extends Controller
             // Sincronizar categorias de atores
             if ($request->has('categorias_atores') && is_array($request->categorias_atores)) {
                 $conflito->categoriasAtores()->sync($request->categorias_atores);
-            }
-            
-            // Sincronizar atores identificados
-            if ($request->has('atoresIdentificados') && is_array($request->atoresIdentificados)) {
-                $conflito->atores()->sync($request->atoresIdentificados);
             }
             
             DB::commit();
@@ -659,30 +654,26 @@ class ConflitoController extends Controller
             
             // ATUALIZAR: Atores identificados - deletar e recriar
             if ($request->has('atores_identificados')) {
-                $conflito->atoresIdentificadosConflito()->delete();
+                $conflito->atoresIdentificados()->delete();
                 if (is_array($request->atores_identificados)) {
                     foreach ($request->atores_identificados as $ator) {
-                        if (!empty(trim($ator))) {
-                            AtorIdentificadoConflito::create([
-                                'idConflito' => $conflito->idConflito,
-                                'nome' => trim($ator)
-                            ]);
-                        }
+                        AtorIdentificadoConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'nome' => (is_array($ator)) ? $ator['nome'] : $ator
+                        ]);
                     }
                 }
             }
             
             // ATUALIZAR: Números SEI de identificação - deletar e recriar
-            if ($request->has('numerosSeiIdentificacaoConflito')) {
-                $conflito->numerosSeiIdentificacao()->delete();
-                if (is_array($request->numerosSeiIdentificacaoConflito)) {
-                    foreach ($request->numerosSeiIdentificacaoConflito as $numeroSei) {
-                        if (!empty(trim($numeroSei))) {
-                            NumeroSeiIdentificacaoConflito::create([
-                                'idConflito' => $conflito->idConflito,
-                                'numeroSei' => trim($numeroSei)
-                            ]);
-                        }
+            if ($request->has('numeros_sei_identificacao_conflito')) {
+                $conflito->numerosSeiIdentificacaoConflito()->delete();
+                if (is_array($request->numeros_sei_identificacao_conflito)) {
+                    foreach ($request->numeros_sei_identificacao_conflito as $numeroSei) {
+                        NumeroSeiIdentificacaoConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'numeroSei' => (is_array($numeroSei)) ? $numeroSei['numeroSei'] : $numeroSei
+                        ]);
                     }
                 }
             }
@@ -705,10 +696,10 @@ class ConflitoController extends Controller
             }
             
             // ATUALIZAR: Localidades - deletar e recriar
-            if ($request->has('localidades')) {
+            if ($request->has('localidades_conflito')) {
                 $conflito->localidadesConflito()->delete();
-                if (is_array($request->localidades)) {
-                    foreach ($request->localidades as $localidade) {
+                if (is_array($request->localidades_conflito)) {
+                    foreach ($request->localidades_conflito as $localidade) {
                         LocalidadeConflito::create([
                             'idConflito' => $conflito->idConflito,
                             'regiao'     => $localidade['regiao'] ?? null,
@@ -720,10 +711,10 @@ class ConflitoController extends Controller
             }
             
             // ATUALIZAR: Processos judiciais - deletar e recriar
-            if ($request->has('processosJudiciais')) {
+            if ($request->has('processos_judiciais')) {
                 $conflito->processosJudiciais()->delete();
-                if (is_array($request->processosJudiciais)) {
-                    foreach ($request->processosJudiciais as $processo) {
+                if (is_array($request->processos_judiciais)) {
+                    foreach ($request->processos_judiciais as $processo) {
                         ProcessoJudicial::create([
                             'idConflito' => $conflito->idConflito,
                             'data'       => $processo['data'] ?? null,
@@ -737,10 +728,10 @@ class ConflitoController extends Controller
             }
             
             // ATUALIZAR: Programas de proteção - deletar e recriar
-            if ($request->has('programasProtecao')) {
+            if ($request->has('programas_protecao')) {
                 $conflito->programasProtecao()->delete();
-                if (is_array($request->programasProtecao)) {
-                    foreach ($request->programasProtecao as $programaProtecao) {
+                if (is_array($request->programas_protecao)) {
+                    foreach ($request->programas_protecao as $programaProtecao) {
                         ProgramaProtecao::create([
                             'idConflito'   => $conflito->idConflito,
                             'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
@@ -752,9 +743,9 @@ class ConflitoController extends Controller
             }
             
             //ATUALIZAR: Registros BO ou NF - deletar e recriar
-            if ($request->has('registrosBOouNF') && is_array($request->registrosBOouNF)) {
-                $conflito->programasNF()->delete();
-                foreach ($request->registrosBOouNF as $registro) {
+            if ($request->has('registros_b_oou_n_f') && is_array($request->registros_b_oou_n_f)) {
+                $conflito->registrosBOouNF()->delete();
+                foreach ($request->registros_b_oou_n_f as $registro) {
                     RegistroBoNf::create([
                         'idConflito' => $conflito->idConflito,
                         'data'       => $registro['data'] ?? null,
@@ -767,10 +758,10 @@ class ConflitoController extends Controller
             }
             
             // ATUALIZAR: Violências patrimoniais - deletar e recriar
-            if ($request->has('violenciasPatrimoniais')) {
+            if ($request->has('violencias_patrimoniais')) {
                 $conflito->violenciasPatrimoniais()->delete();
-                if (is_array($request->violenciasPatrimoniais)) {
-                    foreach ($request->violenciasPatrimoniais as $violenciaPatrimonial) {
+                if (is_array($request->violencias_patrimoniais)) {
+                    foreach ($request->violencias_patrimoniais as $violenciaPatrimonial) {
                         ViolenciaPatrimonial::create([
                             'idConflito' => $conflito->idConflito,
                             'tipoViolencia' => $violenciaPatrimonial['tipoViolencia'] ?? null,
@@ -782,37 +773,37 @@ class ConflitoController extends Controller
             }
             
             // ATUALIZAR: Violências contra pessoas indígenas - deletar e recriar
-            if ($request->has('violenciasPessoasIndigenas')) {
+            if ($request->has('violencias_pessoas_indigenas')) {
                 $conflito->violenciasPessoasIndigenas()->delete();
-                if (is_array($request->violenciasPessoasIndigenas)) {
-                    foreach ($request->violenciasPessoasIndigenas as $violenciaIndigena) {
+                if (is_array($request->violencias_pessoas_indigenas)) {
+                    foreach ($request->violencias_pessoas_indigenas as $violenciaIndigena) {
                         ViolenciaPessoaIndigena::create([
-                            'idConflito' => $conflito->idConflito,
-                            'tipoViolencia' => $violenciaIndigena['tipoViolencia'] ?? null,
-                            'data' => $violenciaIndigena['data'] ?? null,
-                            'nome' => $violenciaIndigena['nome'] ?? null,
-                            'idade' => $violenciaIndigena['idade'] ?? null,
-                            'faixaEtaria' => $violenciaIndigena['faixaEtaria'] ?? null,
-                            'genero' => $violenciaIndigena['genero'] ?? null,
+                            'idConflito'           => $conflito->idConflito,
+                            'tipoViolencia'        => $violenciaIndigena['tipoViolencia'] ?? null,
+                            'data'                 => $violenciaIndigena['data'] ?? null,
+                            'nome'                 => $violenciaIndigena['nome'] ?? null,
+                            'idade'                => $violenciaIndigena['idade'] ?? null,
+                            'faixaEtaria'          => $violenciaIndigena['faixaEtaria'] ?? null,
+                            'genero'               => $violenciaIndigena['genero'] ?? null,
                             'instrumentoViolencia' => $violenciaIndigena['instrumentoViolencia'] ?? null,
-                            'numeroSei' => $violenciaIndigena['numeroSei'] ?? null
+                            'numeroSei'            => $violenciaIndigena['numeroSei'] ?? null
                         ]);
                     }
                 }
             }
             
             // ATUALIZAR: Violências contra pessoas não indígenas - deletar e recriar
-            if ($request->has('violenciasPessoasNaoIndigenas')) {
+            if ($request->has('violencias_pessoas_nao_indigenas')) {
                 $conflito->violenciasPessoasNaoIndigenas()->delete();
-                if (is_array($request->violenciasPessoasNaoIndigenas)) {
-                    foreach ($request->violenciasPessoasNaoIndigenas as $violenciaNaoIndigena) {
+                if (is_array($request->violencias_pessoas_nao_indigenas)) {
+                    foreach ($request->violencias_pessoas_nao_indigenas as $violenciaNaoIndigena) {
                         ViolenciaPessoaNaoIndigena::create([
-                            'idConflito' => $conflito->idConflito,
+                            'idConflito'    => $conflito->idConflito,
                             'tipoViolencia' => $violenciaNaoIndigena['tipoViolencia'] ?? null,
-                            'tipoPessoa' => $violenciaNaoIndigena['tipoPessoa'] ?? null,
-                            'data' => $violenciaNaoIndigena['data'] ?? null,
-                            'nome' => $violenciaNaoIndigena['nome'] ?? null,
-                            'numeroSei' => $violenciaNaoIndigena['numeroSei'] ?? null
+                            'tipoPessoa'    => $violenciaNaoIndigena['tipoPessoa'] ?? null,
+                            'data'          => $violenciaNaoIndigena['data'] ?? null,
+                            'nome'          => $violenciaNaoIndigena['nome'] ?? null,
+                            'numeroSei'     => $violenciaNaoIndigena['numeroSei'] ?? null
                         ]);
                     }
                 }
@@ -821,92 +812,94 @@ class ConflitoController extends Controller
              
             
             // ATUALIZAR: Relações N:M - usar sync (já faz update automático)
-            if ($request->has('aldeias') && is_array($request->aldeias)) {
-                $conflito->aldeias()->sync($request->aldeias);
+            
+            if ($request->has('aldeias')) {
+                $ids = $this->processarRelacionamento($request->aldeias, 'idAldeia');
+                $conflito->aldeias()->sync($ids);
             } else {
                 $conflito->aldeias()->sync([]);
             }
             
             if ($request->has('assuntos') && is_array($request->assuntos)) {
-                $conflito->assuntos()->sync($request->assuntos);
+                $ids = $this->processarRelacionamento($request->assuntos, 'idAssunto');
+                $conflito->assuntos()->sync($ids);
             } else {
                 $conflito->assuntos()->sync([]);
             }
             
             if ($request->has('impactos_ambientais') && is_array($request->impactos_ambientais)) {
-                $conflito->impactosAmbientais()->sync($request->impactos_ambientais);
+                $ids = $this->processarRelacionamento($request->impactos_ambientais, 'idImpactoAmbiental');
+                $conflito->impactosAmbientais()->sync($ids);
             } else {
                 $conflito->impactosAmbientais()->sync([]);
             }
             
             if ($request->has('impactos_saude') && is_array($request->impactos_saude)) {
-                $conflito->impactosSaude()->sync($request->impactos_saude);
+                $ids = $this->processarRelacionamento($request->impactos_saude, 'idImpactoSaude');
+                $conflito->impactosSaude()->sync($ids);
             } else {
                 $conflito->impactosSaude()->sync([]);
             }
             
             if ($request->has('impactos_socio_economicos') && is_array($request->impactos_socio_economicos)) {
-                $conflito->impactosSocioEconomicos()->sync($request->impactos_socio_economicos);
+                $ids = $this->processarRelacionamento($request->impactos_socio_economicos, 'idImpactoSocioEconomico');
+                $conflito->impactosSocioEconomicos()->sync($ids);
             } else {
                 $conflito->impactosSocioEconomicos()->sync([]);
             }
             
             if ($request->has('povos') && is_array($request->povos)) {
-                $conflito->povos()->sync($request->povos);
+                $ids = $this->processarRelacionamento($request->povos, 'idPovo');
+                $conflito->povos()->sync($ids);
             } else {
                 $conflito->povos()->sync([]);
             }
             
             if ($request->has('terras_indigenas') && is_array($request->terras_indigenas)) {
-                $conflito->terrasIndigenas()->sync($request->terras_indigenas);
+                $ids = $this->processarRelacionamento($request->terras_indigenas, 'idTerraIndigena');
+                $conflito->terrasIndigenas()->sync($ids);
             } else {
                 $conflito->terrasIndigenas()->sync([]);
             }
             
             if ($request->has('tipos_conflito') && is_array($request->tipos_conflito)) {
-                $conflito->tiposConflito()->sync($request->tipos_conflito);
+                $ids = $this->processarRelacionamento($request->tipos_conflito, 'idTipoConflito');
+                $conflito->tiposConflito()->sync($ids);
             } else {
                 $conflito->tiposConflito()->sync([]);
             }
             
             // ATUALIZAR: Categorias de atores
             if ($request->has('categorias_atores') && is_array($request->categorias_atores)) {
-                $conflito->categoriasAtores()->sync($request->categorias_atores);
+                $ids = $this->processarRelacionamento($request->categorias_atores, 'idCategoriaAtor');
+                $conflito->categoriasAtores()->sync($ids);
             } else {
                 $conflito->categoriasAtores()->sync([]);
-            }
-            
-            // ATUALIZAR: Sincronizar atores identificados
-            if ($request->has('atoresIdentificados') && is_array($request->atoresIdentificados)) {
-                $conflito->atores()->sync($request->atoresIdentificados);
-            }
-            else {
-                $conflito->atores()->sync([]);
             }
             
             DB::commit();
             
             // Carregar relacionamentos para retornar o conflito completo
             $conflitoCompleto = Conflito::with(['aldeias',
-                'assuntos',
-                'atoresIdentificados',
-                'categoriasAtores',
-                'impactosAmbientais',
-                'impactosSaude',
-                'impactosSocioEconomicos',
-                'inqueritos',
-                'localidadesConflito',
-                'numerosSeiIdentificacaoConflito',
-                'povos',
-                'processosJudiciais',
-                'programasProtecao',
-                'registrosBOouNF',
-                'terrasIndigenas',
-                'tiposConflito',
-                'violenciasPatrimoniais',
-                'violenciasPessoasIndigenas',
-                'violenciasPessoasNaoIndigenas'
-            ])->find($conflito->idConflito);
+                                                'assuntos',
+                                                'atoresIdentificados',
+                                                'categoriasAtores',
+                                                'impactosAmbientais',
+                                                'impactosSaude',
+                                                'impactosSocioEconomicos',
+                                                'inqueritos',
+                                                'localidadesConflito',
+                                                'numerosSeiIdentificacaoConflito',
+                                                'povos',
+                                                'processosJudiciais',
+                                                'programasProtecao',
+                                                'registrosBOouNF',
+                                                'terrasIndigenas',
+                                                'tiposConflito',
+                                                'violenciasPatrimoniais',
+                                                'violenciasPessoasIndigenas',
+                                                'violenciasPessoasNaoIndigenas'
+                                            ])->find($conflito->idConflito);
             
             return response()->json($conflitoCompleto, Response::HTTP_OK);
             
@@ -2478,57 +2471,78 @@ class ConflitoController extends Controller
                 ],
                                                 
             // Regras para elementos dos arrays
-            'numerosSeiIdentificacaoConflito' => 'nullable|array',
-            'numerosSeiIdentificacaoConflito.*' => 'string|max:50',
+//             'numerosSeiIdentificacaoConflito' => 'nullable|array',
+//             'numerosSeiIdentificacaoConflito.*' => 'string|max:50',
             
-            'atores_identificados' => 'nullable|array',
-            'atores_identificados.*' => 'string|max:200',
+//             'atores_identificados' => 'nullable|array',
+//             'atores_identificados.*' => 'string|max:200',
             
-            'aldeias' => 'nullable|array',
-            'aldeias.*' => 'required|integer|exists:aldeia,idAldeia',
+//             'aldeias' => 'nullable|array',
+//             'aldeias.*' => 'required|integer|exists:aldeia,idAldeia',
             
-            'assuntos' => 'nullable|array',
-            'assuntos.*' => 'required|integer|exists:assunto,idAssunto',
+//             'assuntos' => 'nullable|array',
+//             'assuntos.*' => 'required|integer|exists:assunto,idAssunto',
             
-            'impactos_ambientais' => 'nullable|array',
-            'impactos_ambientais.*' => 'required|integer|exists:impacto_ambiental,idImpactoAmbiental',
+//             'impactos_ambientais' => 'nullable|array',
+//             'impactos_ambientais.*' => 'required|integer|exists:impacto_ambiental,idImpactoAmbiental',
             
-            'impactos_saude' => 'nullable|array',
-            'impactos_saude.*' => 'required|integer|exists:impacto_saude,idImpactoSaude',
+//             'impactos_saude' => 'nullable|array',
+//             'impactos_saude.*' => 'required|integer|exists:impacto_saude,idImpactoSaude',
             
-            'impactos_socio_economicos' => 'nullable|array',
-            'impactos_socio_economicos.*' => 'required|integer|exists:impacto_socio_economico,idImpactoSocioEconomico',
+//             'impactos_socio_economicos' => 'nullable|array',
+//             'impactos_socio_economicos.*' => 'required|integer|exists:impacto_socio_economico,idImpactoSocioEconomico',
             
-            'povos' => 'nullable|array',
-            'povos.*' => 'required|integer|exists:povo,idPovo',
+//             'povos' => 'nullable|array',
+//             'povos.*' => 'required|integer|exists:povo,idPovo',
             
-            'terras_indigenas' => 'nullable|array',
-            'terras_indigenas.*' => 'required|integer|exists:terra_indigena,idTerraIndigena',
+//             'terras_indigenas' => 'nullable|array',
+//             'terras_indigenas.*' => 'required|integer|exists:terra_indigena,idTerraIndigena',
             
-            'tipos_conflito' => 'nullable|array',
-            'tipos_conflito.*' => 'required|integer|exists:tipo_conflito,idTipoConflito',
+//             'tipos_conflito' => 'nullable|array',
+//             'tipos_conflito.*' => 'required|integer|exists:tipo_conflito,idTipoConflito',
             
-            'categorias_atores' => 'nullable|array',
-            'categorias_atores.*' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
+//             'categorias_atores' => 'nullable|array',
+//             'categorias_atores.*' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
             
-            'violenciasPatrimoniais.*.tipoViolencia' => 'required|string|max:100',
-            'violenciasPatrimoniais.*.data' => 'required|date',
-            'violenciasPatrimoniais.*.numeroSei' => 'nullable|string|max:50',
+//             'violenciasPatrimoniais.*.tipoViolencia' => 'required|string|max:100',
+//             'violenciasPatrimoniais.*.data' => 'required|date',
+//             'violenciasPatrimoniais.*.numeroSei' => 'nullable|string|max:50',
             
-            'violenciasPessoasIndigenas.*.tipoViolencia' => 'required|string|max:100',
-            'violenciasPessoasIndigenas.*.data' => 'required|date',
-            'violenciasPessoasIndigenas.*.nome' => 'required|string|max:255',
-            'violenciasPessoasIndigenas.*.idade' => 'nullable|string|max:20',
-            'violenciasPessoasIndigenas.*.faixaEtaria' => 'nullable|string|max:50',
-            'violenciasPessoasIndigenas.*.genero' => 'nullable|string|max:50',
-            'violenciasPessoasIndigenas.*.instrumentoViolencia' => 'nullable|string|max:255',
-            'violenciasPessoasIndigenas.*.numeroSei' => 'nullable|string|max:50',
+//             'violenciasPessoasIndigenas.*.tipoViolencia' => 'required|string|max:100',
+//             'violenciasPessoasIndigenas.*.data' => 'required|date',
+//             'violenciasPessoasIndigenas.*.nome' => 'required|string|max:255',
+//             'violenciasPessoasIndigenas.*.idade' => 'nullable|string|max:20',
+//             'violenciasPessoasIndigenas.*.faixaEtaria' => 'nullable|string|max:50',
+//             'violenciasPessoasIndigenas.*.genero' => 'nullable|string|max:50',
+//             'violenciasPessoasIndigenas.*.instrumentoViolencia' => 'nullable|string|max:255',
+//             'violenciasPessoasIndigenas.*.numeroSei' => 'nullable|string|max:50',
             
-            'violenciasPessoasNaoIndigenas.*.tipoViolencia' => 'required|string|max:100',
-            'violenciasPessoasNaoIndigenas.*.tipoPessoa' => 'required|string|max:100',
-            'violenciasPessoasNaoIndigenas.*.data' => 'required|date',
-            'violenciasPessoasNaoIndigenas.*.nome' => 'required|string|max:255',
-            'violenciasPessoasNaoIndigenas.*.numeroSei' => 'nullable|string|max:50',
+//             'violenciasPessoasNaoIndigenas.*.tipoViolencia' => 'required|string|max:100',
+//             'violenciasPessoasNaoIndigenas.*.tipoPessoa' => 'required|string|max:100',
+//             'violenciasPessoasNaoIndigenas.*.data' => 'required|date',
+//             'violenciasPessoasNaoIndigenas.*.nome' => 'required|string|max:255',
+//             'violenciasPessoasNaoIndigenas.*.numeroSei' => 'nullable|string|max:50',
             ];
     }
+    
+    /**
+     * Processa array de relacionamentos que pode vir como objetos ou IDs
+     */
+    private function processarRelacionamento($dados, $chaveId = 'id') {
+        if (empty($dados)) {
+            return [];
+        }
+        
+        // Se já é array de IDs simples
+        if (!is_array($dados[0]) && !is_object($dados[0])) {
+            return array_map('intval', $dados);
+        }
+        
+        // É array de objetos - extrair IDs
+        return array_map(function ($item) use ($chaveId) {
+            $itemArray = (array) $item;
+            return intval($itemArray[$chaveId] ?? $itemArray['id'] ?? null);
+        }, $dados);
+    }
+        
 }
