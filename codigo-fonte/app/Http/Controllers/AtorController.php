@@ -12,8 +12,6 @@ use Illuminate\Http\Response;
  *     schema="Ator",
  *     type="object",
  *     @OA\Property(property="idAtor", type="integer", example="1"),
- *     @OA\Property(property="categoriaAtor", type="object", ref="#/components/schemas/CategoriaAtor"),
- *     @OA\Property(property="conflito", type="object", ref="#/components/schemas/Conflito"),
  *     @OA\Property(property="nome", type="string", example="Nome do ator")
  * )
  * 
@@ -59,9 +57,7 @@ class AtorController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"idCategoriaAtor", "idConflito", "nome"}, 
-     *             @OA\Property(property="idCategoriaAtor", type="integer", example="1"),
-     *             @OA\Property(property="idConflito", type="integer", example="1"),
+     *             required={"nome"}, 
      *             @OA\Property(property="nome", type="string", example="João da Silva")
      *         )
      *     ),
@@ -81,8 +77,6 @@ class AtorController extends Controller
         }
         
         $validatedData = $request->validate([
-            'idCategoriaAtor' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
-            'idConflito' => 'required|integer|exists:conflito,idConflito',
             'nome' => 'required|string|max:100'
         ]);
 
@@ -161,8 +155,6 @@ class AtorController extends Controller
         $ator = Ator::findOrFail($id);
 
         $validatedData = $request->validate([
-            'idCategoriaAtor' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
-            'idConflito' => 'required|integer|exists:conflito,idConflito',
             'nome' => 'required|string|max:100'
         ]);
 
@@ -202,48 +194,4 @@ class AtorController extends Controller
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
     
-    /**
-     * @OA\Get(
-     *     path="/api/ator/conflito/{idConflito}",
-     *     tags={"Atores"},
-     *     security={ {"sanctum": {} } },
-     *     summary="Listar todos os Atores de um Conflito",
-     *     @OA\Parameter(
-     *         name="idConflito",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Lista de Atores"
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Não autorizado"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Erro na consulta"
-     *     )
-     * )
-     */
-    public function getAllByConflito($idConflito){
-        try {
-            if (!Auth::guard('sanctum')->check()) {
-                return response()->json([
-                    'message' => 'Não autorizado',
-                    'status'  => Response::HTTP_UNAUTHORIZED
-                ], Response::HTTP_UNAUTHORIZED);
-            }
-            
-            return Ator::with(['categoria_ator', 'conflito'])->where('idConflito', $idConflito)->get();
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro na pesquisa',
-                'details' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
 }
