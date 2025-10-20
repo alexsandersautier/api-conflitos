@@ -12,6 +12,8 @@ class Ator extends Model
     protected $table = 'ator';
     protected $primaryKey = 'idAtor';
 
+    public $timestamps = false;
+    
     protected $fillable = [
         'nome'
     ];

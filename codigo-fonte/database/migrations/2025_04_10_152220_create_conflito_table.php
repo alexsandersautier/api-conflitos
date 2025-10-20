@@ -69,16 +69,7 @@ return new class extends Migration
             
             $table->unique(['idConflito', 'idAssunto']);
         });
-            
-        Schema::create('ator_conflito', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
-            $table->foreignId('idAtor')->constrained('ator')->onDelete('cascade');
-            $table->timestamps();
-            
-            $table->unique(['idConflito', 'idAtor']);
-        });
-        
+                    
         Schema::create('categoria_ator_conflito', function (Blueprint $table) {
             $table->id();
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
@@ -173,7 +164,6 @@ return new class extends Migration
         Schema::dropIfExists('assunto');
         Schema::dropIfExists('aldeia_conflito');
         Schema::dropIfExists('assunto_conflito');
-        Schema::dropIfExists('ator_conflito');
         Schema::dropIfExists('categoria_ator_conflito');
         Schema::dropIfExists('conflito_tipo_conflito');
         Schema::dropIfExists('impacto_ambiental_conflito');

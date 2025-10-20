@@ -3,22 +3,17 @@
 use App\Http\Controllers\AssuntoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ConflitoController;
-use App\Http\Controllers\EpisodioController;
 use App\Http\Controllers\ImpactoAmbientalController;
 use App\Http\Controllers\ImpactoSaudeController;
 use App\Http\Controllers\ImpactoSocioEconomicoController;
 use App\Http\Controllers\OrgaoController;
 use App\Http\Controllers\PovoController;
-use App\Http\Controllers\ProcessoSeiController;
 use App\Http\Controllers\SituacaoFundiariaController;
 use App\Http\Controllers\TerraIndigenaController;
 use App\Http\Controllers\CategoriaAtorController;
 use App\Http\Controllers\TipoConflitoController;
-use App\Http\Controllers\TipoInqueritoPolicialController;
-use App\Http\Controllers\TipoProcessoSeiController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\PerfilController;
-use App\Http\Controllers\InqueritoPolicialController;
 use App\Http\Controllers\LiderancaAmeacadaController;
 use App\Http\Controllers\AtorController;
 use Illuminate\Support\Facades\Route;
@@ -71,10 +66,12 @@ Route::apiResource('aldeia', AldeiaController::class)->middleware('auth:sanctum'
 
 // Rotas adicionais
 Route::prefix('aldeia')->group(function () {
-    Route::get('ativas', [AldeiaController::class, 'ativas']);
-    Route::get('regiao/{regiao}', [AldeiaController::class, 'porRegiao']);
-    Route::patch('{id}/restore', [AldeiaController::class, 'restore']);
-    Route::delete('{id}/force', [AldeiaController::class, 'forceDelete']);
+    Route::get('/',        [AldeiaController::class, 'index']);
+    Route::post('/',       [AldeiaController::class, 'store']);
+    Route::get('/{id}',    [AldeiaController::class, 'show']);
+    Route::put('/{id}',    [AldeiaController::class, 'update']);
+    Route::patch('/{id}',  [AldeiaController::class, 'update']);
+    Route::delete('/{id}', [AldeiaController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
 Route::prefix('assunto')->group(function () {

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('idRegistroBoNf')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
             $table->date('data');
-            $table->integer('numero');
+            $table->string('numero', 100);
             $table->string('orgao', 100);
             $table->string('tipoOrgao', 100);
             $table->integer('numeroSei');

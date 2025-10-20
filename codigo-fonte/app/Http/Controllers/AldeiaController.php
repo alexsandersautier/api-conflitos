@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Services\AldeiaService;
 
 /**
  * @OA\Schema(
@@ -24,8 +25,18 @@ use App\Http\Controllers\Controller;
  *     description="Endpoints para Aldeias"
  * )
  */
-class AldeiaController extends Controller
-{
+class AldeiaController extends Controller{
+    
+    protected $aldeiaService;
+    
+    public function __construct(AldeiaService $aldeiaService)
+    {
+        $this->aldeiaService = $aldeiaService;
+        
+        if (ini_get('memory_limit') < 256) {
+            @ini_set('memory_limit', '256M');
+        }
+    }
     
     /**
      * @OA\Get(
@@ -55,8 +66,9 @@ class AldeiaController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $aldeia = Aldeia::all();
-        return response()->json($aldeia);
+        //$aldeias = Aldeia::all();
+        $aldeias = $this->aldeiaService->getAllAldeias();
+        return response()->json($aldeias);
     }
     
     /**
