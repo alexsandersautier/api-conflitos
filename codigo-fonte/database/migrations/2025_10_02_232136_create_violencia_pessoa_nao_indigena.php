@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('violencia_pessoa_nao_indigena', function (Blueprint $table) {
             $table->id('idViolenciaPessoaNaoIndigena')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
-            $table->string('tipoViolencia', 100);
-            $table->string('tipoPessoa', 100);
-            $table->date('data');
-            $table->string('nome', 200);
-            $table->string('numeroSei', 20);
+            $table->string('tipoViolencia', 100)->nullable();
+            $table->string('tipoPessoa', 100)->nullable();
+            $table->date('data')->nullable();
+            $table->string('nome', 200)->nullable();
+            $table->string('numeroSei', 20)->nullable();
             $table->timestamps();
         });
     }
