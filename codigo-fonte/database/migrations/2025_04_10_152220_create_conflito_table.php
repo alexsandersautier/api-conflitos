@@ -27,26 +27,26 @@ return new class extends Migration
             $table->text('observacoes')->nullable();
             
             // Flags como string
-            $table->string('flagHasImpactoAmbiental', 3)->default('NÃO');
-            $table->string('flagHasImpactoSaude', 3)->default('NÃO');
-            $table->string('flagHasImpactoSocioEconomico', 3)->default('NÃO');
-            $table->string('flagHasViolenciaIndigena', 3)->default('NÃO');
-            $table->string('flagHasMembroProgramaProtecao', 3)->default('NÃO');
-            $table->string('flagHasBOouNF', 3)->default('NÃO');
-            $table->string('flagHasInquerito', 3)->default('NÃO');
-            $table->string('flagHasProcessoJudicial', 3)->default('NÃO');
-            $table->string('flagHasAssistenciaJuridica', 3)->default('NÃO');
-            $table->string('flagHasRegiaoPrioritaria', 3)->default('NÃO');
-            $table->string('flagHasViolenciaPatrimonialIndigena', 3)->default('NÃO');
-            $table->string('flagHasEventoViolenciaIndigena', 3)->default('NÃO');
-            $table->string('flagHasAssassinatoPrisaoNaoIndigena', 3)->default('NÃO');
+            $table->string('flagHasImpactoAmbiental', 3)->nullable()->default('NÃO');
+            $table->string('flagHasImpactoSaude', 3)->nullable()->default('NÃO');
+            $table->string('flagHasImpactoSocioEconomico', 3)->nullable()->default('NÃO');
+            $table->string('flagHasViolenciaIndigena', 3)->nullable()->default('NÃO');
+            $table->string('flagHasMembroProgramaProtecao', 3)->nullable()->default('NÃO');
+            $table->string('flagHasBOouNF', 3)->nullable()->default('NÃO');
+            $table->string('flagHasInquerito', 3)->nullable()->default('NÃO');
+            $table->string('flagHasProcessoJudicial', 3)->nullable()->default('NÃO');
+            $table->string('flagHasAssistenciaJuridica', 3)->nullable()->default('NÃO');
+            $table->string('flagHasRegiaoPrioritaria', 3)->nullable()->default('NÃO');
+            $table->string('flagHasViolenciaPatrimonialIndigena', 3)->nullable()->default('NÃO');
+            $table->string('flagHasEventoViolenciaIndigena', 3)->nullable()->default('NÃO');
+            $table->string('flagHasAssassinatoPrisaoNaoIndigena', 3)->nullable()->default('NÃO');
             
             // Assistencia juridica
-            $table->string('tipoInstituicaoAssistenciaJuridica');
-            $table->string('advogadoInstituicaoAssistenciaJuridica');
+            $table->string('tipoInstituicaoAssistenciaJuridica')->nullable();
+            $table->string('advogadoInstituicaoAssistenciaJuridica')->nullable();
                                     
             // Status
-            $table->string('status')->default('EM ANÁLISE');
+            $table->string('status')->nullable()->default('EM ANÁLISE');
             
             $table->timestamps();
             $table->softDeletes();

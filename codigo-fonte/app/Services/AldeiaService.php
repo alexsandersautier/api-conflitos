@@ -6,6 +6,7 @@ use App\Models\Aldeia;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class AldeiaService
 {
@@ -21,7 +22,7 @@ class AldeiaService
         $cacheKey = self::CACHE_PREFIX . 'all';
         
         return Cache::remember($cacheKey, self::CACHE_TTL, function () {
-            \Log::info('Cache miss - Buscando todas as aldeias do banco (otimizado)');
+            Log::info('Cache miss - Buscando todas as aldeias do banco (otimizado)');
             
             // Seleciona apenas colunas necessárias
             return Aldeia::select([
@@ -41,7 +42,7 @@ class AldeiaService
         $cacheKey = self::CACHE_PREFIX . "paginated_{$perPage}_" . request()->get('page', 1);
         
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($perPage) {
-            \Log::info('Cache miss - Buscando aldeias paginadas do banco (otimizado)');
+            Log::info('Cache miss - Buscando aldeias paginadas do banco (otimizado)');
             
             return Aldeia::select([
                 'idAldeia',
@@ -64,7 +65,7 @@ class AldeiaService
         $cacheKey = self::CACHE_PREFIX . 'estatisticas';
         
         return Cache::remember($cacheKey, self::CACHE_TTL, function () {
-            \Log::info('Cache miss - Buscando estatísticas das aldeias do banco (otimizado)');
+            Log::info('Cache miss - Buscando estatísticas das aldeias do banco (otimizado)');
             
             // Usa agregados do banco em vez de carregar todos os dados
             $total = Aldeia::count();
@@ -101,7 +102,7 @@ class AldeiaService
         $cacheKey = self::CACHE_PREFIX . "nome_" . md5($nome);
         
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($nome) {
-            \Log::info("Cache miss - Buscando aldeias com nome {$nome} do banco (otimizado)");
+            Log::info("Cache miss - Buscando aldeias com nome {$nome} do banco (otimizado)");
             
             return Aldeia::select([
                 'idAldeia',
@@ -126,7 +127,7 @@ class AldeiaService
         $cacheKey = self::CACHE_PREFIX . 'busca_' . md5(serialize($filtros));
         
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($filtros) {
-            \Log::info('Cache miss - Buscando aldeias com filtros do banco (otimizado)', $filtros);
+            Log::info('Cache miss - Buscando aldeias com filtros do banco (otimizado)', $filtros);
             
             $query = Aldeia::select([
                 'idAldeia',

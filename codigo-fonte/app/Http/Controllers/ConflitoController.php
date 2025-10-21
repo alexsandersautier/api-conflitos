@@ -32,13 +32,10 @@ use App\Models\RegistroBoNf;
  *     schema="Conflito",
  *     type="object",
  *     @OA\Property(property="nome", type="string", example="nome do conflito"),
- *     @OA\Property(property="descrição", type="string", example="descrição do conflito"),
- *     @OA\Property(property="regiao", type="string", example="norte"),
+ *     @OA\Property(property="relato", type="string", example="Relato do conflito"),
  *     @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
  *     @OA\Property(property="latitude", type="string", example="41.40338"),
  *     @OA\Property(property="longitude", type="string", example="2.17403"),
- *     @OA\Property(property="municipio", type="string", example="Marabá"),
- *     @OA\Property(property="uf", type="string", example="PA"),
  *     @OA\Property(property="flagOcorrenciaAmeaca", type="boolean", example="1"),
  *     @OA\Property(property="flagOcorrenciaViolencia", type="boolean", example="0"),
  *     @OA\Property(property="flagOcorrenciaAssassinato", type="boolean", example="1"),
@@ -264,6 +261,7 @@ class ConflitoController extends Controller
             
             DB::beginTransaction();
             
+            
             // Criar o conflito principal
             $conflitoData = $request->only(['latitude',
                                             'longitude',
@@ -293,6 +291,7 @@ class ConflitoController extends Controller
                                             'dataReferenciaMudancaClassificacao',
                                             'estrategiaGeralUtilizadaDemed',
                                             'estrategiaColetiva']);
+            
             
             $conflito = Conflito::create($conflitoData);
             
