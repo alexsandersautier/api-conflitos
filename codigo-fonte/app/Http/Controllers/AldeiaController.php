@@ -71,6 +71,56 @@ class AldeiaController extends Controller{
         return response()->json($aldeias);
     }
     
+    
+    /**
+     * @OA\Get(
+     *     path="/api/aldeia/paginadas",
+     *     tags={"Aldeias"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Listar todos os aldeias",
+     *     @OA\Parameter(
+     *         name="page",
+     *         description="Página de registros",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         description="Registros por Página",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de aldeias",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Aldeia")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Acesso não autorizado"
+     *     )
+     * )
+     */
+    public function getAldeiasPaginated(Request $request)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $per_page = $request->per_page ?? 15;
+        $aldeias = Aldeia::paginate($per_page);
+        
+        return response()->json($aldeias);
+    }
+    
     /**
      * @OA\Post(
      *     path="/api/aldeia",

@@ -27,7 +27,15 @@ class AldeiaService
             // Seleciona apenas colunas necessárias
             return Aldeia::select([
                 'idAldeia',
+                 'nm_uf',
+                 'nm_munic',
                 'nome'
+//                 ,
+//                 'situacao',
+//                 'fase',
+//                 'amz_leg',
+//                 'lat',
+//                 'long'
             ])
             ->orderBy('nome')
             ->get();
@@ -46,11 +54,15 @@ class AldeiaService
             
             return Aldeia::select([
                 'idAldeia',
-                'nome',
-                'cd_uf',
-                'nm_uf',
-                'nm_munic',
-                'situacao'
+//                 'nm_uf',
+//                 'nm_munic',
+                'nome'
+//                 ,
+//                 'situacao',
+//                 'fase',
+//                 'amz_leg',
+//                 'lat',
+//                 'long'
             ])
             ->orderBy('nome')
             ->paginate($perPage);

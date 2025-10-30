@@ -14,7 +14,6 @@ use App\Http\Controllers\CategoriaAtorController;
 use App\Http\Controllers\TipoConflitoController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\PerfilController;
-use App\Http\Controllers\LiderancaAmeacadaController;
 use App\Http\Controllers\AtorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrigemDadoController;
@@ -23,6 +22,14 @@ use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\AldeiaController;
 use App\Http\Controllers\DashboardController;
 
+
+Route::get('/healthcheck', HealthCheckController::class);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me',      [AuthController::class, 'me']);
+});
 
 Route::prefix('dashboard')->group(function () {
     // Dados completos do dashboard
@@ -51,27 +58,15 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/health-check', [DashboardController::class, 'healthCheck']);
 });
 
-
-Route::get('/healthcheck', HealthCheckController::class);
-
-
-Route::post('/login', [AuthController::class, 'login']);
-
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me',      [AuthController::class, 'me']);
-});
-
-Route::apiResource('aldeia', AldeiaController::class)->middleware('auth:sanctum');
-
 // Rotas adicionais
 Route::prefix('aldeia')->group(function () {
-    Route::get('/',        [AldeiaController::class, 'index']);
-    Route::post('/',       [AldeiaController::class, 'store']);
-    Route::get('/{id}',    [AldeiaController::class, 'show']);
-    Route::put('/{id}',    [AldeiaController::class, 'update']);
-    Route::patch('/{id}',  [AldeiaController::class, 'update']);
-    Route::delete('/{id}', [AldeiaController::class, 'destroy']);
+    Route::get('/',           [AldeiaController::class, 'index']);
+    Route::get('/paginadas',  [AldeiaController::class, 'getAldeiasPaginated']);
+    Route::post('/',          [AldeiaController::class, 'store']);
+    Route::get('/{id}',       [AldeiaController::class, 'show']);
+    Route::put('/{id}',       [AldeiaController::class, 'update']);
+    Route::patch('/{id}',     [AldeiaController::class, 'update']);
+    Route::delete('/{id}',    [AldeiaController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
 Route::prefix('assunto')->group(function () {
@@ -95,17 +90,18 @@ Route::prefix('ator')->group(function () {
     Route::get('/conflito/{idConflito}', [AtorController::class, 'getAllByConflito']);
 })->middleware('auth:sanctum');
 
-Route::get('/conflito-paginar', [ConflitoController::class, 'getAllPage'])->middleware('auth:sanctum');
+
+Route::get('/conflito', [ConflitoController::class, 'index']);
 
 Route::prefix('conflito')->group(function () {
-    Route::get('/',        [ConflitoController::class, 'index']);
-    //Route::get('/paginar', [ConflitoController::class, 'getAllPage']);
     Route::post('/',       [ConflitoController::class, 'store']);
     Route::get('/{id}',    [ConflitoController::class, 'show']);
     Route::put('/{id}',    [ConflitoController::class, 'update']);
     Route::patch('/{id}',  [ConflitoController::class, 'update']);
     Route::delete('/{id}', [ConflitoController::class, 'destroy']);
 
+    Route::get('/paginar', [ConflitoController::class, 'getAllPage']);
+    
     Route::get('/{id}/assuntos',                                            [ConflitoController::class, 'getAssuntos']);
     Route::post('/{id}/assunto',                                            [ConflitoController::class, 'attachAssunto']);
     Route::delete('/{idConflito}/assunto/{idAssunto}',                      [ConflitoController::class, 'detachAssunto']);
@@ -166,17 +162,6 @@ Route::prefix('impacto-socio-economico')->group(function () {
     Route::patch('/{id}',  [ImpactoSocioEconomicoController::class, 'update']);
     Route::delete('/{id}', [ImpactoSocioEconomicoController::class, 'destroy']);
 })->middleware('auth:sanctum');
-
-Route::prefix('lideranca-ameacada')->group(function () {
-    Route::get('/',        [LiderancaAmeacadaController::class, 'index']);
-    Route::post('/',       [LiderancaAmeacadaController::class, 'store']);
-    Route::get('/{id}',    [LiderancaAmeacadaController::class, 'show']);
-    Route::put('/{id}',    [LiderancaAmeacadaController::class, 'update']);
-    Route::patch('/{id}',  [LiderancaAmeacadaController::class, 'update']);
-    Route::delete('/{id}', [LiderancaAmeacadaController::class, 'destroy']);
-    
-    Route::get('/conflito/{idConflito}', [LiderancaAmeacadaController::class, 'getAllByConflito']);
-})->middleware('auth:sanctum');
     
 Route::prefix('origem-dado')->group(function () {
     Route::get('/',        [OrigemDadoController::class, 'index']);
@@ -233,9 +218,6 @@ Route::prefix('terra-indigena')->group(function () {
     Route::put('/{id}',    [TerraIndigenaController::class, 'update']);
     Route::patch('/{id}',  [TerraIndigenaController::class, 'update']);
     Route::delete('/{id}', [TerraIndigenaController::class, 'destroy']);
-    
-    //Route::get('/paginar', [TerraIndigenaController::class, 'getAllPage']);
-    
 })->middleware('auth:sanctum');
 
 Route::prefix('categoria-ator')->group(function () {
@@ -266,12 +248,11 @@ Route::prefix('tipo-responsavel')->group(function () {
 })->middleware('auth:sanctum');
 
 Route::prefix('usuario')->group(function () {
-    Route::get('/',        [UsuarioController::class, 'index']);
-    Route::post('/',       [UsuarioController::class, 'store']);
-    Route::get('/{id}',    [UsuarioController::class, 'show']);
-    Route::put('/{id}',    [UsuarioController::class, 'update']);
-    Route::delete('/{id}', [UsuarioController::class, 'destroy']);
-    
+    Route::get('/',                       [UsuarioController::class, 'index']);
+    Route::post('/',                      [UsuarioController::class, 'store']);
+    Route::get('/{id}',                   [UsuarioController::class, 'show']);
+    Route::put('/{id}',                   [UsuarioController::class, 'update']);
+    Route::delete('/{id}',                [UsuarioController::class, 'destroy']);
     Route::patch('/alterar-senha',        [UsuarioController::class, 'alterarSenha']);
     Route::get('/pesquisar/buscar-texto', [UsuarioController::class, 'getAllByTexto']);
 })->middleware('auth:sanctum');

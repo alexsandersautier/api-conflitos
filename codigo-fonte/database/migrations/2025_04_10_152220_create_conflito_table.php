@@ -47,6 +47,9 @@ return new class extends Migration
                                     
             // Status
             $table->string('status')->nullable()->default('EM ANÁLISE');
+            $table->string('created_by');
+            $table->string('updated_by');
+            $table->string('revised_by');
             
             $table->timestamps();
             $table->softDeletes();

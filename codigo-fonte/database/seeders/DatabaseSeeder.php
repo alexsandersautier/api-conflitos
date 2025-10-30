@@ -51,6 +51,11 @@ class DatabaseSeeder extends Seeder {
                                     'idOrgao' => 3,
                                     'idPerfil' => 1]);
         
+        Usuario::factory()->create(['nome' => 'Ana Firmino',
+                                    'email' => 'ana.firmino@povosindigenas.gov.br',
+                                    'senha' => Hash::make('senha123456'),
+                                    'idOrgao' => 3,
+                                    'idPerfil' => 1]);
         
         
         

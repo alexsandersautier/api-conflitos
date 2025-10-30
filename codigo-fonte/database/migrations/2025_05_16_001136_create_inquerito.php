@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('inquerito', function (Blueprint $table) {
             $table->id('idInqueritoPolicial')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
-            $table->date('data');
-            $table->string('numero', 50);
-            $table->string('orgao', 200);
-            $table->string('tipoOrgao', 100);
-            $table->integer('numeroSei');
+            $table->date('data')->nullable();
+            $table->string('numero', 50)->nullable();
+            $table->string('orgao', 200)->nullable();
+            $table->string('tipoOrgao', 100)->nullable();
+            $table->string('numeroSei', 50)->nullable();
             $table->timestamps();
         });
     }

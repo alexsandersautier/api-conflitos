@@ -24,9 +24,9 @@ class UsuarioFactory extends Factory
     public function definition(): array
     {
         return [
-            'nome' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'senha' => static::$senha ??= Hash::make('senha'),
+            'nome'           => fake()->name(),
+            'email'          => fake()->unique()->safeEmail(),
+            'senha'          => static::$senha ??= Hash::make('senha'),
             'remember_token' => Str::random(10),
         ];
     }

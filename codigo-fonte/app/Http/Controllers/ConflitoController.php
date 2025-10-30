@@ -132,55 +132,100 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflitos = Conflito::with([
-                                        'aldeias',
-                                        'assuntos',
-                                        'atoresIdentificados',
-                                        'categoriasAtores',
-                                        'impactosAmbientais',
-                                        'impactosSaude',
-                                        'impactosSocioEconomicos',
-                                        'inqueritos',
-                                        'numerosSeiIdentificacaoConflito',
-                                        'povos',
-                                        'processosJudiciais',
-                                        'programasProtecao',
-                                        'terrasIndigenas',
-                                        'tiposConflito',
-                                        'violenciasPatrimoniais',
-                                        'violenciasPessoasIndigenas',
-                                        'violenciasPessoasNaoIndigenas',
-                                    ])->orderBy('dataInicioConflito', 'desc')->get();
+        $conflitos = Conflito::with(['aldeias',
+                                     'assuntos',
+                                     'atoresIdentificados',
+                                     'categoriasAtores',
+                                     'impactosAmbientais',
+                                     'impactosSaude',
+                                     'impactosSocioEconomicos',
+                                     'inqueritos',
+                                     'numerosSeiIdentificacaoConflito',
+                                     'povos',
+                                     'processosJudiciais',
+                                     'programasProtecao',
+                                     'terrasIndigenas',
+                                     'tiposConflito',
+                                     'violenciasPatrimoniais',
+                                     'violenciasPessoasIndigenas',
+                                     'violenciasPessoasNaoIndigenas'])->orderBy('dataInicioConflito', 'desc')->get();
+
         return response()->json($conflitos);
     }
     
     /**
      * @OA\Get(
      *     path="/api/conflito/paginar",
+     *     summary="Retorna conflitos paginados",
+     *     description="Retorna lista de conflitos com paginação para exibição em tabelas",
+     *     operationId="getAllPage",
      *     tags={"Conflitos"},
      *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
-     *         name="page",
-     *         description="Página de registros",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
      *         name="per_page",
-     *         description="Registros por Página",
      *         in="query",
      *         required=false,
-     *         @OA\Schema(type="integer")
+     *         description="Número de itens por página",
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, example=15)
      *     ),
-     *     summary="Listar os conflitos por página",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Número da página",
+     *         @OA\Schema(type="integer", minimum=1, example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         required=false,
+     *         description="Termo de busca por nome",
+     *         @OA\Schema(type="string", example="conflito teste")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         description="Campo para ordenação",
+     *         @OA\Schema(type="string", enum={"nome", "dataInicioConflito", "created_at", "updated_at"}, example="dataInicioConflito")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         description="Direção da ordenação",
+     *         @OA\Schema(type="string", enum={"asc", "desc"}, example="desc")
+     *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de conflitos",
+     *         description="Conflitos paginados recuperados com sucesso",
      *         @OA\JsonContent(
-     *              type="array",
-     *              @OA\Items(ref="#/components/schemas/Conflito")
-     *          )
+     *             @OA\Property(property="current_page", type="integer", example=1),
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(ref="#/components/schemas/Conflito")
+     *             ),
+     *             @OA\Property(property="first_page_url", type="string"),
+     *             @OA\Property(property="from", type="integer"),
+     *             @OA\Property(property="last_page", type="integer"),
+     *             @OA\Property(property="last_page_url", type="string"),
+     *             @OA\Property(property="links", type="array",
+     *                 @OA\Items(type="object")
+     *             ),
+     *             @OA\Property(property="next_page_url", type="string"),
+     *             @OA\Property(property="path", type="string"),
+     *             @OA\Property(property="per_page", type="integer"),
+     *             @OA\Property(property="prev_page_url", type="string"),
+     *             @OA\Property(property="to", type="integer"),
+     *             @OA\Property(property="total", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro interno do servidor"
      *     )
      * )
      */
@@ -193,9 +238,88 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $per_page = $request->per_page ?? 10;
-        $conflitos = Conflito::orderBy('created_at', 'desc')->paginate($per_page);
-        return response()->json($conflitos);
+        try {
+            
+            // Valida parâmetros
+            $validator = validator($request->all(), [
+                'per_page' => 'nullable|integer|min:1|max:100',
+                'page' => 'nullable|integer|min:1',
+                'search' => 'nullable|string|max:255',
+                'sort_by' => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
+                'sort_order' => 'nullable|string|in:asc,desc'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parâmetros inválidos',
+                    'errors' => $validator->errors()
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Configurações de paginação
+            $perPage = $request->per_page ?? 15;
+            $sortBy = $request->sort_by ?? 'created_at';
+            $sortOrder = $request->sort_order ?? 'desc';
+            $search = $request->search;
+            
+            // Query base
+            $query = Conflito::query();
+            
+            // Aplica busca se fornecida
+            if (!empty($search)) {
+                $query->where('nome', 'LIKE', "%{$search}%");
+            }
+            
+            // Aplica ordenação
+            $query->orderBy($sortBy, $sortOrder);
+            
+            // Executa paginação com relacionamentos
+            $conflitos = $query->with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'localidadesConflito',
+                'numerosSeiIdentificacaoConflito',
+                'povos' => function ($query) {
+                    $query->select('idPovo', 'nome');
+                },
+                'processosJudiciais',
+                'programasProtecao',
+                'registrosBOouNF',
+                'terrasIndigenas' => function ($query) {
+                    $query->select('idTerraIndigena', 'nome');
+                },
+                'tiposConflito' => function ($query) {
+                    $query->select('idTipoConflito', 'nome');
+                },
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'])->paginate($perPage);
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $conflitos,
+                    'message' => 'Conflitos paginados recuperados com sucesso.'
+                ]);
+                
+        } catch (\Exception $e) {
+            Log::error('Erro em getAllPage:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos paginados: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -243,6 +367,8 @@ class ConflitoController extends Controller
                 'status'  => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
+        
+        $auth = Auth::guard('sanctum')->user();
         
         $validator = Validator::make($request->all(), $this->getRegrasValidacao());
         
@@ -292,6 +418,9 @@ class ConflitoController extends Controller
                                             'estrategiaGeralUtilizadaDemed',
                                             'estrategiaColetiva']);
             
+            
+            $conflitoData['created_by'] = $auth->email;
+            $conflitoData['updated_by'] = $auth->email;
             
             $conflito = Conflito::create($conflitoData);
             
@@ -603,6 +732,8 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
+        $auth = Auth::guard('sanctum')->user();
+        
         $validator = Validator::make($request->all(), $this->getRegrasValidacao());
         
         if ($validator->fails()) {
@@ -648,6 +779,8 @@ class ConflitoController extends Controller
                                             'dataReferenciaMudancaClassificacao',
                                             'estrategiaGeralUtilizadaDemed',
                                             'estrategiaColetiva']);
+            
+            $conflitoData['updated_by'] = $auth->email;
             
             $conflito->update($conflitoData);
             
