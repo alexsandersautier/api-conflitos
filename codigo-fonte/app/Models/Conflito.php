@@ -42,10 +42,46 @@ class Conflito extends Model
                             'atualizacaoClassificacaoGravidadeConflito',
                             'dataReferenciaMudancaClassificacao',
                             'estrategiaGeralUtilizadaDemed',
-                            'estrategiaColetiva'];
+                            'estrategiaColetiva',
+                            'created_by',
+                            'updated_by',
+                            'revised_by'
+                        ];
     
     protected $casts = ['created_at' => 'datetime',
                         'updated_at' => 'datetime'];
+    
+    
+    /**
+     * Boot do model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // Evento para deletar relacionamentos um-para-muitos
+        static::deleting(function ($conflito) {
+            $conflito->aldeias()->delete();
+            $conflito->assuntos()->delete();
+            $conflito->atoresIdentificados()->delete();
+            $conflito->categoriasAtores()->delete();
+            $conflito->impactosAmbientais()->delete();
+            $conflito->impactosSaude()->delete();
+            $conflito->impactosSocioEconomicos()->delete();
+            $conflito->inqueritos()->delete();
+            $conflito->localidadesConflito()->delete();
+            $conflito->numerosSeiIdentificacaoConflito()->delete();
+            $conflito->povos()->delete();
+            $conflito->processosJudiciais()->delete();
+            $conflito->programasProtecao()->delete();
+            $conflito->registrosBOouNF()->delete();
+            $conflito->terrasIndigenas()->delete();
+            $conflito->tiposConflito()->delete();
+            $conflito->violenciasPatrimoniais()->delete();
+            $conflito->violenciasPessoasIndigenas()->delete();
+            $conflito->violenciasPessoasNaoIndigenas()->delete();
+        });
+    }
     
     /**
      * Accessor para numerosSeiIdentificacaoConflito
@@ -351,18 +387,4 @@ class Conflito extends Model
         return $this->terrasIndigenas->pluck('nome')->toArray();
     }
     
-    /**
-     * Boot do model
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        
-        // Evento para deletar relacionamentos um-para-muitos
-        static::deleting(function ($conflito) {
-            $conflito->violenciasPatrimoniais()->delete();
-            $conflito->violenciasPessoasIndigenas()->delete();
-            $conflito->violenciasPessoasNaoIndigenas()->delete();
-        });
-    }
 }

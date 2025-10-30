@@ -51,21 +51,47 @@ class DashboardProxy
      */
     public function getConflitosPorAno(): array
     {
-        return Conflito::select(
-                DB::raw('YEAR(dataInicioConflito) as ano'),
-                DB::raw('COUNT(*) as total')
+        $conflitosPorDataInicio = Conflito::select(
+            DB::raw('YEAR(dataInicioConflito) as ano'),
+            DB::raw('COUNT(*) as total_inicio')
             )
             ->whereNotNull('dataInicioConflito')
             ->groupBy('ano')
             ->orderBy('ano', 'ASC')
             ->get()
-            ->map(function ($item) {
-                return [
-                    'ano' => $item->ano,
-                    'total' => $item->total
-                ];
-            })
-            ->toArray();
+            ->keyBy('ano');
+            
+            $conflitosPorAcionamento = Conflito::select(
+                DB::raw('YEAR(dataAcionamentoMpiConflito) as ano'),
+                DB::raw('COUNT(*) as total_acionamento')
+                )
+                ->whereNotNull('dataAcionamentoMpiConflito')
+                ->groupBy('ano')
+                ->orderBy('ano', 'ASC')
+                ->get()
+                ->keyBy('ano');
+                
+                // Combina os anos de ambos os conjuntos
+                $anosUnicos = array_unique(array_merge(
+                    $conflitosPorDataInicio->pluck('ano')->toArray(),
+                    $conflitosPorAcionamento->pluck('ano')->toArray()
+                    ));
+                
+                sort($anosUnicos);
+                
+                $resultado = [];
+                
+                foreach ($anosUnicos as $ano) {
+                    $resultado[] = [
+                        'ano' => $ano,
+                        'total_inicio' => $conflitosPorDataInicio->get($ano)->total_inicio ?? 0,
+                        'total_acionamento' => $conflitosPorAcionamento->get($ano)->total_acionamento ?? 0,
+                        'total_geral' => ($conflitosPorDataInicio->get($ano)->total_inicio ?? 0) +
+                        ($conflitosPorAcionamento->get($ano)->total_acionamento ?? 0)
+                    ];
+                }
+                
+                return $resultado;
     }
 
     /**

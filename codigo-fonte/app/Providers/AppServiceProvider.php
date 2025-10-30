@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Aldeia::observe(\App\Observers\AldeiaObserver::class);
         
-        Schema::defaultStringLength(255);
+        Schema::defaultStringLength(191);
         
         if (config('app.env') === 'production') {
             URL::forceScheme('https');

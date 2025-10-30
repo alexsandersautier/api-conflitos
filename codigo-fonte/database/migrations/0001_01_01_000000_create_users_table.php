@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('idOrgao')->constrained('orgao');
             $table->foreignId('idPerfil')->constrained('perfil');
             $table->string('nome');
-            $table->string('email')->unique();
+            $table->string('email', 191)->unique();
             $table->string('senha');
             $table->rememberToken();
             $table->timestamps();
