@@ -1822,6 +1822,71 @@
                 ],
                 "summary": "Listar todos os conflitos",
                 "operationId": "fc576bffbd4efac90b79b420d8ac1187",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Número de itens por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número da página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Termo de busca por nome",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "conflito teste"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Campo para ordenação",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "nome",
+                                "dataInicioConflito",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "example": "dataInicioConflito"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Direção da ordenação",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "desc"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Lista de conflitos",
@@ -1930,152 +1995,6 @@
                     },
                     "401": {
                         "description": "Não autorizado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/conflito/paginar": {
-            "get": {
-                "tags": [
-                    "Conflitos"
-                ],
-                "summary": "Retorna conflitos paginados",
-                "description": "Retorna lista de conflitos com paginação para exibição em tabelas",
-                "operationId": "getAllPage",
-                "parameters": [
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "description": "Número de itens por página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "maximum": 100,
-                            "minimum": 1,
-                            "example": 15
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Número da página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "example": 1
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Termo de busca por nome",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "example": "conflito teste"
-                        }
-                    },
-                    {
-                        "name": "sort_by",
-                        "in": "query",
-                        "description": "Campo para ordenação",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "nome",
-                                "dataInicioConflito",
-                                "created_at",
-                                "updated_at"
-                            ],
-                            "example": "dataInicioConflito"
-                        }
-                    },
-                    {
-                        "name": "sort_order",
-                        "in": "query",
-                        "description": "Direção da ordenação",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "asc",
-                                "desc"
-                            ],
-                            "example": "desc"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Conflitos paginados recuperados com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "current_page": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Conflito"
-                                            }
-                                        },
-                                        "first_page_url": {
-                                            "type": "string"
-                                        },
-                                        "from": {
-                                            "type": "integer"
-                                        },
-                                        "last_page": {
-                                            "type": "integer"
-                                        },
-                                        "last_page_url": {
-                                            "type": "string"
-                                        },
-                                        "links": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        },
-                                        "next_page_url": {
-                                            "type": "string"
-                                        },
-                                        "path": {
-                                            "type": "string"
-                                        },
-                                        "per_page": {
-                                            "type": "integer"
-                                        },
-                                        "prev_page_url": {
-                                            "type": "string"
-                                        },
-                                        "to": {
-                                            "type": "integer"
-                                        },
-                                        "total": {
-                                            "type": "integer"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Não autorizado"
-                    },
-                    "500": {
-                        "description": "Erro interno do servidor"
                     }
                 },
                 "security": [

@@ -113,55 +113,7 @@ class ConflitoController extends Controller
      *     tags={"Conflitos"},
      *     security={ {"sanctum": {} } },
      *     summary="Listar todos os conflitos",
-     *     @OA\Response(
-     *         response=200,
-     *         description="Lista de conflitos",
-     *         @OA\JsonContent(
-     *              type="array",
-     *              @OA\Items(ref="#/components/schemas/Conflito")
-     *          )
-     *     )
-     * )
-     */
-    public function index()
-    {
-        if (!Auth::guard('sanctum')->check()) {
-            return response()->json([
-                'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-        
-        $conflitos = Conflito::with(['aldeias',
-                                     'assuntos',
-                                     'atoresIdentificados',
-                                     'categoriasAtores',
-                                     'impactosAmbientais',
-                                     'impactosSaude',
-                                     'impactosSocioEconomicos',
-                                     'inqueritos',
-                                     'numerosSeiIdentificacaoConflito',
-                                     'povos',
-                                     'processosJudiciais',
-                                     'programasProtecao',
-                                     'terrasIndigenas',
-                                     'tiposConflito',
-                                     'violenciasPatrimoniais',
-                                     'violenciasPessoasIndigenas',
-                                     'violenciasPessoasNaoIndigenas'])->orderBy('dataInicioConflito', 'desc')->get();
-
-        return response()->json($conflitos);
-    }
-    
-    /**
-     * @OA\Get(
-     *     path="/api/conflito/paginar",
-     *     summary="Retorna conflitos paginados",
-     *     description="Retorna lista de conflitos com paginação para exibição em tabelas",
-     *     operationId="getAllPage",
-     *     tags={"Conflitos"},
-     *     security={ {"sanctum": {} } },
-     *     @OA\Parameter(
+     *          *     @OA\Parameter(
      *         name="per_page",
      *         in="query",
      *         required=false,
@@ -198,38 +150,15 @@ class ConflitoController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Conflitos paginados recuperados com sucesso",
+     *         description="Lista de conflitos",
      *         @OA\JsonContent(
-     *             @OA\Property(property="current_page", type="integer", example=1),
-     *             @OA\Property(property="data", type="array",
-     *                 @OA\Items(ref="#/components/schemas/Conflito")
-     *             ),
-     *             @OA\Property(property="first_page_url", type="string"),
-     *             @OA\Property(property="from", type="integer"),
-     *             @OA\Property(property="last_page", type="integer"),
-     *             @OA\Property(property="last_page_url", type="string"),
-     *             @OA\Property(property="links", type="array",
-     *                 @OA\Items(type="object")
-     *             ),
-     *             @OA\Property(property="next_page_url", type="string"),
-     *             @OA\Property(property="path", type="string"),
-     *             @OA\Property(property="per_page", type="integer"),
-     *             @OA\Property(property="prev_page_url", type="string"),
-     *             @OA\Property(property="to", type="integer"),
-     *             @OA\Property(property="total", type="integer")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Não autorizado"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Erro interno do servidor"
+     *              type="array",
+     *              @OA\Items(ref="#/components/schemas/Conflito")
+     *          )
      *     )
      * )
      */
-    public function getAllPage(Request $request)
+    public function index(Request $request)
     {
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
@@ -239,68 +168,65 @@ class ConflitoController extends Controller
         }
         
         try {
+            // Verifica se foi solicitada paginação
+            $page    = $request->query('page');
+            $perPage = $request->query('per_page', 15); // Default 15 itens por página
             
-            // Valida parâmetros
-            $validator = validator($request->all(), [
-                'per_page' => 'nullable|integer|min:1|max:100',
-                'page' => 'nullable|integer|min:1',
-                'search' => 'nullable|string|max:255',
-                'sort_by' => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
-                'sort_order' => 'nullable|string|in:asc,desc'
-            ]);
-            
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Parâmetros inválidos',
-                    'errors' => $validator->errors()
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-            
-            // Configurações de paginação
-            $perPage = $request->per_page ?? 15;
-            $sortBy = $request->sort_by ?? 'created_at';
-            $sortOrder = $request->sort_order ?? 'desc';
-            $search = $request->search;
-            
-            // Query base
-            $query = Conflito::query();
-            
-            // Aplica busca se fornecida
-            if (!empty($search)) {
-                $query->where('nome', 'LIKE', "%{$search}%");
-            }
-            
-            // Aplica ordenação
-            $query->orderBy($sortBy, $sortOrder);
-            
-            // Executa paginação com relacionamentos
-            $conflitos = $query->with([
-                'aldeias',
-                'assuntos',
-                'atoresIdentificados',
-                'categoriasAtores',
-                'impactosAmbientais',
-                'impactosSaude',
-                'impactosSocioEconomicos',
-                'inqueritos',
-                'localidadesConflito',
-                'numerosSeiIdentificacaoConflito',
-                'povos' => function ($query) {
-                    $query->select('idPovo', 'nome');
-                },
-                'processosJudiciais',
-                'programasProtecao',
-                'registrosBOouNF',
-                'terrasIndigenas' => function ($query) {
-                    $query->select('idTerraIndigena', 'nome');
-                },
-                'tiposConflito' => function ($query) {
-                    $query->select('idTipoConflito', 'nome');
-                },
-                'violenciasPatrimoniais',
-                'violenciasPessoasIndigenas',
-                'violenciasPessoasNaoIndigenas'])->paginate($perPage);
+            // Valida parâmetros de paginação se fornecidos
+            if (!empty($page)) {
+                $validator = validator($request->all(), [
+                    'per_page'   => 'nullable|integer|min:1|max:100',
+                    'page'       => 'nullable|integer|min:1',
+                    'search'     => 'nullable|string|max:255',
+                    'sort_by'    => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
+                    'sort_order' => 'nullable|string|in:asc,desc'
+                ]);
+                
+                if ($validator->fails()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Parâmetros inválidos',
+                        'errors' => $validator->errors()
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
+                
+                // Configurações de paginação
+                $perPage   = $request->per_page ?? 15;
+                $sortBy    = $request->sort_by ?? 'dataInicioConflito';
+                $sortOrder = $request->sort_order ?? 'desc';
+                $search    = $request->search;
+                
+                // Query base
+                $query = Conflito::query();
+                
+                // Aplica busca se fornecida
+                if (!empty($search)) {
+                    $query->where('nome', 'LIKE', "%{$search}%");
+                }
+                
+                // Aplica ordenação
+                $query->orderBy($sortBy, $sortOrder);
+                
+                // Executa paginação com relacionamentos
+                $conflitos = $query->with([
+                    'aldeias',
+                    'assuntos',
+                    'atoresIdentificados',
+                    'categoriasAtores',
+                    'impactosAmbientais',
+                    'impactosSaude',
+                    'impactosSocioEconomicos',
+                    'inqueritos',
+                    'numerosSeiIdentificacaoConflito',
+                    'povos',
+                    'processosJudiciais',
+                    'programasProtecao',
+                    'terrasIndigenas',
+                    'tiposConflito',
+                    'violenciasPatrimoniais',
+                    'violenciasPessoasIndigenas',
+                    'violenciasPessoasNaoIndigenas'
+                ])->paginate($perPage);
                 
                 return response()->json([
                     'success' => true,
@@ -308,8 +234,37 @@ class ConflitoController extends Controller
                     'message' => 'Conflitos paginados recuperados com sucesso.'
                 ]);
                 
+            } else {
+                // Retorna todos os registros sem paginação
+                $conflitos = Conflito::with([
+                    'aldeias',
+                    'assuntos',
+                    'atoresIdentificados',
+                    'categoriasAtores',
+                    'impactosAmbientais',
+                    'impactosSaude',
+                    'impactosSocioEconomicos',
+                    'inqueritos',
+                    'numerosSeiIdentificacaoConflito',
+                    'povos',
+                    'processosJudiciais',
+                    'programasProtecao',
+                    'terrasIndigenas',
+                    'tiposConflito',
+                    'violenciasPatrimoniais',
+                    'violenciasPessoasIndigenas',
+                    'violenciasPessoasNaoIndigenas'
+                ])->orderBy('dataInicioConflito', 'desc')->get();
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $conflitos,
+                    'message' => 'Todos os conflitos recuperados com sucesso.'
+                ]);
+            }
+            
         } catch (\Exception $e) {
-            Log::error('Erro em getAllPage:', [
+            Log::error('Erro em index:', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
@@ -317,10 +272,11 @@ class ConflitoController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao recuperar conflitos paginados: ' . $e->getMessage()
+                'message' => 'Erro ao recuperar conflitos: ' . $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 
     /**
      * @OA\Post(
