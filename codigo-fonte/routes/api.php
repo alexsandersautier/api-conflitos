@@ -99,8 +99,6 @@ Route::prefix('conflito')->group(function () {
     Route::put('/{id}',    [ConflitoController::class, 'update']);
     Route::patch('/{id}',  [ConflitoController::class, 'update']);
     Route::delete('/{id}', [ConflitoController::class, 'destroy']);
-
-    Route::get('/paginar', [ConflitoController::class, 'getAllPage']);
     
     Route::get('/{id}/assuntos',                                            [ConflitoController::class, 'getAssuntos']);
     Route::post('/{id}/assunto',                                            [ConflitoController::class, 'attachAssunto']);
