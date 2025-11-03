@@ -91,10 +91,11 @@ Route::prefix('ator')->group(function () {
 })->middleware('auth:sanctum');
 
 
-Route::get('/conflito', [ConflitoController::class, 'index']);
+Route::get('/conflito/dashboard', [ConflitoController::class, 'getAllDashboard']);
 
 Route::prefix('conflito')->group(function () {
     Route::post('/',       [ConflitoController::class, 'store']);
+    Route::get('/',        [ConflitoController::class, 'index']);
     Route::get('/{id}',    [ConflitoController::class, 'show']);
     Route::put('/{id}',    [ConflitoController::class, 'update']);
     Route::patch('/{id}',  [ConflitoController::class, 'update']);

@@ -257,6 +257,48 @@ class ConflitoController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/dashboard",
+     *     tags={"Conflitos"},
+     *     summary="Listar todos os conflitos para o dashboard",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos",
+     *         @OA\JsonContent(
+     *              type="array",
+     *              @OA\Items(ref="#/components/schemas/Conflito")
+     *          )
+     *     )
+     * )
+     */
+    public function getAllDashboard(Request $request)
+    {
+        
+        try {
+            // Query base
+            $conflitos = Conflito::all();
+                        
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => 'Dados de Conflito retornados com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em index:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
     /**
