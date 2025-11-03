@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('processo_judicial', function (Blueprint $table) {
             $table->id('idProcessoJudicial')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
-            $table->date('data');
-            $table->string('numero', 50);
-            $table->string('tipoPoder');
-            $table->string('orgaoApoio');
-            $table->integer('numeroSei');
+            $table->date('data')->nullable();
+            $table->string('numero', 50)->nullable();
+            $table->string('tipoPoder')->nullable();
+            $table->string('orgaoApoio')->nullable();
+            $table->integer('numeroSei')->nullable();
             $table->timestamps();
         });
     }

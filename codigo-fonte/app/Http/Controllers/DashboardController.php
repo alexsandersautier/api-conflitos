@@ -22,12 +22,14 @@ use Illuminate\Support\Facades\Cache;
 class DashboardController extends Controller
 {
     protected $dashboardProxy;
-    
+
     public function __construct(DashboardProxy $dashboardProxy)
     {
+        // Inserir timezone do brasil
+        date_default_timezone_set('America/Sao_Paulo');
         $this->dashboardProxy = $dashboardProxy;
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/dados",
@@ -81,9 +83,9 @@ class DashboardController extends Controller
     {
         try {
             $dados = $this->dashboardProxy->getDadosDashboard();
-            
+
             return response()->json($dados);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -91,7 +93,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/dados-filtrados",
@@ -149,7 +151,7 @@ class DashboardController extends Controller
             'data_inicio' => 'required|date',
             'data_fim' => 'required|date|after_or_equal:data_inicio'
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -157,15 +159,15 @@ class DashboardController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-        
+
         try {
             $dados = $this->dashboardProxy->getDadosDashboardComFiltro(
                 $request->data_inicio,
                 $request->data_fim
                 );
-            
+
             return response()->json($dados);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -173,7 +175,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/totais-gerais",
@@ -201,9 +203,9 @@ class DashboardController extends Controller
     {
         try {
             $totais = $this->dashboardProxy->getTotaisGerais();
-            
+
             return response()->json($totais);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -211,7 +213,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/distribuicao-geografica",
@@ -254,9 +256,9 @@ class DashboardController extends Controller
     {
         try {
             $distribuicao = $this->dashboardProxy->getDistribuicaoGeografica();
-            
+
             return response()->json($distribuicao);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -264,7 +266,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-uf",
@@ -293,9 +295,9 @@ class DashboardController extends Controller
     {
         try {
             $conflitosPorUF = $this->dashboardProxy->getConflitosPorUF();
-            
+
             return response()->json($conflitosPorUF);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -303,7 +305,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-regiao",
@@ -332,9 +334,9 @@ class DashboardController extends Controller
     {
         try {
             $conflitosPorRegiao = $this->dashboardProxy->getConflitosPorRegiao();
-            
+
             return response()->json($conflitosPorRegiao);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -342,7 +344,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-municipio",
@@ -372,9 +374,9 @@ class DashboardController extends Controller
     {
         try {
             $conflitosPorMunicipio = $this->dashboardProxy->getConflitosPorMunicipio();
-            
+
             return response()->json($conflitosPorMunicipio);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -382,7 +384,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-ano",
@@ -411,9 +413,9 @@ class DashboardController extends Controller
     {
         try {
             $conflitosPorAno = $this->dashboardProxy->getConflitosPorAno();
-            
+
             return response()->json($conflitosPorAno);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -421,7 +423,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/estatisticas-violencias",
@@ -459,9 +461,9 @@ class DashboardController extends Controller
     {
         try {
             $estatisticas = $this->dashboardProxy->getEstatisticasViolencias();
-            
+
             return response()->json($estatisticas);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -469,7 +471,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/dados-avancados",
@@ -545,7 +547,7 @@ class DashboardController extends Controller
             'regiao' => 'nullable|string|max:100',
             'tipo_dado' => 'required|in:totais,geografia,violencias,todos'
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -553,17 +555,17 @@ class DashboardController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-        
+
         try {
             $dadosFiltrados = $this->processarDadosFiltrados($request);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $dadosFiltrados,
                 'filtros_aplicados' => $request->only(['data_inicio', 'data_fim', 'uf', 'regiao', 'tipo_dado']),
                 'message' => 'Dados filtrados recuperados com sucesso.'
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -571,7 +573,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/metricas-tempo-real",
@@ -600,16 +602,16 @@ class DashboardController extends Controller
         try {
             // Força limpeza do cache para dados em tempo real
             $this->dashboardProxy->clearCache();
-            
+
             $dados = $this->dashboardProxy->getDadosDashboard();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $dados,
                 'cache' => false,
                 'message' => 'Métricas em tempo real recuperadas com sucesso.'
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -617,7 +619,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/limpar-cache",
@@ -643,12 +645,12 @@ class DashboardController extends Controller
     {
         try {
             $this->dashboardProxy->clearCache();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Cache do dashboard limpo com sucesso.'
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -656,7 +658,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/dashboard/health-check",
@@ -704,13 +706,13 @@ class DashboardController extends Controller
                     'auth' => Auth::check() ? 'authenticated' : 'unauthenticated'
                 ]
             ];
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $health,
                 'message' => 'Health check realizado com sucesso.'
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -719,7 +721,7 @@ class DashboardController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Processa os dados com filtros avançados
      */
@@ -728,43 +730,43 @@ class DashboardController extends Controller
         $tipoDado = $request->tipo_dado;
         $dataInicio = $request->data_inicio;
         $dataFim = $request->data_fim;
-        
+
         $dados = [];
-        
+
         switch ($tipoDado) {
             case 'totais':
                 $dados = $dataInicio && $dataFim
                 ? $this->dashboardProxy->getTotaisGeraisComFiltro($dataInicio, $dataFim)
                 : $this->dashboardProxy->getTotaisGerais();
                 break;
-                
+
             case 'geografia':
                 $dados = $dataInicio && $dataFim
                 ? $this->dashboardProxy->getDistribuicaoGeograficaComFiltro($dataInicio, $dataFim)
                 : $this->dashboardProxy->getDistribuicaoGeografica();
                 break;
-                
+
             case 'violencias':
                 $dados = $dataInicio && $dataFim
                 ? $this->dashboardProxy->getEstatisticasViolenciasComFiltro($dataInicio, $dataFim)
                 : $this->dashboardProxy->getEstatisticasViolencias();
                 break;
-                
+
             case 'todos':
                 $dados = $dataInicio && $dataFim
                 ? $this->dashboardProxy->getDadosDashboardComFiltro($dataInicio, $dataFim)
                 : $this->dashboardProxy->getDadosDashboard();
                 break;
         }
-        
+
         // Aplicar filtros adicionais de UF e região se for geografia
         if ($tipoDado === 'geografia' || $tipoDado === 'todos') {
             $dados = $this->aplicarFiltrosGeografia($dados, $request->uf, $request->regiao);
         }
-        
+
         return $dados;
     }
-    
+
     /**
      * Aplica filtros adicionais de UF e região
      */
@@ -775,22 +777,22 @@ class DashboardController extends Controller
                 return $item['uf'] === $uf;
             });
         }
-        
+
         if (isset($dados['por_regiao']) && $regiao) {
             $dados['por_regiao'] = array_filter($dados['por_regiao'], function ($item) use ($regiao) {
                 return $item['regiao'] === $regiao;
             });
         }
-        
+
         if (isset($dados['top_municipios']) && $uf) {
             $dados['top_municipios'] = array_filter($dados['top_municipios'], function ($item) use ($uf) {
                 return $item['uf'] === $uf;
             });
         }
-        
+
         return $dados;
     }
-    
+
     /**
      * Verifica conexão com o banco
      */
@@ -803,7 +805,7 @@ class DashboardController extends Controller
             return 'disconnected';
         }
     }
-    
+
     /**
      * Verifica status do cache
      */

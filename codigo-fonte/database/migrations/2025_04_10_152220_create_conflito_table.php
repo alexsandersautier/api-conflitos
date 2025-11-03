@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('conflito', function (Blueprint $table) {
             $table->id('idConflito')->primary();
-            
+
             // Campos principais
             $table->decimal('latitude', 11, 8);
             $table->decimal('longitude', 11, 8);
@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('estrategiaGeralUtilizadaDemed')->nullable();
             $table->text('estrategiaColetiva')->nullable();
             $table->text('observacoes')->nullable();
+            $table->text('relato')->nullable();
             
             // Flags como string
             $table->string('flagHasImpactoAmbiental', 3)->nullable()->default('NÃO');
@@ -40,45 +41,45 @@ return new class extends Migration
             $table->string('flagHasViolenciaPatrimonialIndigena', 3)->nullable()->default('NÃO');
             $table->string('flagHasEventoViolenciaIndigena', 3)->nullable()->default('NÃO');
             $table->string('flagHasAssassinatoPrisaoNaoIndigena', 3)->nullable()->default('NÃO');
-            
+
             // Assistencia juridica
             $table->string('tipoInstituicaoAssistenciaJuridica')->nullable();
             $table->string('advogadoInstituicaoAssistenciaJuridica')->nullable();
-                                    
+
             // Status
-            $table->string('status')->nullable()->default('EM ANÁLISE');
+            $table->string('status')->nullable()->default('CADASTRADO');
             $table->string('created_by');
             $table->string('updated_by');
             $table->string('revised_by');
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
-        
+
         Schema::create('aldeia_conflito', function (Blueprint $table) {
             $table->id();
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idAldeia')->constrained('aldeia')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idAldeia']);
         });
-        
+
         Schema::create('assunto_conflito', function (Blueprint $table) {
             $table->id();
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idAssunto')->constrained('assunto')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idAssunto']);
         });
-                    
+
         Schema::create('categoria_ator_conflito', function (Blueprint $table) {
             $table->id();
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idCategoriaAtor')->constrained('categoria_ator')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idCategoriaAtor']);
         });
 
@@ -87,16 +88,16 @@ return new class extends Migration
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idPovo')->constrained('povo')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idPovo']);
         });
-        
+
         Schema::create('terra_indigena_conflito', function (Blueprint $table) {
             $table->id();
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idTerraIndigena')->constrained('terra_indigena')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idTerraIndigena']);
         });
 
@@ -105,7 +106,7 @@ return new class extends Migration
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idTipoConflito')->constrained('tipo_conflito')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idTipoConflito']);
         });
 
@@ -114,7 +115,7 @@ return new class extends Migration
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idImpactoAmbiental')->constrained('impacto_ambiental')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idImpactoAmbiental']);
         });
 
@@ -123,7 +124,7 @@ return new class extends Migration
             $table->foreignId('idConflito')->constrained('conflito')->onDelete('cascade');
             $table->foreignId('idImpactoSaude')->constrained('impacto_saude')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['idConflito', 'idImpactoSaude']);
         });
 
@@ -147,12 +148,12 @@ return new class extends Migration
                   ->onDelete('cascade');
             $table->timestamps();
         });
-        
+
         Schema::create('tipo_conflito', function (Blueprint $table) {
             $table->id('idTipoConflito')->primary();
             $table->string('nome', 100);
         });
-        
+
         Schema::create('assunto', function (Blueprint $table) {
             $table->id('idAssunto')->primary();
             $table->string('nome', 50);

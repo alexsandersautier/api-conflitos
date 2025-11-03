@@ -43,6 +43,8 @@ class Conflito extends Model
                             'dataReferenciaMudancaClassificacao',
                             'estrategiaGeralUtilizadaDemed',
                             'estrategiaColetiva',
+                            'status',                    
+                            'revisao',
                             'created_by',
                             'updated_by',
                             'revised_by'

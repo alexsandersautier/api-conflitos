@@ -168,98 +168,79 @@ class ConflitoController extends Controller
         }
         
         try {
-            // Verifica se foi solicitada paginação
-            $page    = $request->query('page');
-            $perPage = $request->query('per_page', 15); // Default 15 itens por página
+            // Valida parâmetros
+            $validator = validator($request->all(), [
+                'per_page'   => 'nullable|integer|min:1|max:100',
+                'page'       => 'nullable|integer|min:1',
+                'search'     => 'nullable|string|max:255',
+                'sort_by'    => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
+                'sort_order' => 'nullable|string|in:asc,desc'
+            ]);
             
-            // Valida parâmetros de paginação se fornecidos
-            if (!empty($page)) {
-                $validator = validator($request->all(), [
-                    'per_page'   => 'nullable|integer|min:1|max:100',
-                    'page'       => 'nullable|integer|min:1',
-                    'search'     => 'nullable|string|max:255',
-                    'sort_by'    => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
-                    'sort_order' => 'nullable|string|in:asc,desc'
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parâmetros inválidos',
+                    'errors' => $validator->errors()
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Configurações
+            $perPage   = $request->per_page ?? 15;
+            $sortBy    = $request->sort_by ?? 'dataInicioConflito';
+            $sortOrder = $request->sort_order ?? 'desc';
+            $search    = $request->search;
+            $page      = $request->page;
+            
+            // Query base
+            $query = Conflito::with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'
+            ]);
+            
+            // Aplica busca se fornecida
+            if (!empty($search)) {
+                $query->where('nome', 'LIKE', "%{$search}%");
+            }
+            
+            // Aplica ordenação
+            $query->orderBy($sortBy, $sortOrder);
+            
+            // Lógica de paginação/busca
+            if (!empty($search)) {
+                // Se há busca, retorna todos os resultados sem paginação
+                $conflitos = $query->get();
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => ['data' => $conflitos],
+                    'message' => 'Resultados da busca retornados com sucesso.'
                 ]);
+            } else {
+                // Se não há busca, usa paginação
+                $currentPage = $page ?? 1; // Se page for nulo, usa 1 como padrão
                 
-                if ($validator->fails()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Parâmetros inválidos',
-                        'errors' => $validator->errors()
-                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
-                }
-                
-                // Configurações de paginação
-                $perPage   = $request->per_page ?? 15;
-                $sortBy    = $request->sort_by ?? 'dataInicioConflito';
-                $sortOrder = $request->sort_order ?? 'desc';
-                $search    = $request->search;
-                
-                // Query base
-                $query = Conflito::query();
-                
-                // Aplica busca se fornecida
-                if (!empty($search)) {
-                    $query->where('nome', 'LIKE', "%{$search}%");
-                }
-                
-                // Aplica ordenação
-                $query->orderBy($sortBy, $sortOrder);
-                
-                // Executa paginação com relacionamentos
-                $conflitos = $query->with([
-                    'aldeias',
-                    'assuntos',
-                    'atoresIdentificados',
-                    'categoriasAtores',
-                    'impactosAmbientais',
-                    'impactosSaude',
-                    'impactosSocioEconomicos',
-                    'inqueritos',
-                    'numerosSeiIdentificacaoConflito',
-                    'povos',
-                    'processosJudiciais',
-                    'programasProtecao',
-                    'terrasIndigenas',
-                    'tiposConflito',
-                    'violenciasPatrimoniais',
-                    'violenciasPessoasIndigenas',
-                    'violenciasPessoasNaoIndigenas'
-                ])->paginate($perPage);
+                $conflitos = $query->paginate($perPage, ['*'], 'page', $currentPage);
                 
                 return response()->json([
                     'success' => true,
                     'data' => $conflitos,
                     'message' => 'Conflitos paginados recuperados com sucesso.'
-                ]);
-                
-            } else {
-                // Retorna todos os registros sem paginação
-                $conflitos = Conflito::with([
-                    'aldeias',
-                    'assuntos',
-                    'atoresIdentificados',
-                    'categoriasAtores',
-                    'impactosAmbientais',
-                    'impactosSaude',
-                    'impactosSocioEconomicos',
-                    'inqueritos',
-                    'numerosSeiIdentificacaoConflito',
-                    'povos',
-                    'processosJudiciais',
-                    'programasProtecao',
-                    'terrasIndigenas',
-                    'tiposConflito',
-                    'violenciasPatrimoniais',
-                    'violenciasPessoasIndigenas',
-                    'violenciasPessoasNaoIndigenas'
-                ])->orderBy('dataInicioConflito', 'desc')->get();
-                
-                return response()->json([
-                    'success' => true,
-                    'data' => $conflitos,
-                    'message' => 'Todos os conflitos recuperados com sucesso.'
                 ]);
             }
             
@@ -2417,6 +2398,530 @@ class ConflitoController extends Controller
             'message' => 'Tipo de Conflito removido com sucesso',
             'data' => $conflito->load('tiposconflito')
         ]);
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/por-status/{status}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Listar conflitos por status",
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="path",
+     *         required=true,
+     *         description="Status do conflito",
+     *         @OA\Schema(type="string", example="ATIVO")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Número de itens por página",
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, example=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Número da página",
+     *         @OA\Schema(type="integer", minimum=1, example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos por status",
+     *         @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="success", type="boolean", example=true),
+     *              @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Conflito")),
+     *              @OA\Property(property="message", type="string", example="Conflitos com status ATIVO recuperados com sucesso.")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Parâmetros inválidos"
+     *     )
+     * )
+     */
+    public function getConflitosPorStatus(Request $request, $status)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        try {
+            $validator = validator(['status' => $status], [
+                'status' => 'required|string|max:50'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status inválido',
+                    'errors' => $validator->errors()
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            $perPage = $request->query('per_page', 15);
+            $page = $request->query('page');
+            
+            $query = Conflito::where('status', $status)
+            ->with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'
+            ])->orderBy('dataInicioConflito', 'desc');
+            
+            if (!empty($page)) {
+                $conflitos = $query->paginate($perPage);
+            } else {
+                $conflitos = $query->get();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => "Conflitos com status {$status} recuperados com sucesso."
+                ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em getConflitosPorStatus:', [
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos por status: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/por-status-usuario/{status}/{email}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Listar conflitos por status e usuário",
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="path",
+     *         required=true,
+     *         description="Status do conflito",
+     *         @OA\Schema(type="string", example="ATIVO")
+     *     ),
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="path",
+     *         required=true,
+     *         description="Email do usuário",
+     *         @OA\Schema(type="string", example="usuario@example.com")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Número de itens por página",
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, example=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Número da página",
+     *         @OA\Schema(type="integer", minimum=1, example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos por status e usuário",
+     *         @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="success", type="boolean", example=true),
+     *              @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Conflito")),
+     *              @OA\Property(property="message", type="string", example="Conflitos com status ATIVO do usuário usuario@example.com recuperados com sucesso.")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Parâmetros inválidos"
+     *     )
+     * )
+     */
+    public function getConflitosPorStatusEUsuario(Request $request, $status, $email)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        try {
+            $validator = validator([
+                'status' => $status,
+                'email' => $email
+            ], [
+                'status' => 'required|string|max:50',
+                'email' => 'required|email|max:255'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parâmetros inválidos',
+                    'errors' => $validator->errors()
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            $perPage = $request->query('per_page', 15);
+            $page = $request->query('page');
+            
+            $query = Conflito::where('status', $status)
+            ->where('created_by', $email)
+            ->with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'
+            ])->orderBy('dataInicioConflito', 'desc');
+            
+            if (!empty($page)) {
+                $conflitos = $query->paginate($perPage);
+            } else {
+                $conflitos = $query->get();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => "Conflitos com status {$status} do usuário {$email} recuperados com sucesso."
+                ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em getConflitosPorStatusEUsuario:', [
+                'status' => $status,
+                'email' => $email,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos por status e usuário: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Patch(
+     *     path="/api/conflito/{id}/set-analise",
+     *     summary="Define conflito como EM ANÁLISE",
+     *     description="Altera o status do conflito para 'EM ANALISE'",
+     *     operationId="setAnalise",
+     *     tags={"Conflitos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do conflito",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Conflito definido como EM ANÁLISE com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Conflito definido como EM ANÁLISE com sucesso.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Conflito não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro interno do servidor"
+     *     )
+     * )
+     */
+    public function setAnalise($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $auth = Auth::guard('sanctum')->user();
+        
+        try {
+            $conflito = Conflito::find($id);
+            
+            if (!$conflito) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito não encontrado.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Verifica se já está em análise
+            if ($conflito->status === 'EM ANALISE') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito já está EM ANÁLISE.'
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Atualiza o status
+            $conflito->update([
+                'status' => 'EM ANALISE',
+                'updated_by' => $auth->email
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflito,
+                'message' => 'Conflito definido como EM ANÁLISE com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em setAnalise: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao definir conflito como EM ANÁLISE. - '.$e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/conflito/{id}/set-devolvido",
+     *     summary="Define conflito como DEVOLVIDO",
+     *     description="Altera o status do conflito para 'DEVOLVIDO'",
+     *     operationId="setDevolvido",
+     *     tags={"Conflitos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do conflito",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"revisao"},
+     *             @OA\Property(property="revisao", type="text", example="Texto de revisão do conflito")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Conflito definido como DEVOLVIDO com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Conflito definido como DEVOLVIDO com sucesso.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Conflito não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Conflito já devolvido"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro interno do servidor"
+     *     )
+     * )
+     */
+    public function setDevolvido(Request $request, $id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $auth = Auth::guard('sanctum')->user();
+        
+        try {
+            $conflito = Conflito::find($id);
+            
+            if (!$conflito) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito não encontrado.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Verifica se já está em análise
+            if ($conflito->status === 'DEVOLVIDO') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito já está DEVOLVIDO.'
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Atualiza o status
+            $conflito->update([
+                'status' => 'DEVOLVIDO',
+                'revisao' => $request->input('revisao'),
+                'updated_by' => $auth->email
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflito,
+                'message' => 'Conflito definido como DEVOLVIDO com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em setAprovado: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao definir conflito como DEVOLVIDO. - '.$e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Patch(
+     *     path="/api/conflito/{id}/set-aprovado",
+     *     summary="Define conflito como APROVADO",
+     *     description="Altera o status do conflito para 'APROVADO'",
+     *     operationId="setAprovado",
+     *     tags={"Conflitos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do conflito",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Conflito definido como APROVADO com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Conflito definido como APROVADO com sucesso.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Conflito não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Conflito já aprovado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro interno do servidor"
+     *     )
+     * )
+     */
+    public function setAprovado($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $auth = Auth::guard('sanctum')->user();
+        
+        try {
+            $conflito = Conflito::find($id);
+            
+            if (!$conflito) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito não encontrado.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Verifica se já está em análise
+            if ($conflito->status === 'APROVADO') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito já está APROVADO.'
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Atualiza o status
+            $conflito->update([
+                'status' => 'APROVADO',
+                'updated_by' => $auth->email
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflito,
+                'message' => 'Conflito definido como APROVADO com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em setAprovado: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao definir conflito como APROVADO. - '.$e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
     
     /**

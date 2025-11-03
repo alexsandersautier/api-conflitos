@@ -132,6 +132,13 @@ Route::prefix('conflito')->group(function () {
     Route::post('/{id}/tipo-conflito',                                      [ConflitoController::class, 'attachTipoConflito']);
     Route::delete('/{idConflito}/tipo-conflito/{idTipoConflito}',           [ConflitoController::class, 'detachTipoConflito']);
     
+    Route::get('/por-status/{status}',                                      [ConflitoController::class, 'getConflitosPorStatus']);
+    Route::get('/por-status-usuario/{status}/{email}',                      [ConflitoController::class, 'getConflitosPorStatusEUsuario']);
+    
+    Route::patch('/{id}/set-analise',                                       [ConflitoController::class, 'setAnalise']);
+    Route::patch('/{id}/set-aprovado',                                      [ConflitoController::class, 'setAprovado']);
+    Route::patch('/{id}/set-devolvido',                                     [ConflitoController::class, 'setDevolvido']);
+    
 })->middleware('auth:sanctum');
 
 Route::prefix('impacto-ambiental')->group(function () {
@@ -253,5 +260,6 @@ Route::prefix('usuario')->group(function () {
     Route::delete('/{id}',                [UsuarioController::class, 'destroy']);
     Route::patch('/alterar-senha',        [UsuarioController::class, 'alterarSenha']);
     Route::get('/pesquisar/buscar-texto', [UsuarioController::class, 'getAllByTexto']);
+    Route::delete('/{id}',                [UsuarioController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
