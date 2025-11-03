@@ -375,4 +375,36 @@ class UsuarioController extends Controller {
         
         return response()->json(['message' => 'Senha alterada com sucesso.']);
     }
+    
+    /**
+     * @OA\Delete(
+     *     path="/api/usuario/{id}",
+     *     tags={"Usuarios"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Excluir um usuário específico",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Usuário excluído"
+     *     )
+     * )
+     */
+    public function destroy($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $usuario = Usuario::findOrFail($id);
+        $usuario->delete();
+        return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
 }

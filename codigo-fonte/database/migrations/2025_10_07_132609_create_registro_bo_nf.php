@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('registro_bo_nf', function (Blueprint $table) {
             $table->id('idRegistroBoNf')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
-            $table->date('data');
-            $table->string('numero', 100);
-            $table->string('orgao', 100);
-            $table->string('tipoOrgao', 100);
-            $table->integer('numeroSei');
+            $table->date('data')->nullable();
+            $table->string('numero', 100)->nullable();
+            $table->string('orgao', 100)->nullable();
+            $table->string('tipoOrgao', 100)->nullable();
+            $table->string('numeroSei',50)->nullable();
             $table->timestamps();
         });
     }

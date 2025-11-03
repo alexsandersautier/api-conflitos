@@ -162,11 +162,52 @@ class TerraIndigenaController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+        
+        $validator = validator($request->all(), [
+            'nome'                => 'required|string|max:255',
+            'idPovo'              => 'required|integer|exists:povo,idPovo',
+            'idSituacaoFundiaria' => 'required|integer|exists:situacao_fundiaria,idSituacaoFundiaria',
         ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parâmetros inválidos',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        
+        $terraIndigenaData = $request->only(['idPovo',
+                                            'idSituacaoFundiaria',
+                                            'codigo_ti',
+                                            'nome',
+                                            'superficie_perimetro_ha',
+                                            'modalidade_ti',
+                                            'etnia_nome',
+                                            'municipio_nome',
+                                            'uf_sigla',
+                                            'coordenacao_regional',
+                                            'faixa_fronteira',
+                                            'undadm_codigo',
+                                            'undadm_nome',
+                                            'undadm_sigla',
+                                            'data_atualizacao',
+                                            'data_homologacao',
+                                            'decreto_homologacao',
+                                            'data_regularizacao',
+                                            'matricula_regularizacao',
+                                            'acao_recuperacao_territorial',
+                                            'dominio_uniao',
+                                            'numero_processo_funai',
+                                            'data_abertura_processo_funai',
+                                            'numero_portaria_funai',
+                                            'numero_processo_sei',
+                                            'numero_portaria_declaratoria',
+                                            'qtd_aldeias',
+                                            'qtd_familias',
+                                            'links_documentos_vinculados']);
 
-        $terraindigena = TerraIndigena::create($validatedData);
+        $terraindigena = TerraIndigena::create($terraIndigenaData);
         return response()->json($terraindigena, Response::HTTP_CREATED);
     }
 
@@ -238,11 +279,52 @@ class TerraIndigenaController extends Controller
         
         $terraindigena = TerraIndigena::findOrFail($id);
 
-        $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+        $validator = validator($request->all(), [
+            'nome'                => 'required|string|max:255',
+            'idPovo'              => 'required|integer|exists:povo,idPovo',
+            'idSituacaoFundiaria' => 'required|integer|exists:situacao_fundiaria,idSituacaoFundiaria',
         ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parâmetros inválidos',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        
+        $terraIndigenaData = $request->only([
+                                            'idPovo',
+                                            'idSituacaoFundiaria',
+                                            'codigo_ti',
+                                            'nome',
+                                            'superficie_perimetro_ha',
+                                            'modalidade_ti',
+                                            'etnia_nome',
+                                            'municipio_nome',
+                                            'uf_sigla',
+                                            'coordenacao_regional',
+                                            'faixa_fronteira',
+                                            'undadm_codigo',
+                                            'undadm_nome',
+                                            'undadm_sigla',
+                                            'data_atualizacao',
+                                            'data_homologacao',
+                                            'decreto_homologacao',
+                                            'data_regularizacao',
+                                            'matricula_regularizacao',
+                                            'acao_recuperacao_territorial',
+                                            'dominio_uniao',
+                                            'numero_processo_funai',
+                                            'data_abertura_processo_funai',
+                                            'numero_portaria_funai',
+                                            'numero_processo_sei',
+                                            'numero_portaria_declaratoria',
+                                            'qtd_aldeias',
+                                            'qtd_familias',
+                                            'links_documentos_vinculados']);
 
-        $terraindigena->update($validatedData);
+        $terraindigena->update($terraIndigenaData);
         return response()->json($terraindigena);
     }
 
