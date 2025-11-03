@@ -2004,6 +2004,30 @@
                 ]
             }
         },
+        "/api/conflito/dashboard": {
+            "get": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Listar todos os conflitos para o dashboard",
+                "operationId": "5a0f1fe5ee38aa286cd5365f5a0a3c66",
+                "responses": {
+                    "200": {
+                        "description": "Lista de conflitos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Conflito"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/conflito/{id}": {
             "get": {
                 "tags": [
@@ -3475,6 +3499,205 @@
                 "security": [
                     {
                         "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{id}/set-analise": {
+            "patch": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Define conflito como EM ANÁLISE",
+                "description": "Altera o status do conflito para 'EM ANALISE'",
+                "operationId": "setAnalise",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conflito definido como EM ANÁLISE com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conflito definido como EM ANÁLISE com sucesso."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Conflito não encontrado"
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{id}/set-devolvido": {
+            "patch": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Define conflito como DEVOLVIDO",
+                "description": "Altera o status do conflito para 'DEVOLVIDO'",
+                "operationId": "setDevolvido",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "revisao"
+                                ],
+                                "properties": {
+                                    "revisao": {
+                                        "type": "text",
+                                        "example": "Texto de revisão do conflito"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Conflito definido como DEVOLVIDO com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conflito definido como DEVOLVIDO com sucesso."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Conflito não encontrado"
+                    },
+                    "422": {
+                        "description": "Conflito já devolvido"
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/{id}/set-aprovado": {
+            "patch": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Define conflito como APROVADO",
+                "description": "Altera o status do conflito para 'APROVADO'",
+                "operationId": "setAprovado",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conflito definido como APROVADO com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conflito definido como APROVADO com sucesso."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Conflito não encontrado"
+                    },
+                    "422": {
+                        "description": "Conflito já aprovado"
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
