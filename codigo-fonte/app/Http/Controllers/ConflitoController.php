@@ -170,11 +170,12 @@ class ConflitoController extends Controller
         try {
             // Valida parâmetros
             $validator = validator($request->all(), [
-                'per_page'   => 'nullable|integer|min:1|max:100',
-                'page'       => 'nullable|integer|min:1',
-                'search'     => 'nullable|string|max:255',
-                'sort_by'    => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
-                'sort_order' => 'nullable|string|in:asc,desc'
+                'per_page'                      => 'nullable|integer|min:1|max:100',
+                'page'                          => 'nullable|integer|min:1',
+                'search'                        => 'nullable|string|max:255',
+                'estrategiaGeralUtilizadaDemed' => 'nullable|string|max:255',
+                'sort_by'                       => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
+                'sort_order'                    => 'nullable|string|in:asc,desc'
             ]);
             
             if ($validator->fails()) {
@@ -191,6 +192,7 @@ class ConflitoController extends Controller
             $sortOrder = $request->sort_order ?? 'desc';
             $search    = $request->search;
             $page      = $request->page;
+            $estrategiaGeralUtilizadaDemed = $request->estrategiaGeralUtilizadaDemed;
             
             // Query base
             $query = Conflito::with([
@@ -217,6 +219,11 @@ class ConflitoController extends Controller
             if (!empty($search)) {
                 $query->where('nome', 'LIKE', "%{$search}%");
             }
+            
+            if (!empty($estrategiaGeralUtilizadaDemed)) {
+                $query->where('estrategiaGeralUtilizadaDemed', '=', "{$estrategiaGeralUtilizadaDemed}");
+            }
+            
             
             // Aplica ordenação
             $query->orderBy($sortBy, $sortOrder);
