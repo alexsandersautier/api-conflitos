@@ -44,7 +44,7 @@ class AtorController extends Controller
      */
     public function index()
     {
-        $atores = Ator::all();
+        $atores = Ator::query()->orderBy('nome', 'asc')->get();
         return response()->json($atores);
     }
 

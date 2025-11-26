@@ -174,6 +174,9 @@ class ConflitoController extends Controller
                 'page'                          => 'nullable|integer|min:1',
                 'search'                        => 'nullable|string|max:255',
                 'estrategiaGeralUtilizadaDemed' => 'nullable|string|max:255',
+                'terras_indigenas'              => 'nullable|string|max:255',
+                'povos'                         => 'nullable|string|max:255',
+                'violencias_pessoa_indigenas'   => 'nullable|string|max:255',
                 'sort_by'                       => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
                 'sort_order'                    => 'nullable|string|in:asc,desc'
             ]);
@@ -204,6 +207,7 @@ class ConflitoController extends Controller
                 'impactosSaude',
                 'impactosSocioEconomicos',
                 'inqueritos',
+                'localidadesConflito',
                 'numerosSeiIdentificacaoConflito',
                 'povos',
                 'processosJudiciais',
@@ -285,7 +289,7 @@ class ConflitoController extends Controller
         
         try {
             // Query base
-            $conflitos = Conflito::all();
+            $conflitos = Conflito::with(['tiposConflito'])->get();
                         
             return response()->json([
                 'success' => true,
@@ -2865,7 +2869,7 @@ class ConflitoController extends Controller
             $conflito->update([
                 'status' => 'DEVOLVIDO',
                 'revisao' => $request->input('revisao'),
-                'updated_by' => $auth->email
+                'revised_by' => $auth->email
             ]);
             
             return response()->json([
@@ -2969,6 +2973,79 @@ class ConflitoController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao definir conflito como APROVADO. - '.$e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/conflitos-por-ator/{nomeAtor}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Recuperar conflitos por ator",
+     *     @OA\Parameter(
+     *         name="nomeAtor",
+     *         in="path",
+     *         required=true,
+     *         description="Nome exato do ator identificado",
+     *         @OA\Schema(type="string", example="Nome Exato do Ator")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos encontrados",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(ref="#/components/schemas/Conflito")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Conflitos vinculados ao ator recuperados com sucesso.")
+     *         )
+     *     )
+     * )
+     */
+    public function getConflitosPorAtor($nomeAtor)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        try {
+            // Buscar IDs dos conflitos que possuem o ator com nome exato
+            $conflitoIds = AtorIdentificadoConflito::where('nome', '=', trim($nomeAtor))
+            ->pluck('idConflito')
+            ->toArray();
+            
+            if (empty($conflitoIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nenhum conflito encontrado para o ator especificado'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Buscar os conflitos apenas com os campos básicos
+            $conflitos = Conflito::whereIn('idConflito', $conflitoIds)->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => 'Conflitos vinculados ao ator recuperados com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em getConflitosPorAtorExatoJoin:', [
+                'nomeAtor' => $nomeAtor,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos por ator: ' . $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

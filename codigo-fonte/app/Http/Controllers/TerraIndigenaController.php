@@ -161,8 +161,7 @@ class TerraIndigenaController extends Controller
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        
+                
         $validator = validator($request->all(), [
             'nome'                => 'required|string|max:255',
             'idPovo'              => 'required|integer|exists:povo,idPovo',

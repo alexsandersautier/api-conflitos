@@ -149,11 +149,20 @@ class AldeiaController extends Controller{
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+        $validator = validator($request->all(), [
+            'nome' => 'required|string|max:255'
         ]);
         
-        $aldeia = Aldeia::create($validatedData);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parâmetros inválidos',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        
+        $aldeia = Aldeia::create($request->only(['nome']));
         return response()->json($aldeia, Response::HTTP_CREATED);
     }
     
