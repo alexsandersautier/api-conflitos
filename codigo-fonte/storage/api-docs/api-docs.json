@@ -3702,6 +3702,60 @@
                 ]
             }
         },
+        "/api/conflito/conflitos-por-ator/{nomeAtor}": {
+            "get": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Recuperar conflitos por ator",
+                "operationId": "d6a05eab6304971d8660d2401ada96b9",
+                "parameters": [
+                    {
+                        "name": "nomeAtor",
+                        "in": "path",
+                        "description": "Nome exato do ator identificado",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Nome Exato do Ator"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de conflitos encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Conflito"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conflitos vinculados ao ator recuperados com sucesso."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/dashboard/dados": {
             "get": {
                 "tags": [

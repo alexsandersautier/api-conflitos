@@ -33,24 +33,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::prefix('dashboard')->group(function () {
     // Dados completos do dashboard
-    Route::get('/dados', [DashboardController::class, 'getDadosDashboard']);
+    Route::get('/dados',                   [DashboardController::class, 'getDadosDashboard']);
     
     // Dados do dashboard com filtro por período
-    Route::get('/dados-filtrados', [DashboardController::class, 'getDadosDashboardComFiltro']);
+    Route::get('/dados-filtrados',         [DashboardController::class, 'getDadosDashboardComFiltro']);
     
     // Dados específicos com filtros avançados
-    Route::get('/dados-avancados', [DashboardController::class, 'getDadosFiltradosAvancados']);
+    Route::get('/dados-avancados',         [DashboardController::class, 'getDadosFiltradosAvancados']);
     
     // Métricas em tempo real (sem cache)
-    Route::get('/metricas-tempo-real', [DashboardController::class, 'getMetricasTempoReal']);
+    Route::get('/metricas-tempo-real',     [DashboardController::class, 'getMetricasTempoReal']);
     
     // Endpoints individuais
-    Route::get('/totais-gerais', [DashboardController::class, 'getTotaisGerais']);
+    Route::get('/totais-gerais',           [DashboardController::class, 'getTotaisGerais']);
     Route::get('/distribuicao-geografica', [DashboardController::class, 'getDistribuicaoGeografica']);
-    Route::get('/conflitos-por-uf', [DashboardController::class, 'getConflitosPorUF']);
-    Route::get('/conflitos-por-regiao', [DashboardController::class, 'getConflitosPorRegiao']);
+    Route::get('/conflitos-por-uf',        [DashboardController::class, 'getConflitosPorUF']);
+    Route::get('/conflitos-por-regiao',    [DashboardController::class, 'getConflitosPorRegiao']);
     Route::get('/conflitos-por-municipio', [DashboardController::class, 'getConflitosPorMunicipio']);
-    Route::get('/conflitos-por-ano', [DashboardController::class, 'getConflitosPorAno']);
+    Route::get('/conflitos-por-ano',       [DashboardController::class, 'getConflitosPorAno']);
     Route::get('/estatisticas-violencias', [DashboardController::class, 'getEstatisticasViolencias']);
     
     // Administração
@@ -77,7 +77,6 @@ Route::prefix('assunto')->group(function () {
     Route::patch('/{id}',  [AssuntoController::class, 'update']);
     Route::delete('/{id}', [AssuntoController::class, 'destroy']);
 })->middleware('auth:sanctum');
-
 
 Route::prefix('ator')->group(function () {
     Route::get('/',        [AtorController::class, 'index']);
@@ -139,6 +138,9 @@ Route::prefix('conflito')->group(function () {
     Route::patch('/{id}/set-analise',                                       [ConflitoController::class, 'setAnalise']);
     Route::patch('/{id}/set-aprovado',                                      [ConflitoController::class, 'setAprovado']);
     Route::patch('/{id}/set-devolvido',                                     [ConflitoController::class, 'setDevolvido']);
+    
+    
+    Route::get('/conflitos-por-ator/{nomeAtor}',                            [ConflitoController::class, 'getConflitosPorAtor']);
     
 })->middleware('auth:sanctum');
 
