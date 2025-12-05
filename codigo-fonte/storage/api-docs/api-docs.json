@@ -1920,38 +1920,38 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "nome",
-                                    "descricao",
-                                    "regiao",
-                                    "dataConflito",
                                     "latitude",
                                     "longitude",
-                                    "municipio",
-                                    "uf",
-                                    "flagOcorrenciaAmeaca",
-                                    "flagOcorrenciaViolencia",
-                                    "flagOcorrenciaAssassinato",
-                                    "flagOcorrenciaFeridos",
-                                    "flagMembroProgramaProtecao"
+                                    "nome",
+                                    "relato",
+                                    "dataInicioConflito",
+                                    "dataAcionamentoMpiConflito",
+                                    "observacoes",
+                                    "flagHasImpactoAmbiental",
+                                    "flagHasImpactoSaude",
+                                    "flagHasImpactoSocioEconomico",
+                                    "flagHasViolenciaIndigena",
+                                    "flagHasMembroProgramaProtecao",
+                                    "flagHasBOouNF",
+                                    "flagHasInquerito",
+                                    "flagHasProcessoJudicial",
+                                    "flagHasAssistenciaJuridica",
+                                    "flagHasRegiaoPrioritaria",
+                                    "flagHasViolenciaPatrimonialIndigena",
+                                    "flagHasEventoViolenciaIndigena",
+                                    "flagHasAssassinatoPrisaoNaoIndigena",
+                                    "tipoInstituicaoAssistenciaJuridica",
+                                    "advogadoInstituicaoAssistenciaJuridica",
+                                    "regiaoPrioritaria",
+                                    "classificacaoGravidadeConflitoDemed",
+                                    "atualizacaoClassificacaoGravidadeConflito",
+                                    "dataReferenciaMudancaClassificacao",
+                                    "estrategiaGeralUtilizadaDemed",
+                                    "estrategiaColetiva",
+                                    "status",
+                                    "assuntosConflito"
                                 ],
                                 "properties": {
-                                    "nome": {
-                                        "type": "string",
-                                        "example": "nome do conflito"
-                                    },
-                                    "relato": {
-                                        "type": "string",
-                                        "example": "Relato do conflito"
-                                    },
-                                    "regiao": {
-                                        "type": "string",
-                                        "example": "norte"
-                                    },
-                                    "dataConflito": {
-                                        "type": "string",
-                                        "format": "yyyy-mm-dd",
-                                        "example": "2025-04-13"
-                                    },
                                     "latitude": {
                                         "type": "string",
                                         "example": "41.40338"
@@ -1960,25 +1960,546 @@
                                         "type": "string",
                                         "example": "2.17403"
                                     },
-                                    "flagOcorrenciaAmeaca": {
-                                        "type": "boolean",
-                                        "example": "1"
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "nome do conflito"
                                     },
-                                    "flagOcorrenciaViolencia": {
-                                        "type": "boolean",
-                                        "example": "0"
+                                    "relato": {
+                                        "type": "string",
+                                        "example": "Relato do conflito"
                                     },
-                                    "flagOcorrenciaAssassinato": {
-                                        "type": "boolean",
-                                        "example": "1"
+                                    "dataConflito": {
+                                        "type": "string",
+                                        "format": "yyyy-mm-dd",
+                                        "example": "2025-04-13"
                                     },
-                                    "flagOcorrenciaFeridos": {
-                                        "type": "boolean",
-                                        "example": "0"
+                                    "dataAcionamentoMpiConflito": {
+                                        "type": "string",
+                                        "format": "yyyy-mm-dd",
+                                        "example": "2025-04-13"
                                     },
-                                    "flagMembroProgramaProtecao": {
-                                        "type": "boolean",
-                                        "example": "1"
+                                    "observacoes": {
+                                        "type": "string",
+                                        "example": "Observações do conflito"
+                                    },
+                                    "flagHasImpactoAmbiental": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasImpactoSaude": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasImpactoSocioEconomico": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasViolenciaIndigena": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasMembroProgramaProtecao": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasBOouNF": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasInquerito": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasProcessoJudicial": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasAssistenciaJuridica": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasRegiaoPrioritaria": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasViolenciaPatrimonialIndigena": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasEventoViolenciaIndigena": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasAssassinatoPrisaoNaoIndigena": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "tipoInstituicaoAssistenciaJuridica": {
+                                        "type": "string",
+                                        "example": "Advogada(o) da União"
+                                    },
+                                    "advogadoInstituicaoAssistenciaJuridica": {
+                                        "type": "string",
+                                        "example": "Consultoria Jurídica/MPI"
+                                    },
+                                    "regiaoPrioritaria": {
+                                        "type": "string",
+                                        "example": "Sul do Mato Grosso do Sul"
+                                    },
+                                    "classificacaoGravidadeConflitoDemed": {
+                                        "type": "string",
+                                        "example": "URGENCIA"
+                                    },
+                                    "atualizacaoClassificacaoGravidadeConflito": {
+                                        "type": "string",
+                                        "example": "EMERGÊNCIA"
+                                    },
+                                    "dataReferenciaMudancaClassificacao": {
+                                        "type": "string",
+                                        "format": "yyyy-mm-dd",
+                                        "example": "2025-04-13"
+                                    },
+                                    "estrategiaGeralUtilizadaDemed": {
+                                        "type": "string",
+                                        "example": "Acompanhamento do conflito com ações complexas"
+                                    },
+                                    "estrategiaColetiva": {
+                                        "type": "string",
+                                        "example": "Descrição da estratégia coletiva"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "EM ANALISE"
+                                    },
+                                    "aldeias": {
+                                        "description": "Coleção de IDs de aldeias relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            2860,
+                                            125,
+                                            43
+                                        ]
+                                    },
+                                    "assuntos": {
+                                        "description": "Coleção de assuntos relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            7
+                                        ]
+                                    },
+                                    "terras_indigenas": {
+                                        "description": "Coleção de Terras Indigenas relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            12,
+                                            15
+                                        ]
+                                    },
+                                    "povos": {
+                                        "description": "Coleção de povos relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            7
+                                        ]
+                                    },
+                                    "tipos_conflito": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            1,
+                                            2
+                                        ]
+                                    },
+                                    "categorias_atores": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            2,
+                                            7
+                                        ]
+                                    },
+                                    "impactos_ambientais": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            2,
+                                            3
+                                        ]
+                                    },
+                                    "impactos_saude": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            5,
+                                            15
+                                        ]
+                                    },
+                                    "impactos_socio_economicos": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            12,
+                                            15
+                                        ]
+                                    },
+                                    "atores_identificados": {
+                                        "description": "Coleção de atores identificados relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "João da Silva",
+                                            "Maria das Graças"
+                                        ]
+                                    },
+                                    "inqueritos": {
+                                        "description": "Coleção de inqueritos relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do inquérito",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numero": {
+                                                    "description": "Número do inquérito",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "orgao": {
+                                                    "description": "Órgão que registrou o inquérito",
+                                                    "type": "string"
+                                                },
+                                                "tipoOrgao": {
+                                                    "description": "Tipo do Órgão",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2010-01-01",
+                                                "numero": "1.30.014.000051/2010-78",
+                                                "numeroSei": "48782219",
+                                                "orgao": "Procuradoria da República em Angra dos Reis/RJ",
+                                                "tipoOrgao": "Ministério Público Federal"
+                                            }
+                                        ]
+                                    },
+                                    "localidades_conflito": {
+                                        "description": "Coleção de localidades relacionadas ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "regiao": {
+                                                    "description": "Região da Localidade",
+                                                    "type": "string"
+                                                },
+                                                "municipio": {
+                                                    "description": "Municícipio da Localidade",
+                                                    "type": "string"
+                                                },
+                                                "uf": {
+                                                    "description": "UF da Localidade",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "municipio": "Paraty",
+                                                "regiao": "Sudeste",
+                                                "uf": "RJ"
+                                            }
+                                        ]
+                                    },
+                                    "numeros_sei_identificacao_conflito": {
+                                        "description": "Coleção de processos SEI relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "15000.000637/2025-30",
+                                            "15000.002375/2024-67",
+                                            "14021.038584/2025-19"
+                                        ]
+                                    },
+                                    "processos_judiciais": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do inquérito",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numero": {
+                                                    "description": "Número do inquérito",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "orgao": {
+                                                    "description": "Órgão que registrou o inquérito",
+                                                    "type": "string"
+                                                },
+                                                "tipoPoder": {
+                                                    "description": "Tipo de Poder",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2022-01-01",
+                                                "numero": "1002052-25.2022.4.01.4103",
+                                                "numeroSei": "44379030",
+                                                "orgaoApoio": "Vara Federal Cível e Criminal da Subseção Judicial de Vilhena/RO",
+                                                "tipoPoder": "Justiça Federal"
+                                            }
+                                        ]
+                                    },
+                                    "programas_protecao": {
+                                        "description": "Coleção de programas de proteção relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoPrograma": {
+                                                    "description": "Tipo de programa",
+                                                    "type": "string"
+                                                },
+                                                "uf": {
+                                                    "description": "UF do programa",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "numeroSei": "48782219",
+                                                "tipoPrograma": "Programa de Proteção aos Defensores dos Direitos Humanos (PPDDH)",
+                                                "uf": "RJ"
+                                            }
+                                        ]
+                                    },
+                                    "registros_b_oou_n_f": {
+                                        "description": "Coleção de registros de BO relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do BO",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numero": {
+                                                    "description": "Número do BO",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "orgao": {
+                                                    "description": "Órgão que registrou o BO",
+                                                    "type": "string"
+                                                },
+                                                "tipoOrgao": {
+                                                    "description": "Tipo do Órgão",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2020-09-21",
+                                                "numero": "219/2020",
+                                                "numeroSei": "48781613",
+                                                "orgao": "Delegacia de Polícia Federal de Angra dos Reis/RJ",
+                                                "tipoOrgao": "Polícia Federal"
+                                            }
+                                        ]
+                                    },
+                                    "violencias_patrimoniais": {
+                                        "description": "Coleção de violências patrimoniais ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do incidente de violência",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoViolencia": {
+                                                    "description": "Tipo de violência",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2023-01-23",
+                                                "numeroSei": "48782219",
+                                                "tipoViolencia": "Invasão"
+                                            }
+                                        ]
+                                    },
+                                    "violencias_pessoas_indigenas": {
+                                        "description": "Coleção de violências contra pessoas indigenas relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do incidente de violência",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "faixaEtaria": {
+                                                    "description": "Faixa Etaria",
+                                                    "type": "string"
+                                                },
+                                                "genero": {
+                                                    "description": "Gênero",
+                                                    "type": "string"
+                                                },
+                                                "idade": {
+                                                    "description": "Idade",
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "instrumentoViolencia": {
+                                                    "description": "Instrumento de Violencia",
+                                                    "type": "string"
+                                                },
+                                                "nome": {
+                                                    "description": "Nome",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoViolencia": {
+                                                    "description": "Tipo de violência",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2023-01-23",
+                                                "faixaEtaria": "Jovem adulto (18-25 anos)",
+                                                "genero": "Homem",
+                                                "idade": 20,
+                                                "instrumentoViolencia": "Ameaça verbal e/ou escrita",
+                                                "nome": "João Silva",
+                                                "numeroSei": "48782219",
+                                                "tipoViolencia": "Ameaça à integridade pessoal"
+                                            }
+                                        ]
+                                    },
+                                    "violencias_pessoas_nao_indigenas": {
+                                        "description": "Coleção de violências contra pessoas não indigenas relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do incidente de violência",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "nome": {
+                                                    "description": "Número do BO",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoPessoa": {
+                                                    "description": "Tipo de Pessoa",
+                                                    "type": "string"
+                                                },
+                                                "tipoViolencia": {
+                                                    "description": "Tipo de violência",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2021-08-18",
+                                                "nome": "Edvaldo Deoclides de Oliveira",
+                                                "numeroSei": "36607122",
+                                                "tipoPessoa": "Empresário",
+                                                "tipoViolencia": "Assassinato de não indígena"
+                                            }
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -2085,12 +2606,586 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "nome"
+                                    "latitude",
+                                    "longitude",
+                                    "nome",
+                                    "relato",
+                                    "dataInicioConflito",
+                                    "dataAcionamentoMpiConflito",
+                                    "observacoes",
+                                    "flagHasImpactoAmbiental",
+                                    "flagHasImpactoSaude",
+                                    "flagHasImpactoSocioEconomico",
+                                    "flagHasViolenciaIndigena",
+                                    "flagHasMembroProgramaProtecao",
+                                    "flagHasBOouNF",
+                                    "flagHasInquerito",
+                                    "flagHasProcessoJudicial",
+                                    "flagHasAssistenciaJuridica",
+                                    "flagHasRegiaoPrioritaria",
+                                    "flagHasViolenciaPatrimonialIndigena",
+                                    "flagHasEventoViolenciaIndigena",
+                                    "flagHasAssassinatoPrisaoNaoIndigena",
+                                    "tipoInstituicaoAssistenciaJuridica",
+                                    "advogadoInstituicaoAssistenciaJuridica",
+                                    "regiaoPrioritaria",
+                                    "classificacaoGravidadeConflitoDemed",
+                                    "atualizacaoClassificacaoGravidadeConflito",
+                                    "dataReferenciaMudancaClassificacao",
+                                    "estrategiaGeralUtilizadaDemed",
+                                    "estrategiaColetiva",
+                                    "status",
+                                    "assuntosConflito"
                                 ],
                                 "properties": {
+                                    "latitude": {
+                                        "type": "string",
+                                        "example": "41.40338"
+                                    },
+                                    "longitude": {
+                                        "type": "string",
+                                        "example": "2.17403"
+                                    },
                                     "nome": {
                                         "type": "string",
-                                        "example": "Departamento de TI"
+                                        "example": "nome do conflito"
+                                    },
+                                    "relato": {
+                                        "type": "string",
+                                        "example": "Relato do conflito"
+                                    },
+                                    "dataConflito": {
+                                        "type": "string",
+                                        "format": "yyyy-mm-dd",
+                                        "example": "2025-04-13"
+                                    },
+                                    "dataAcionamentoMpiConflito": {
+                                        "type": "string",
+                                        "format": "yyyy-mm-dd",
+                                        "example": "2025-04-13"
+                                    },
+                                    "observacoes": {
+                                        "type": "string",
+                                        "example": "Observações do conflito"
+                                    },
+                                    "flagHasImpactoAmbiental": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasImpactoSaude": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasImpactoSocioEconomico": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasViolenciaIndigena": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasMembroProgramaProtecao": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasBOouNF": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasInquerito": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasProcessoJudicial": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasAssistenciaJuridica": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasRegiaoPrioritaria": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasViolenciaPatrimonialIndigena": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "flagHasEventoViolenciaIndigena": {
+                                        "type": "string",
+                                        "example": "NÃO"
+                                    },
+                                    "flagHasAssassinatoPrisaoNaoIndigena": {
+                                        "type": "string",
+                                        "example": "SIM"
+                                    },
+                                    "tipoInstituicaoAssistenciaJuridica": {
+                                        "type": "string",
+                                        "example": "Advogada(o) da União"
+                                    },
+                                    "advogadoInstituicaoAssistenciaJuridica": {
+                                        "type": "string",
+                                        "example": "Consultoria Jurídica/MPI"
+                                    },
+                                    "regiaoPrioritaria": {
+                                        "type": "string",
+                                        "example": "Sul do Mato Grosso do Sul"
+                                    },
+                                    "classificacaoGravidadeConflitoDemed": {
+                                        "type": "string",
+                                        "example": "URGENCIA"
+                                    },
+                                    "atualizacaoClassificacaoGravidadeConflito": {
+                                        "type": "string",
+                                        "example": "EMERGÊNCIA"
+                                    },
+                                    "dataReferenciaMudancaClassificacao": {
+                                        "type": "string",
+                                        "format": "yyyy-mm-dd",
+                                        "example": "2025-04-13"
+                                    },
+                                    "estrategiaGeralUtilizadaDemed": {
+                                        "type": "string",
+                                        "example": "Acompanhamento do conflito com ações complexas"
+                                    },
+                                    "estrategiaColetiva": {
+                                        "type": "string",
+                                        "example": "Descrição da estratégia coletiva"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "EM ANALISE"
+                                    },
+                                    "aldeias": {
+                                        "description": "Coleção de IDs de aldeias relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            2860,
+                                            125,
+                                            43
+                                        ]
+                                    },
+                                    "assuntos": {
+                                        "description": "Coleção de assuntos relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            7
+                                        ]
+                                    },
+                                    "terras_indigenas": {
+                                        "description": "Coleção de Terras Indigenas relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            12,
+                                            15
+                                        ]
+                                    },
+                                    "povos": {
+                                        "description": "Coleção de povos relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            7
+                                        ]
+                                    },
+                                    "tipos_conflito": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            1,
+                                            2
+                                        ]
+                                    },
+                                    "categorias_atores": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            2,
+                                            7
+                                        ]
+                                    },
+                                    "impactos_ambientais": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            2,
+                                            3
+                                        ]
+                                    },
+                                    "impactos_saude": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            5,
+                                            15
+                                        ]
+                                    },
+                                    "impactos_socio_economicos": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "example": [
+                                            12,
+                                            15
+                                        ]
+                                    },
+                                    "atores_identificados": {
+                                        "description": "Coleção de atores identificados relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "João da Silva",
+                                            "Maria das Graças"
+                                        ]
+                                    },
+                                    "inqueritos": {
+                                        "description": "Coleção de inqueritos relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do inquérito",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numero": {
+                                                    "description": "Número do inquérito",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "orgao": {
+                                                    "description": "Órgão que registrou o inquérito",
+                                                    "type": "string"
+                                                },
+                                                "tipoOrgao": {
+                                                    "description": "Tipo do Órgão",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2010-01-01",
+                                                "numero": "1.30.014.000051/2010-78",
+                                                "numeroSei": "48782219",
+                                                "orgao": "Procuradoria da República em Angra dos Reis/RJ",
+                                                "tipoOrgao": "Ministério Público Federal"
+                                            }
+                                        ]
+                                    },
+                                    "localidades_conflito": {
+                                        "description": "Coleção de localidades relacionadas ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "regiao": {
+                                                    "description": "Região da Localidade",
+                                                    "type": "string"
+                                                },
+                                                "municipio": {
+                                                    "description": "Municícipio da Localidade",
+                                                    "type": "string"
+                                                },
+                                                "uf": {
+                                                    "description": "UF da Localidade",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "municipio": "Paraty",
+                                                "regiao": "Sudeste",
+                                                "uf": "RJ"
+                                            }
+                                        ]
+                                    },
+                                    "numeros_sei_identificacao_conflito": {
+                                        "description": "Coleção de processos SEI relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "15000.000637/2025-30",
+                                            "15000.002375/2024-67",
+                                            "14021.038584/2025-19"
+                                        ]
+                                    },
+                                    "processos_judiciais": {
+                                        "description": "Coleção de tipos de Conflito relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do inquérito",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numero": {
+                                                    "description": "Número do inquérito",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "orgao": {
+                                                    "description": "Órgão que registrou o inquérito",
+                                                    "type": "string"
+                                                },
+                                                "tipoPoder": {
+                                                    "description": "Tipo de Poder",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2022-01-01",
+                                                "numero": "1002052-25.2022.4.01.4103",
+                                                "numeroSei": "44379030",
+                                                "orgaoApoio": "Vara Federal Cível e Criminal da Subseção Judicial de Vilhena/RO",
+                                                "tipoPoder": "Justiça Federal"
+                                            }
+                                        ]
+                                    },
+                                    "programas_protecao": {
+                                        "description": "Coleção de programas de proteção relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoPrograma": {
+                                                    "description": "Tipo de programa",
+                                                    "type": "string"
+                                                },
+                                                "uf": {
+                                                    "description": "UF do programa",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "numeroSei": "48782219",
+                                                "tipoPrograma": "Programa de Proteção aos Defensores dos Direitos Humanos (PPDDH)",
+                                                "uf": "RJ"
+                                            }
+                                        ]
+                                    },
+                                    "registros_b_oou_n_f": {
+                                        "description": "Coleção de registros de BO relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do BO",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numero": {
+                                                    "description": "Número do BO",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "orgao": {
+                                                    "description": "Órgão que registrou o BO",
+                                                    "type": "string"
+                                                },
+                                                "tipoOrgao": {
+                                                    "description": "Tipo do Órgão",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2020-09-21",
+                                                "numero": "219/2020",
+                                                "numeroSei": "48781613",
+                                                "orgao": "Delegacia de Polícia Federal de Angra dos Reis/RJ",
+                                                "tipoOrgao": "Polícia Federal"
+                                            }
+                                        ]
+                                    },
+                                    "violencias_patrimoniais": {
+                                        "description": "Coleção de violências patrimoniais ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do incidente de violência",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoViolencia": {
+                                                    "description": "Tipo de violência",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2023-01-23",
+                                                "numeroSei": "48782219",
+                                                "tipoViolencia": "Invasão"
+                                            }
+                                        ]
+                                    },
+                                    "violencias_pessoas_indigenas": {
+                                        "description": "Coleção de violências contra pessoas indigenas relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do incidente de violência",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "faixaEtaria": {
+                                                    "description": "Faixa Etaria",
+                                                    "type": "string"
+                                                },
+                                                "genero": {
+                                                    "description": "Gênero",
+                                                    "type": "string"
+                                                },
+                                                "idade": {
+                                                    "description": "Idade",
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "instrumentoViolencia": {
+                                                    "description": "Instrumento de Violencia",
+                                                    "type": "string"
+                                                },
+                                                "nome": {
+                                                    "description": "Nome",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoViolencia": {
+                                                    "description": "Tipo de violência",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2023-01-23",
+                                                "faixaEtaria": "Jovem adulto (18-25 anos)",
+                                                "genero": "Homem",
+                                                "idade": 20,
+                                                "instrumentoViolencia": "Ameaça verbal e/ou escrita",
+                                                "nome": "João Silva",
+                                                "numeroSei": "48782219",
+                                                "tipoViolencia": "Ameaça à integridade pessoal"
+                                            }
+                                        ]
+                                    },
+                                    "violencias_pessoas_nao_indigenas": {
+                                        "description": "Coleção de violências contra pessoas não indigenas relacionados ao conflito.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "data": {
+                                                    "description": "Data do incidente de violência",
+                                                    "type": "string",
+                                                    "format": "yyyy-mm-dd"
+                                                },
+                                                "nome": {
+                                                    "description": "Número do BO",
+                                                    "type": "string"
+                                                },
+                                                "numeroSei": {
+                                                    "description": "Número do documento SEI",
+                                                    "type": "string"
+                                                },
+                                                "tipoPessoa": {
+                                                    "description": "Tipo de Pessoa",
+                                                    "type": "string"
+                                                },
+                                                "tipoViolencia": {
+                                                    "description": "Tipo de violência",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "example": [
+                                            {
+                                                "data": "2021-08-18",
+                                                "nome": "Edvaldo Deoclides de Oliveira",
+                                                "numeroSei": "36607122",
+                                                "tipoPessoa": "Empresário",
+                                                "tipoViolencia": "Assassinato de não indígena"
+                                            }
+                                        ]
                                     }
                                 },
                                 "type": "object"

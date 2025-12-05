@@ -21,13 +21,14 @@ class DashboardProxy
     
     // Chaves de cache individuais para melhor controle
     const CACHE_KEYS = [
-        'totais_gerais'    => 'dashboard_totais_gerais',
-        'conflitos_ano'    => 'dashboard_conflitos_ano',
-        'conflitos_uf'     => 'dashboard_conflitos_uf',
-        'conflitos_regiao' => 'dashboard_conflitos_regiao',
-        'violencias'       => 'dashboard_violencias',
-        'distribuicao'     => 'dashboard_distribuicao',
+        'totais_gerais'       => 'dashboard_totais_gerais',
+        'conflitos_ano'       => 'dashboard_conflitos_ano',
+        'conflitos_uf'        => 'dashboard_conflitos_uf',
+        'conflitos_regiao'    => 'dashboard_conflitos_regiao',
+        'violencias'          => 'dashboard_violencias',
+        'distribuicao'        => 'dashboard_distribuicao',
         'conflitos_gravidade' => 'dashboard_conflitos_gravidade',
+        'conflitos_assunto'   => 'dashboard_conflitos_assunto'
     ];
     
     /**
@@ -43,6 +44,7 @@ class DashboardProxy
                 'conflitos_por_ano'       => $this->getCachedOrFresh('conflitos_ano',    fn() => $this->getConflitosPorAno(), $forceRefresh),
                 'conflitos_por_uf'        => $this->getCachedOrFresh('conflitos_uf',     fn() => $this->getConflitosPorUF(), $forceRefresh),
                 'conflitos_por_regiao'    => $this->getCachedOrFresh('conflitos_regiao', fn() => $this->getConflitosPorRegiao(), $forceRefresh),
+                'conflitos_por_assunto'   => $this->getCachedOrFresh('conflitos_assunto', fn() => $this->getConflitosPorAssunto(), $forceRefresh),
                 'estatisticas_violencias' => $this->getCachedOrFresh('violencias',       fn() => $this->getEstatisticasViolencias(), $forceRefresh),
                 'distribuicao_geografica' => $this->getCachedOrFresh('distribuicao',     fn() => $this->getDistribuicaoGeografica(), $forceRefresh),
                 'conflitos_por_gravidade' => $this->getCachedOrFresh('conflitos_gravidade', fn() => $this->getConflitosPorClassificacaoGravidade(), $forceRefresh),
@@ -81,6 +83,7 @@ class DashboardProxy
             'conflitos_por_ano' => $this->getConflitosPorAno(),
             'conflitos_por_uf' => $this->getConflitosPorUF(),
             'conflitos_por_regiao' => $this->getConflitosPorRegiao(),
+            'conflitos_por_assunto' => $this->getConflitosPorAssunto(),
             'estatisticas_violencias' => $this->getEstatisticasViolencias(),
             'distribuicao_geografica' => $this->getDistribuicaoGeografica(),
             'conflitos_por_gravidade' => $this->getConflitosPorClassificacaoGravidade(),
@@ -349,6 +352,7 @@ class DashboardProxy
                 'conflitos_por_ano' => $this->getConflitosPorAnoComFiltro($filtros),
                 'conflitos_por_uf' => $this->getConflitosPorUFComFiltro($filtros),
                 'conflitos_por_regiao' => $this->getConflitosPorRegiaoComFiltro($filtros),
+                'conflitos_por_assunto' => $this->getConflitosPorAssuntoComFiltro($filtros),
                 'estatisticas_violencias' => $this->getEstatisticasViolenciasComFiltro($filtros),
                 'distribuicao_geografica' => $this->getDistribuicaoGeograficaComFiltro($filtros),
                 'conflitos_por_gravidade' => $this->getConflitosPorClassificacaoGravidadeComFiltro($filtros),
@@ -643,6 +647,44 @@ class DashboardProxy
             ->take(10)
             ->values()
             ->toArray();
+    }
+    
+    /**
+     * Conflitos por assunto (Query Builder Otimizado)
+     * Recupera dados via join: Conflito -> AssuntoConflito -> Assunto
+     */
+    public function getConflitosPorAssunto(): array
+    {
+        return DB::table('assunto as a')
+        ->join('assunto_conflito as ac', 'a.idAssunto', '=', 'ac.idAssunto')
+        ->join('conflito as c', 'ac.idConflito', '=', 'c.idConflito')
+        ->select('a.nome as assunto', DB::raw('COUNT(DISTINCT c.idConflito) as total'))
+        ->groupBy('a.nome')
+        ->orderBy('total', 'DESC')
+        ->get()
+        ->toArray();
+    }
+    
+    /**
+     * Conflitos por assunto com filtros (Eloquent)
+     * Mantém compatibilidade com o applyFiltros()
+     */
+    public function getConflitosPorAssuntoComFiltro(array $filtros = []): array
+    {
+        // Inicia pelo Model Conflito para garantir que o applyFiltros (que usa whereHas/Scopes) funcione
+        $query = Conflito::query()
+        ->join('assunto_conflito as ac', 'conflito.idConflito', '=', 'ac.idConflito')
+        ->join('assunto as a', 'ac.idAssunto', '=', 'a.idAssunto')
+        ->select('a.nome as assunto', DB::raw('COUNT(DISTINCT conflito.idConflito) as total'));
+        
+        // Aplica os filtros na tabela 'conflito' (datas, UF, etc)
+        $query = $this->applyFiltros($query, $filtros);
+        
+        return $query
+        ->groupBy('a.nome')
+        ->orderBy('total', 'DESC')
+        ->get()
+        ->toArray();
     }
     
     /**
