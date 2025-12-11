@@ -1,11 +1,10 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     /**
      * Run the migrations.
      */
@@ -14,14 +13,14 @@ return new class extends Migration
         Schema::create('violencia_pessoa_indigena', function (Blueprint $table) {
             $table->id('idViolenciaPessoaIndigena')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
-            $table->string('tipoViolencia', 100);
-            $table->date('data');
-            $table->string('nome', 200);
-            $table->integer('idade');
-            $table->string('faixaEtaria', 50);
-            $table->string('genero', 50);
-            $table->string('instrumentoViolencia', 200);
-            $table->string('numeroSei', 20);
+            $table->string('tipoViolencia', 100)->nullable();
+            $table->date('data')->nullable();
+            $table->string('nome', 200)->nullable();
+            $table->integer('idade')->nullable();
+            $table->string('faixaEtaria', 50)->nullable();
+            $table->string('genero', 50)->nullable();
+            $table->string('instrumentoViolencia', 200)->nullable();
+            $table->string('numeroSei', 20)->nullable();
             $table->timestamps();
         });
     }

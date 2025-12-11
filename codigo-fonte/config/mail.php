@@ -1,18 +1,17 @@
 <?php
-
 return [
 
     /*
-    |--------------------------------------------------------------------------
-    | Default Mailer
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the default mailer that is used to send all email
-    | messages unless another mailer is explicitly specified when sending
-    | the message. All additional mailers can be configured within the
-    | "mailers" array. Examples of each type of mailer are provided.
-    |
-    */
+     * |--------------------------------------------------------------------------
+     * | Default Mailer
+     * |--------------------------------------------------------------------------
+     * |
+     * | This option controls the default mailer that is used to send all email
+     * | messages unless another mailer is explicitly specified when sending
+     * | the message. All additional mailers can be configured within the
+     * | "mailers" array. Examples of each type of mailer are provided.
+     * |
+     */
 
     'default' => env('MAIL_MAILER', 'log'),
 
@@ -46,55 +45,54 @@ return [
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
-            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST))
         ],
 
         'ses' => [
-            'transport' => 'ses',
+            'transport' => 'ses'
         ],
 
         'postmark' => [
-            'transport' => 'postmark',
+            'transport' => 'postmark'
             // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
             // 'client' => [
-            //     'timeout' => 5,
+            // 'timeout' => 5,
             // ],
         ],
 
         'resend' => [
-            'transport' => 'resend',
+            'transport' => 'resend'
         ],
 
         'sendmail' => [
             'transport' => 'sendmail',
-            'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
+            'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i')
         ],
 
         'log' => [
             'transport' => 'log',
-            'channel' => env('MAIL_LOG_CHANNEL'),
+            'channel' => env('MAIL_LOG_CHANNEL')
         ],
 
         'array' => [
-            'transport' => 'array',
+            'transport' => 'array'
         ],
 
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
                 'smtp',
-                'log',
-            ],
+                'log'
+            ]
         ],
 
         'roundrobin' => [
             'transport' => 'roundrobin',
             'mailers' => [
                 'ses',
-                'postmark',
-            ],
-        ],
-
+                'postmark'
+            ]
+        ]
     ],
 
     /*
@@ -110,7 +108,6 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
-    ],
-
+        'name' => env('MAIL_FROM_NAME', 'Example')
+    ]
 ];

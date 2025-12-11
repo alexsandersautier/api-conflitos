@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -7,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class PerfilTableSeeder extends Seeder
 {
+
     /**
      * Run the database seeds.
      *
@@ -15,9 +15,15 @@ class PerfilTableSeeder extends Seeder
     public function run()
     {
         $perfis = [
-            ['nome' => 'ADMINISTRADOR'],
-            ['nome' => 'SERVIDOR'],
-            ['nome' => 'COLABORADOR']
+            [
+                'nome' => 'ADMINISTRADOR'
+            ],
+            [
+                'nome' => 'SERVIDOR'
+            ],
+            [
+                'nome' => 'COLABORADOR'
+            ]
         ];
 
         DB::table('perfil')->insert($perfis);

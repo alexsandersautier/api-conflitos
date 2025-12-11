@@ -1,21 +1,21 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('lideranca_ameacada', function (Blueprint $table) {
-            $table->id('idLiderancaAmeacada')->primary();
+        Schema::create('localidade_conflito', function (Blueprint $table) {
+            $table->id('idLocalidadeConflito')->primary();
             $table->foreignId('idConflito')->constrained('conflito');
-            $table->string('nome', 100);
-            $table->decimal('distancia_conflito', 10, 2);
+            $table->string('regiao');
+            $table->string('uf', 2);
+            $table->string('municipio');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('lideranca_ameacada');
+        Schema::dropIfExists('localidade_conflito');
     }
 };

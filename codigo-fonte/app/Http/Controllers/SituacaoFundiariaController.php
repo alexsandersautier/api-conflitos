@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\SituacaoFundiaria;
@@ -8,13 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
+ *
  * @OA\Schema(
  *     schema="SituacaoFundiaria",
  *     type="object",
  *     @OA\Property(property="idSituacaoFundiaria", type="integer", example="3"),
  *     @OA\Property(property="nome", type="string", example="Declarada")
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/situacao-fundiaria"
  * )
@@ -26,7 +26,9 @@ use Illuminate\Http\Response;
  */
 class SituacaoFundiariaController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/situacao-fundiaria",
      *     tags={"SituacaoFundiarias"},
@@ -44,18 +46,19 @@ class SituacaoFundiariaController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $situacaofundiarias = SituacaoFundiaria::all();
         return response()->json($situacaofundiarias);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/situacao-fundiaria",
      *     tags={"SituacaoFundiarias"},
@@ -76,15 +79,15 @@ class SituacaoFundiariaController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $situacaofundiaria = SituacaoFundiaria::create($validatedData);
@@ -92,6 +95,7 @@ class SituacaoFundiariaController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/situacao-fundiaria/{id}",
      *     tags={"SituacaoFundiarias"},
@@ -112,18 +116,19 @@ class SituacaoFundiariaController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $situacaofundiaria = SituacaoFundiaria::findOrFail($id);
         return response()->json($situacaofundiaria);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/situacao-fundiaria/{id}",
      *     tags={"SituacaoFundiarias"},
@@ -150,17 +155,17 @@ class SituacaoFundiariaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $situacaofundiaria = SituacaoFundiaria::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $situacaofundiaria->update($validatedData);
@@ -168,6 +173,7 @@ class SituacaoFundiariaController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/situacao-fundiaria/{id}",
      *     tags={"SituacaoFundiarias"},
@@ -187,13 +193,13 @@ class SituacaoFundiariaController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $situacaofundiaria = SituacaoFundiaria::findOrFail($id);
         $situacaofundiaria->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

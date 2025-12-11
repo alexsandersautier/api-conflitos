@@ -1,32 +1,31 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('terra_indigena', function (Blueprint $table) {            
+        Schema::create('terra_indigena', function (Blueprint $table) {
             $table->id('idTerraIndigena')->primary();
             $table->foreignId('idPovo')->constrained('povo');
             $table->foreignId('idSituacaoFundiaria')->constrained('situacao_fundiaria');
-            $table->integer('codigo_ti');
+            $table->integer('codigo_ti')->nullable();
             $table->string('nome', 50);
-            $table->string('superficie_perimetro_ha', 200);
-            $table->string('modalidade_ti', 200);
-            $table->string('etnia_nome', 200);
-            $table->string('municipio_nome', 200);
-            $table->string('uf_sigla', 200);
-            $table->string('coordenacao_regional', 200);
-            $table->boolean('faixa_fronteira');
-            $table->string('undadm_codigo', 200);
-            $table->string('undadm_nome', 200);
-            $table->string('undadm_sigla', 50);
+            $table->string('superficie_perimetro_ha', 200)->nullable();
+            $table->string('modalidade_ti', 200)->nullable();
+            $table->string('etnia_nome', 200)->nullable();
+            $table->string('municipio_nome', 200)->nullable();
+            $table->string('uf_sigla', 200)->nullable();
+            $table->string('coordenacao_regional', 200)->nullable();
+            $table->boolean('faixa_fronteira')->nullable();
+            $table->string('undadm_codigo', 200)->nullable();
+            $table->string('undadm_nome', 200)->nullable();
+            $table->string('undadm_sigla', 50)->nullable();
             $table->date('data_atualizacao')->nullable();
             $table->date('data_homologacao')->nullable();
             $table->string('decreto_homologacao', 50)->nullable();

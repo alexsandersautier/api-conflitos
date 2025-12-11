@@ -1,22 +1,21 @@
 <?php
-
 use Illuminate\Support\Str;
 
 return [
 
     /*
-    |--------------------------------------------------------------------------
-    | Default Session Driver
-    |--------------------------------------------------------------------------
-    |
-    | This option determines the default session driver that is utilized for
-    | incoming requests. Laravel supports a variety of storage options to
-    | persist session data. Database storage is a great default choice.
-    |
-    | Supported: "file", "cookie", "database", "apc",
-    |            "memcached", "redis", "dynamodb", "array"
-    |
-    */
+     * |--------------------------------------------------------------------------
+     * | Default Session Driver
+     * |--------------------------------------------------------------------------
+     * |
+     * | This option determines the default session driver that is utilized for
+     * | incoming requests. Laravel supports a variety of storage options to
+     * | persist session data. Database storage is a great default choice.
+     * |
+     * | Supported: "file", "cookie", "database", "apc",
+     * | "memcached", "redis", "dynamodb", "array"
+     * |
+     */
 
     'driver' => env('SESSION_DRIVER', 'database'),
 
@@ -114,7 +113,10 @@ return [
     |
     */
 
-    'lottery' => [2, 100],
+    'lottery' => [
+        2,
+        100
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -127,10 +129,7 @@ return [
     |
     */
 
-    'cookie' => env(
-        'SESSION_COOKIE',
-        Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
-    ),
+    'cookie' => env('SESSION_COOKIE', Str::slug(env('APP_NAME', 'laravel'), '_') . '_session'),
 
     /*
     |--------------------------------------------------------------------------
@@ -212,6 +211,5 @@ return [
     |
     */
 
-    'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
-
+    'partitioned' => env('SESSION_PARTITIONED_COOKIE', false)
 ];

@@ -1,13 +1,13 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
 
 class HealthCheckController extends Controller
 {
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/healthcheck",
      *     tags={"Health"},
@@ -22,7 +22,7 @@ class HealthCheckController extends Controller
     {
         $defaultConnection = config('database.default');
         $dbConfig = config('database.connections.' . $defaultConnection);
-        
+
         // Testa a conexão
         try {
             DB::connection()->getPdo();
@@ -32,7 +32,7 @@ class HealthCheckController extends Controller
             $dbStatus = 'disconnected';
             $dbError = $e->getMessage();
         }
-        
+
         return response()->json([
             'status' => 'ok',
             'timestamp' => now()->toDateTimeString(),
@@ -45,8 +45,8 @@ class HealthCheckController extends Controller
                 'port' => $dbConfig['port'],
                 'database' => $dbConfig['database'],
                 'username' => $dbConfig['username'],
-                'driver' => $dbConfig['driver'],
-            ],
+                'driver' => $dbConfig['driver']
+            ]
         ]);
     }
 }
