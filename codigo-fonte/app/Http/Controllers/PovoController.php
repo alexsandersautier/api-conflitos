@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Povo;
@@ -8,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
- * 
+ *
  *  @OA\Schema(
  *     schema="Povo",
  *     type="object",
@@ -20,7 +19,7 @@ use Illuminate\Http\Response;
  *     @OA\Property(property="ufs_povos", type="string", example="PA,MA"),
  *     @OA\Property(property="qtd_ti_povo", type="integer", example="3"),
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/povo"
  * )
@@ -32,7 +31,9 @@ use Illuminate\Http\Response;
  */
 class PovoController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/povo",
      *     tags={"Povos"},
@@ -50,18 +51,19 @@ class PovoController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $povos = Povo::all();
         return response()->json($povos);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/povo",
      *     tags={"Povos"},
@@ -82,18 +84,18 @@ class PovoController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome'        => 'required|string|max:255',
-            'codEtnia'    => 'required|string',
-            'lingua'      => 'string|max:255',
-            'ufs_povo'    => 'string|max:255',
+            'nome' => 'required|string|max:255',
+            'codEtnia' => 'required|string',
+            'lingua' => 'string|max:255',
+            'ufs_povo' => 'string|max:255',
             'qtd_ti_povo' => 'integer|min:0'
         ]);
 
@@ -102,6 +104,7 @@ class PovoController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/povo/{id}",
      *     tags={"Povos"},
@@ -122,18 +125,19 @@ class PovoController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $povo = Povo::findOrFail($id);
         return response()->json($povo);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/povo/{id}",
      *     tags={"Povos"},
@@ -160,20 +164,20 @@ class PovoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $povo = Povo::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome'        => 'required|string|max:255',
-            'codEtnia'    => 'required|string',
-            'lingua'      => 'string|max:255',
-            'ufs_povo'    => 'string|max:255',
+            'nome' => 'required|string|max:255',
+            'codEtnia' => 'required|string',
+            'lingua' => 'string|max:255',
+            'ufs_povo' => 'string|max:255',
             'qtd_ti_povo' => 'integer|min:0'
         ]);
 
@@ -182,6 +186,7 @@ class PovoController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/povo/{id}",
      *     tags={"Povos"},
@@ -201,13 +206,13 @@ class PovoController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $povo = Povo::findOrFail($id);
         $povo->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

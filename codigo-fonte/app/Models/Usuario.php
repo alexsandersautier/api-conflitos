@@ -12,6 +12,7 @@ class Usuario extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens;
 
     protected $table = 'usuario';
+
     protected $primaryKey = 'idUsuario';
 
     protected $fillable = [
@@ -19,12 +20,12 @@ class Usuario extends Authenticatable
         'idPerfil',
         'nome',
         'email',
-        'senha',
+        'senha'
     ];
 
     protected $hidden = [
         'senha',
-        'remember_token',
+        'remember_token'
     ];
 
     public function getAuthPassword()
@@ -36,7 +37,7 @@ class Usuario extends Authenticatable
     {
         return $this->belongsTo(Orgao::class, 'idOrgao');
     }
-    
+
     public function perfil()
     {
         return $this->belongsTo(Perfil::class, 'idPerfil');

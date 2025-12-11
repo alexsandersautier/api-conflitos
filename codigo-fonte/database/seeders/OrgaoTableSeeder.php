@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -7,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrgaoTableSeeder extends Seeder
 {
+
     /**
      * Run the database seeds.
      *
@@ -15,10 +15,18 @@ class OrgaoTableSeeder extends Seeder
     public function run()
     {
         $orgaos = [
-            ['nome' => 'MPI'],
-            ['nome' => 'PF'],
-            ['nome' => 'FUNAI'],
-            ['nome' => 'IBAMA']
+            [
+                'nome' => 'MPI'
+            ],
+            [
+                'nome' => 'PF'
+            ],
+            [
+                'nome' => 'FUNAI'
+            ],
+            [
+                'nome' => 'IBAMA'
+            ]
         ];
 
         DB::table('orgao')->insert($orgaos);

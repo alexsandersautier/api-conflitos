@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Services\DashboardProxy;
@@ -10,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
 /**
+ *
  * @OA\PathItem(
  *     path="/api/dashboard"
  * )
@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class DashboardController extends Controller
 {
+
     protected $dashboardProxy;
 
     public function __construct(DashboardProxy $dashboardProxy)
@@ -31,13 +32,14 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/dados",
      *     summary="Retorna todos os dados do dashboard",
      *     description="Retorna um conjunto completo de dados para o dashboard, incluindo totais gerais, distribuição geográfica e estatísticas de violências",
      *     operationId="getDadosDashboard",
      *     tags={"Dashboard"},
-
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Dados do dashboard recuperados com sucesso",
@@ -85,7 +87,6 @@ class DashboardController extends Controller
             $dados = $this->dashboardProxy->getDadosDashboard();
 
             return response()->json($dados);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -95,6 +96,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/dados-filtrados",
      *     summary="Retorna dados do dashboard com filtro por período",
@@ -161,13 +163,9 @@ class DashboardController extends Controller
         }
 
         try {
-            $dados = $this->dashboardProxy->getDadosDashboardComFiltro(
-                $request->data_inicio,
-                $request->data_fim
-                );
+            $dados = $this->dashboardProxy->getDadosDashboardComFiltro($request->data_inicio, $request->data_fim);
 
             return response()->json($dados);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -177,6 +175,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/totais-gerais",
      *     summary="Retorna apenas os totais gerais do dashboard",
@@ -205,7 +204,6 @@ class DashboardController extends Controller
             $totais = $this->dashboardProxy->getTotaisGerais();
 
             return response()->json($totais);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -215,6 +213,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/distribuicao-geografica",
      *     summary="Retorna a distribuição geográfica completa",
@@ -258,7 +257,6 @@ class DashboardController extends Controller
             $distribuicao = $this->dashboardProxy->getDistribuicaoGeografica();
 
             return response()->json($distribuicao);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -268,6 +266,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-uf",
      *     summary="Retorna conflitos por UF",
@@ -297,7 +296,6 @@ class DashboardController extends Controller
             $conflitosPorUF = $this->dashboardProxy->getConflitosPorUF();
 
             return response()->json($conflitosPorUF);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -307,6 +305,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-regiao",
      *     summary="Retorna conflitos por região",
@@ -336,7 +335,6 @@ class DashboardController extends Controller
             $conflitosPorRegiao = $this->dashboardProxy->getConflitosPorRegiao();
 
             return response()->json($conflitosPorRegiao);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -346,6 +344,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-municipio",
      *     summary="Retorna top municípios com mais conflitos",
@@ -376,7 +375,6 @@ class DashboardController extends Controller
             $conflitosPorMunicipio = $this->dashboardProxy->getConflitosPorMunicipio();
 
             return response()->json($conflitosPorMunicipio);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -386,6 +384,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/conflitos-por-ano",
      *     summary="Retorna conflitos por ano",
@@ -415,7 +414,6 @@ class DashboardController extends Controller
             $conflitosPorAno = $this->dashboardProxy->getConflitosPorAno();
 
             return response()->json($conflitosPorAno);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -425,6 +423,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/estatisticas-violencias",
      *     summary="Retorna estatísticas de violências",
@@ -463,7 +462,6 @@ class DashboardController extends Controller
             $estatisticas = $this->dashboardProxy->getEstatisticasViolencias();
 
             return response()->json($estatisticas);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -473,6 +471,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/dados-avancados",
      *     summary="Retorna dados específicos com filtros avançados",
@@ -562,10 +561,15 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $dadosFiltrados,
-                'filtros_aplicados' => $request->only(['data_inicio', 'data_fim', 'uf', 'regiao', 'tipo_dado']),
+                'filtros_aplicados' => $request->only([
+                    'data_inicio',
+                    'data_fim',
+                    'uf',
+                    'regiao',
+                    'tipo_dado'
+                ]),
                 'message' => 'Dados filtrados recuperados com sucesso.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -575,6 +579,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/metricas-tempo-real",
      *     summary="Retorna métricas em tempo real (sem cache)",
@@ -611,7 +616,6 @@ class DashboardController extends Controller
                 'cache' => false,
                 'message' => 'Métricas em tempo real recuperadas com sucesso.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -621,6 +625,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/limpar-cache",
      *     summary="Força atualização do cache do dashboard",
@@ -650,7 +655,6 @@ class DashboardController extends Controller
                 'success' => true,
                 'message' => 'Cache do dashboard limpo com sucesso.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -660,6 +664,7 @@ class DashboardController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/dashboard/health-check",
      *     summary="Health check do dashboard",
@@ -712,7 +717,6 @@ class DashboardController extends Controller
                 'data' => $health,
                 'message' => 'Health check realizado com sucesso.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -735,27 +739,19 @@ class DashboardController extends Controller
 
         switch ($tipoDado) {
             case 'totais':
-                $dados = $dataInicio && $dataFim
-                ? $this->dashboardProxy->getTotaisGeraisComFiltro($dataInicio, $dataFim)
-                : $this->dashboardProxy->getTotaisGerais();
+                $dados = $dataInicio && $dataFim ? $this->dashboardProxy->getTotaisGeraisComFiltro($dataInicio, $dataFim) : $this->dashboardProxy->getTotaisGerais();
                 break;
 
             case 'geografia':
-                $dados = $dataInicio && $dataFim
-                ? $this->dashboardProxy->getDistribuicaoGeograficaComFiltro($dataInicio, $dataFim)
-                : $this->dashboardProxy->getDistribuicaoGeografica();
+                $dados = $dataInicio && $dataFim ? $this->dashboardProxy->getDistribuicaoGeograficaComFiltro($dataInicio, $dataFim) : $this->dashboardProxy->getDistribuicaoGeografica();
                 break;
 
             case 'violencias':
-                $dados = $dataInicio && $dataFim
-                ? $this->dashboardProxy->getEstatisticasViolenciasComFiltro($dataInicio, $dataFim)
-                : $this->dashboardProxy->getEstatisticasViolencias();
+                $dados = $dataInicio && $dataFim ? $this->dashboardProxy->getEstatisticasViolenciasComFiltro($dataInicio, $dataFim) : $this->dashboardProxy->getEstatisticasViolencias();
                 break;
 
             case 'todos':
-                $dados = $dataInicio && $dataFim
-                ? $this->dashboardProxy->getDadosDashboardComFiltro($dataInicio, $dataFim)
-                : $this->dashboardProxy->getDadosDashboard();
+                $dados = $dataInicio && $dataFim ? $this->dashboardProxy->getDadosDashboardComFiltro($dataInicio, $dataFim) : $this->dashboardProxy->getDadosDashboard();
                 break;
         }
 

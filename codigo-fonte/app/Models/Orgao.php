@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,10 +9,11 @@ class Orgao extends Model
     use HasFactory;
 
     protected $table = 'orgao';
+
     protected $primaryKey = 'idOrgao';
 
     public $timestamps = false;
-    
+
     protected $fillable = [
         'nome'
     ];
@@ -22,5 +22,4 @@ class Orgao extends Model
     {
         return $this->hasMany(Usuario::class, 'idOrgao');
     }
-
 }

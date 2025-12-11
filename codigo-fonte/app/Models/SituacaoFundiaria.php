@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,12 +9,12 @@ class SituacaoFundiaria extends Model
     use HasFactory;
 
     protected $table = 'situacao_fundiaria';
+
     protected $primaryKey = 'idSituacaoFundiaria';
 
     public $timestamps = false;
-    
+
     protected $fillable = [
         'nome'
     ];
-
 }

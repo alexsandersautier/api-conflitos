@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Usuario;
@@ -11,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 
 /**
+ *
  * @OA\PathItem(
  *     path="/api/usuario"
  * )
@@ -31,8 +31,11 @@ use Illuminate\Support\Facades\Auth;
  *     @OA\Property(property="updated_at", type="string", format="date-time")
  * )
  */
-class UsuarioController extends Controller {
+class UsuarioController extends Controller
+{
+
     /**
+     *
      * @OA\Get(
      *     path="/api/usuario",
      *     tags={"Usuarios"},
@@ -48,19 +51,24 @@ class UsuarioController extends Controller {
      *     )
      * )
      */
-    public function index() {
-        if (!Auth::guard('sanctum')->check()) {
+    public function index()
+    {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
-                'message' => 'Não autorizado',  
+                'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $usuarios = Usuario::with(['orgao', 'perfil'])->get();
+
+        $usuarios = Usuario::with([
+            'orgao',
+            'perfil'
+        ])->get();
         return response()->json($usuarios, Response::HTTP_OK);
     }
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/usuario/{id}",
      *     tags={"Usuarios"},
@@ -79,19 +87,21 @@ class UsuarioController extends Controller {
      *     )
      * )
      */
-    public function show($id) {
-        if (!Auth::guard('sanctum')->check()) {
+    public function show($id)
+    {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $usuario = Usuario::findOrFail($id);
         return response()->json($usuario, Response::HTTP_OK);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/usuario",
      *     tags={"Usuarios"},
@@ -122,42 +132,44 @@ class UsuarioController extends Controller {
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:usuario',
-            'senha'    => 'required|string|min:4',
-            'idOrgao'  => 'required|integer|exists:orgao,idOrgao',
+            'nome' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:usuario',
+            'senha' => 'required|string|min:4',
+            'idOrgao' => 'required|integer|exists:orgao,idOrgao',
             'idPerfil' => 'required|integer|exists:perfil,idPerfil'
-            ],
-            ['nome.required' => 'Nome é obrigatório',
+        ], [
+            'nome.required' => 'Nome é obrigatório',
             'email.required' => 'E-mail é obrigatório',
             'senha.required' => 'Senha é obrigatória',
             'idOrgao.exists' => 'O Órgão selecionado não existe',
-            'idPerfil.exists' => 'O Perfil selecionado não existe',]);
-        
-        if (!$validatedData) {
+            'idPerfil.exists' => 'O Perfil selecionado não existe'
+        ]);
+
+        if (! $validatedData) {
             return response()->json([
                 'message' => 'Erro de validação',
                 'errors' => $validatedData->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-        
+
         // Criptografa a senha antes de armazenar
         $validatedData['senha'] = Hash::make($validatedData['senha']);
-        
+
         $usuario = Usuario::create($validatedData);
-        
+
         return response()->json($usuario, Response::HTTP_CREATED);
     }
-    
+
     /**
+     *
      * @OA\Put(
      *     path="/api/usuario/{id}",
      *     tags={"Usuarios"},
@@ -192,37 +204,38 @@ class UsuarioController extends Controller {
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $usuario = Usuario::findOrFail($id);
-        
+
         $validator = Validator::make($request->all(), [
-            'nome'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:usuario',
-            'senha'    => 'required|string|min:4',
-            'idOrgao'  => 'required|integer|exists:orgao,idOrgao',
+            'nome' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:usuario',
+            'senha' => 'required|string|min:4',
+            'idOrgao' => 'required|integer|exists:orgao,idOrgao',
             'idPerfil' => 'required|integer|exists:perfil,idPerfil'
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Erro de validação',
                 'errors' => $validator->errors()
             ], 422);
         }
-        
+
         $validatedData = $validator->validated();
-        
+
         $usuario->update($validatedData);
         return response()->json($usuario);
     }
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/usuario/pesquisar/buscar-texto",
      *     summary="Pesquisa usuários por texto",
@@ -261,40 +274,41 @@ class UsuarioController extends Controller {
     public function getAllByTexto(Request $request)
     {
         try {
-            if (!Auth::guard('sanctum')->check()) {
+            if (! Auth::guard('sanctum')->check()) {
                 return response()->json([
                     'message' => 'Não autorizado',
-                    'status'  => Response::HTTP_UNAUTHORIZED
+                    'status' => Response::HTTP_UNAUTHORIZED
                 ], Response::HTTP_UNAUTHORIZED);
             }
-            
+
             $request->validate([
                 'texto' => 'required|string|min:2'
-            ],[
+            ], [
                 'texto.required' => 'O termo é obrigatório.',
-                'texto.string'   => 'O termo deve ser uma string.',
-                'texto.min'      => 'O termo deve ter no mínimo :min caracteres.'
+                'texto.string' => 'O termo deve ser uma string.',
+                'texto.min' => 'O termo deve ter no mínimo :min caracteres.'
             ]);
-            
-            $usuarios = Usuario::with(['orgao', 'perfil'])->where('nome', 'LIKE', '%'.$request->texto.'%')
-                                                          ->orWhere('email', 'LIKE', '%'.$request->texto.'%')
-                                                          ->get(); //->paginate(10)
-            
-            if($usuarios->isEmpty()){
+
+            $usuarios = Usuario::with([
+                'orgao',
+                'perfil'
+            ])->where('nome', 'LIKE', '%' . $request->texto . '%')
+                ->orWhere('email', 'LIKE', '%' . $request->texto . '%')
+                ->get(); // ->paginate(10)
+
+            if ($usuarios->isEmpty()) {
                 return response()->json([
                     'message' => 'Nenhum resultado encontrado'
                 ], Response::HTTP_NOT_FOUND);
             }
-            
+
             return $usuarios;
-            
         } catch (ValidationException $e) {
             // Captura exceções de validação e retorna status 422 (Unprocessable Entity)
             return response()->json([
                 'message' => 'Erro de validação',
                 'errors' => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Erro na pesquisa',
@@ -304,6 +318,7 @@ class UsuarioController extends Controller {
     }
 
     /**
+     *
      * @OA\Patch(
      *     path="/api/usuario/alterar-senha",
      *     summary="Altera a senha do usuário autenticado",
@@ -342,41 +357,45 @@ class UsuarioController extends Controller {
      *     )
      * )
      */
-    public function alterarSenha(Request $request) {
+    public function alterarSenha(Request $request)
+    {
         $user = Auth::guard('sanctum')->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $request->validate(['senha_atual'       => 'required|string',
-                            'nova_senha'        => 'required|string|min:5|different:senha_atual',
-                            'confirmacao_senha' => 'required|string|same:nova_senha'
-                        ], [
-                            'nova_senha.min'         => 'A nova senha deve ter no mínimo 5 caracteres',
-                            'nova_senha.different'   => 'A nova senha deve ser diferente da senha atual.',
-                            'confirmacao_senha.same' => 'A confirmação de senha não coincide com a nova senha.'
-                        ]);
 
-        
-        if (!Hash::check($request->senha_atual, $user->senha)) {
+        $request->validate([
+            'senha_atual' => 'required|string',
+            'nova_senha' => 'required|string|min:5|different:senha_atual',
+            'confirmacao_senha' => 'required|string|same:nova_senha'
+        ], [
+            'nova_senha.min' => 'A nova senha deve ter no mínimo 5 caracteres',
+            'nova_senha.different' => 'A nova senha deve ser diferente da senha atual.',
+            'confirmacao_senha.same' => 'A confirmação de senha não coincide com a nova senha.'
+        ]);
+
+        if (! Hash::check($request->senha_atual, $user->senha)) {
             return response()->json([
                 'message' => 'Senha atual incorreta.',
-                'status'  => Response::HTTP_UNPROCESSABLE_ENTITY
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-        
+
         $user->update([
             'senha' => Hash::make($request->nova_senha)
         ]);
-        
-        return response()->json(['message' => 'Senha alterada com sucesso.']);
+
+        return response()->json([
+            'message' => 'Senha alterada com sucesso.'
+        ]);
     }
-    
+
     /**
+     *
      * @OA\Delete(
      *     path="/api/usuario/{id}",
      *     tags={"Usuarios"},
@@ -396,13 +415,13 @@ class UsuarioController extends Controller {
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $usuario = Usuario::findOrFail($id);
         $usuario->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

@@ -4,8 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     public function up()
     {
         Schema::create('usuario', function (Blueprint $table) {
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->id('idOrgao')->primary();
             $table->string('nome');
         });
-        
+
         Schema::create('perfil', function (Blueprint $table) {
             $table->id('idPerfil')->primary();
             $table->string('nome');

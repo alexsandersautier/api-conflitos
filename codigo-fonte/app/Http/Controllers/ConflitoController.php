@@ -26,6 +26,13 @@ use App\Models\ProcessoJudicial;
 use Illuminate\Support\Facades\Log;
 use App\Models\LocalidadeConflito;
 use App\Models\RegistroBoNf;
+use Maatwebsite\Excel\Facades\Excel;
+use \Maatwebsite\Excel\Concerns\FromCollection;
+use \Maatwebsite\Excel\Concerns\WithHeadings;
+use \Maatwebsite\Excel\Concerns\WithMapping;
+use \Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use App\Exports\ConflitosExport;
+use Throwable; // Importante para capturar erros fatais
 
 /**
  *  @OA\Schema(
@@ -174,9 +181,9 @@ class ConflitoController extends Controller
                 'page'                          => 'nullable|integer|min:1',
                 'search'                        => 'nullable|string|max:255',
                 'estrategiaGeralUtilizadaDemed' => 'nullable|string|max:255',
-                'terras_indigenas'              => 'nullable|string|max:255',
-                'povos'                         => 'nullable|string|max:255',
-                'violencias_pessoa_indigenas'   => 'nullable|string|max:255',
+                'terraIndigena'                 => 'nullable|integer|max:255',
+                'povo'                          => 'nullable|integer|max:255',
+                'tipoViolenciaIndigena'         => 'nullable|string|max:255',
                 'sort_by'                       => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
                 'sort_order'                    => 'nullable|string|in:asc,desc'
             ]);
@@ -190,12 +197,15 @@ class ConflitoController extends Controller
             }
             
             // Configurações
-            $perPage   = $request->per_page ?? 15;
-            $sortBy    = $request->sort_by ?? 'dataInicioConflito';
-            $sortOrder = $request->sort_order ?? 'desc';
-            $search    = $request->search;
-            $page      = $request->page;
+            $perPage                       = $request->per_page ?? 15;
+            $sortBy                        = $request->sort_by ?? 'dataInicioConflito';
+            $sortOrder                     = $request->sort_order ?? 'desc';
+            $search                        = $request->search;
+            $page                          = $request->page;
             $estrategiaGeralUtilizadaDemed = $request->estrategiaGeralUtilizadaDemed;
+            $povo                          = $request->povo;
+            $terraIndigena                 = $request->terraIndigena;
+            $tipoViolenciaIndigena         = $request->tipoViolenciaIndigena;
             
             // Query base
             $query = Conflito::with([
@@ -228,6 +238,29 @@ class ConflitoController extends Controller
                 $query->where('estrategiaGeralUtilizadaDemed', '=', "{$estrategiaGeralUtilizadaDemed}");
             }
             
+            // FILTRO POR POVO - CORRIGIDO (com qualificação de tabela)
+            if (!empty($povo)) {
+                $query->whereHas('povos', function($q) use ($povo) {
+                    // Qualifique a coluna com o nome da tabela (povo)
+                    $q->where('povo.idPovo', '=', $povo);
+                });
+            }
+            
+            // FILTRO POR TERRAS INDÍGENAS
+            if (!empty($terraIndigena)) {
+                $query->whereHas('terrasIndigenas', function($q) use ($terraIndigena) {
+                    // Qualifique também para evitar ambiguidade futura
+                    $q->where('terra_indigena.idTerraIndigena', '=', $terraIndigena);
+                });
+            }
+            
+            // FILTRO POR VIOLÊNCIAS CONTRA PESSOAS INDÍGENAS
+            if (!empty($tipoViolenciaIndigena)) {
+                $query->whereHas('violenciasPessoasIndigenas', function($q) use ($tipoViolenciaIndigena) {
+                    // Qualifique também para evitar ambiguidade futura
+                    $q->where('violencia_pessoa_indigena.tipoViolencia', '=', $tipoViolenciaIndigena);
+                });
+            }
             
             // Aplica ordenação
             $query->orderBy($sortBy, $sortOrder);
@@ -3422,6 +3455,187 @@ class ConflitoController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao recuperar conflitos por ator: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Post(
+     *     path="/api/conflito/export",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Exportar conflitos para Excel",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="search", type="string", example="Retomada"),
+     *             @OA\Property(property="municipio", type="string", example="Retomada"),
+     *             @OA\Property(property="terraIndigena", type="integer", format="int64", example="182"),
+     *             @OA\Property(property="povo", type="integer", format="int64", example="72"),
+     *             @OA\Property(property="tipoConflito", type="integer", format="int64", example="1"),
+     *             @OA\Property(property="tipoViolenciaIndigena", type="string", example="Massacre de indígenas"),
+     *             @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Acompanhamento do conflito com ações complexas"),
+     *             @OA\Property(property="status", type="string", example="APROVADO"),
+     *             @OA\Property(property="created_by", type="string", example="usuario@email.com"),
+     *             @OA\Property(property="sort_by", type="string", example="dataInicioConflito"),
+     *             @OA\Property(property="sort_order", type="string", example="desc")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Arquivo Excel gerado com sucesso",
+     *         @OA\MediaType(
+     *             mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro ao exportar dados"
+     *     )
+     * )
+     */
+    public function export(Request $request)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json(['message' => 'Não autorizado'], 401);
+        }
+        
+        try {
+            // 1. LIMPEZA DE BUFFER (Crucial para Excel)
+            // Remove qualquer HTML, espaço em branco ou log que já tenha sido gerado
+            if (ob_get_length() > 0) {
+                ob_end_clean();
+            }
+            
+            $filters = $request->all();
+            $fileName = 'conflitos_' . date('Y-m-d_H-i-s') . '.xlsx';
+            
+            // 2. GERAÇÃO
+            return Excel::download(new ConflitosExport($filters), $fileName);
+            
+        } catch (Throwable $e) {
+            // ^^^ MUDANÇA CRÍTICA: 'Throwable' captura Erros Fatais e Exceptions
+            
+            // Log detalhado para você descobrir o que está quebrando
+            Log::error('Falha crítica na exportação Excel:', [
+                'erro' => $e->getMessage(),
+                'arquivo' => $e->getFile(),
+                'linha' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Retorna JSON limpo para o Swagger não mostrar HTML bagunçado
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro interno ao gerar o Excel. Verifique os logs (storage/logs/laravel.log).',
+                'debug' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+    
+    /**
+     * @OA\Post(
+     *     path="/api/conflito/export-dashboard",
+     *     tags={"Conflitos"},
+     *     summary="Exportar dados do dashboard para Excel",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Arquivo Excel gerado com sucesso",
+     *         @OA\MediaType(
+     *             mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro ao exportar dados"
+     *     )
+     * )
+     */
+    public function exportDashboard(Request $request)
+    {
+        try {
+            // Query base do dashboard
+            $conflitos = Conflito::with(['tiposConflito','localidadesConflito'])->get();
+            
+            // Criação de uma exportação específica para dashboard
+            $export = new class($conflitos) implements FromCollection,
+                                                       WithHeadings,
+                                                       WithMapping,
+                                                       ShouldAutoSize {
+                
+                private $conflitos;
+                
+                public function __construct($conflitos)
+                {
+                    $this->conflitos = $conflitos;
+                }
+                
+                public function collection()
+                {
+                    return $this->conflitos;
+                }
+                
+                public function headings(): array
+                {
+                    return [
+                        'ID',
+                        'Nome',
+                        'Data Início',
+                        'Status',
+                        'Classificação Gravidade',
+                        'Localidades',
+                        'Processos SEI',
+                        'Tipos de Conflito',
+                        'Latitude',
+                        'Longitude',
+                        'Data Criação'
+                    ];
+                }
+                
+                public function map($conflito): array
+                {
+                    return [
+                        $conflito->idConflito,
+                        $conflito->nome,
+                        $conflito->dataInicioConflito,
+                        $conflito->status,
+                        $conflito->classificacaoGravidadeConflitoDemed,
+                        $conflito->localidadesConflito
+                        ->map(function($localidade) {
+                            return "({$localidade->regiao}/{$localidade->uf}/{$localidade->municipio})";
+                        })
+                        ->implode('; '),
+                        $conflito->numerosSeiIdentificacaoConflito
+                        ->map(function($sei) {
+                            return "({$sei->numeroSei})";
+                        })->implode('; '),
+                        $conflito->tiposConflito->pluck('nome')->implode('; '),
+                        $conflito->latitude,
+                        $conflito->longitude,
+                        $conflito->created_at
+                    ];
+                }
+            };
+            
+            return Excel::download(
+                $export,
+                'dashboard_conflitos_' . date('Y-m-d_H-i-s') . '.xlsx'
+                );
+            
+        } catch (\Exception $e) {
+            Log::error('Erro ao exportar dashboard:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao exportar dados do dashboard: ' . $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

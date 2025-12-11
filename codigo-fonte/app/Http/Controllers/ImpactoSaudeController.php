@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\ImpactoSaude;
@@ -8,14 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
- * 
+ *
  *  @OA\Schema(
  *     schema="ImpactoSaude",
  *     type="object",
  *     @OA\Property(property="idImpactoSaude", type="integer", example="1"),
  *     @OA\Property(property="nome", type="string", example="Nome do Impacto Saúde")
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/impacto-saude"
  * )
@@ -27,7 +26,9 @@ use Illuminate\Http\Response;
  */
 class ImpactoSaudeController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/impacto-saude",
      *     tags={"ImpactosSaude"},
@@ -45,18 +46,19 @@ class ImpactoSaudeController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactosaude = ImpactoSaude::all();
         return response()->json($impactosaude);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/impacto-saude",
      *     tags={"ImpactosSaude"},
@@ -77,15 +79,15 @@ class ImpactoSaudeController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $impactosaude = ImpactoSaude::create($validatedData);
@@ -93,6 +95,7 @@ class ImpactoSaudeController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/impacto-saude/{id}",
      *     tags={"ImpactosSaude"},
@@ -113,18 +116,19 @@ class ImpactoSaudeController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactosaude = ImpactoSaude::findOrFail($id);
         return response()->json($impactosaude);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/impacto-saude/{id}",
      *     tags={"ImpactosSaude"},
@@ -151,17 +155,17 @@ class ImpactoSaudeController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactosaude = ImpactoSaude::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $impactosaude->update($validatedData);
@@ -169,6 +173,7 @@ class ImpactoSaudeController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/impacto-saude/{id}",
      *     tags={"ImpactosSaude"},
@@ -188,13 +193,13 @@ class ImpactoSaudeController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactosaude = ImpactoSaude::findOrFail($id);
         $impactosaude->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

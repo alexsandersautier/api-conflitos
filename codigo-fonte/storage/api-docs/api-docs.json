@@ -4851,6 +4851,113 @@
                 ]
             }
         },
+        "/api/conflito/export": {
+            "post": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Exportar conflitos para Excel",
+                "operationId": "6b289df2c0460ba627133c7f96d6b40c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "search": {
+                                        "type": "string",
+                                        "example": "Retomada"
+                                    },
+                                    "municipio": {
+                                        "type": "string",
+                                        "example": "Retomada"
+                                    },
+                                    "terraIndigena": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "example": "182"
+                                    },
+                                    "povo": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "example": "72"
+                                    },
+                                    "tipoConflito": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "example": "1"
+                                    },
+                                    "tipoViolenciaIndigena": {
+                                        "type": "string",
+                                        "example": "Massacre de indígenas"
+                                    },
+                                    "estrategiaGeralUtilizadaDemed": {
+                                        "type": "string",
+                                        "example": "Acompanhamento do conflito com ações complexas"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "APROVADO"
+                                    },
+                                    "created_by": {
+                                        "type": "string",
+                                        "example": "usuario@email.com"
+                                    },
+                                    "sort_by": {
+                                        "type": "string",
+                                        "example": "dataInicioConflito"
+                                    },
+                                    "sort_order": {
+                                        "type": "string",
+                                        "example": "desc"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Arquivo Excel gerado com sucesso",
+                        "content": {
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado"
+                    },
+                    "500": {
+                        "description": "Erro ao exportar dados"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/conflito/export-dashboard": {
+            "post": {
+                "tags": [
+                    "Conflitos"
+                ],
+                "summary": "Exportar dados do dashboard para Excel",
+                "operationId": "016cff3ca84e62144420e15f8adf7119",
+                "responses": {
+                    "200": {
+                        "description": "Arquivo Excel gerado com sucesso",
+                        "content": {
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao exportar dados"
+                    }
+                }
+            }
+        },
         "/api/dashboard/dados": {
             "get": {
                 "tags": [

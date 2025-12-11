@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\ImpactoAmbiental;
@@ -8,13 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
+ *
  *  @OA\Schema(
  *     schema="ImpactoAmbiental",
  *     type="object",
  *     @OA\Property(property="idImpactoAmbiental", type="integer", example="1"),
  *     @OA\Property(property="nome", type="string", example="Nome do ImpactoAmbiental")
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/impacto-ambiental"
  * )
@@ -26,7 +26,9 @@ use Illuminate\Http\Response;
  */
 class ImpactoAmbientalController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/impacto-ambiental",
      *     tags={"ImpactosAmbientais"},
@@ -44,22 +46,23 @@ class ImpactoAmbientalController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactoambiental = ImpactoAmbiental::all();
         return response()->json($impactoambiental);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/impacto-ambiental",
      *     tags={"ImpactosAmbientais"},
-     *     security={ {"sanctum": {} } },     *     
+     *     security={ {"sanctum": {} } },     *
      *     summary="Criar um novo impacto ambiental",
      *     @OA\RequestBody(
      *         required=true,
@@ -76,15 +79,15 @@ class ImpactoAmbientalController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $impactoambiental = ImpactoAmbiental::create($validatedData);
@@ -92,6 +95,7 @@ class ImpactoAmbientalController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/impacto-ambiental/{id}",
      *     tags={"ImpactosAmbientais"},
@@ -112,18 +116,19 @@ class ImpactoAmbientalController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactoambiental = ImpactoAmbiental::findOrFail($id);
         return response()->json($impactoambiental);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/impacto-ambiental/{id}",
      *     tags={"ImpactosAmbientais"},
@@ -150,17 +155,17 @@ class ImpactoAmbientalController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactoambiental = ImpactoAmbiental::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $impactoambiental->update($validatedData);
@@ -168,6 +173,7 @@ class ImpactoAmbientalController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/impacto-ambiental/{id}",
      *     tags={"ImpactosAmbientais"},
@@ -187,13 +193,13 @@ class ImpactoAmbientalController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $impactoambiental = ImpactoAmbiental::findOrFail($id);
         $impactoambiental->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Aldeia;
@@ -10,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Services\AldeiaService;
 
 /**
+ *
  * @OA\Schema(
  *     schema="Aldeia",
  *     type="object",
@@ -25,20 +25,22 @@ use App\Services\AldeiaService;
  *     description="Endpoints para Aldeias"
  * )
  */
-class AldeiaController extends Controller{
-    
+class AldeiaController extends Controller
+{
+
     protected $aldeiaService;
-    
+
     public function __construct(AldeiaService $aldeiaService)
     {
         $this->aldeiaService = $aldeiaService;
-        
+
         if (ini_get('memory_limit') < 256) {
             @ini_set('memory_limit', '256M');
         }
     }
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/aldeia",
      *     tags={"Aldeias"},
@@ -58,21 +60,22 @@ class AldeiaController extends Controller{
      *     )
      * )
      */
-    public function index(Request $request){
-        if (!Auth::guard('sanctum')->check()) {
+    public function index(Request $request)
+    {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        //$aldeias = Aldeia::all();
+
+        // $aldeias = Aldeia::all();
         $aldeias = $this->aldeiaService->getAllAldeias();
         return response()->json($aldeias);
     }
-    
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/aldeia/paginadas",
      *     tags={"Aldeias"},
@@ -108,20 +111,21 @@ class AldeiaController extends Controller{
      */
     public function getAldeiasPaginated(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $per_page = $request->per_page ?? 15;
         $aldeias = Aldeia::paginate($per_page);
-        
+
         return response()->json($aldeias);
     }
-    
+
     /**
+     *
      * @OA\Post(
      *     path="/api/aldeia",
      *     tags={"Aldeias"},
@@ -142,17 +146,17 @@ class AldeiaController extends Controller{
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validator = validator($request->all(), [
             'nome' => 'required|string|max:255'
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -161,12 +165,14 @@ class AldeiaController extends Controller{
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        
-        $aldeia = Aldeia::create($request->only(['nome']));
+        $aldeia = Aldeia::create($request->only([
+            'nome'
+        ]));
         return response()->json($aldeia, Response::HTTP_CREATED);
     }
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/aldeia/{id}",
      *     tags={"Aldeias"},
@@ -187,18 +193,19 @@ class AldeiaController extends Controller{
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $aldeia = Aldeia::findOrFail($id);
         return response()->json($aldeia);
     }
-    
+
     /**
+     *
      * @OA\Put(
      *     path="/api/aldeia/{id}",
      *     tags={"Aldeias"},
@@ -226,24 +233,25 @@ class AldeiaController extends Controller{
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $aldeia = Aldeia::findOrFail($id);
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
-        
+
         $aldeia->update($validatedData);
         return response()->json($aldeia);
     }
-    
+
     /**
+     *
      * @OA\Delete(
      *     path="/api/aldeia/{id}",
      *     tags={"Aldeias"},
@@ -263,13 +271,13 @@ class AldeiaController extends Controller{
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $aldeia = Aldeia::findOrFail($id);
         $aldeia->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
