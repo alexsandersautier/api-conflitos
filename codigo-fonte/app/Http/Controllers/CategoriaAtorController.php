@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\CategoriaAtor;
@@ -8,13 +7,14 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 /**
+ *
  * @OA\Schema(
  *     schema="CategoriaAtor",
  *     type="object",
  *     @OA\Property(property="idCategoriaAtor", type="integer"),
  *     @OA\Property(property="nome", type="string", example="Latifundiário")
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/categoria-ator"
  * )
@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\Auth;
  */
 class CategoriaAtorController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/categoria-ator",
      *     tags={"CategoriasAtor"},
@@ -44,18 +46,19 @@ class CategoriaAtorController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $categoriaator = CategoriaAtor::all();
         return response()->json($categoriaator);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/categoria-ator",
      *     tags={"CategoriasAtor"},
@@ -76,15 +79,15 @@ class CategoriaAtorController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $categoriaator = CategoriaAtor::create($validatedData);
@@ -92,6 +95,7 @@ class CategoriaAtorController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/categoria-ator/{id}",
      *     tags={"CategoriasAtor"},
@@ -112,18 +116,19 @@ class CategoriaAtorController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $categoriaator = CategoriaAtor::findOrFail($id);
         return response()->json($categoriaator);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/categoria-ator/{id}",
      *     tags={"CategoriasAtor"},
@@ -150,17 +155,17 @@ class CategoriaAtorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $categoriaator = CategoriaAtor::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $categoriaator->update($validatedData);
@@ -168,6 +173,7 @@ class CategoriaAtorController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/categoria-ator/{id}",
      *     tags={"CategoriasAtor"},
@@ -187,13 +193,13 @@ class CategoriaAtorController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $categoriaator = CategoriaAtor::findOrFail($id);
         $categoriaator->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

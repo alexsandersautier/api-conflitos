@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Perfil;
@@ -8,14 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
- * 
+ *
  * @OA\Schema(
  *     schema="Perfil",
  *     type="object",
  *     @OA\Property(property="idPerfil", type="integer", example=1),
  *     @OA\Property(property="nome", type="string", example="Administrador"),
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/perfil"
  * )
@@ -27,11 +26,13 @@ use Illuminate\Http\Response;
  */
 class PerfilController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/perfil",
      *     tags={"Perfis"},
-     *     security={ {"sanctum": {} } },     *     
+     *     security={ {"sanctum": {} } },     *
      *     summary="Listar todos os perfils",
      *     @OA\Response(
      *         response=200,
@@ -45,18 +46,19 @@ class PerfilController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $perfis = Perfil::all();
         return response()->json($perfis);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/perfil",
      *     tags={"Perfis"},
@@ -77,15 +79,15 @@ class PerfilController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $perfil = Perfil::create($validatedData);
@@ -93,6 +95,7 @@ class PerfilController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/perfil/{id}",
      *     tags={"Perfis"},
@@ -113,18 +116,19 @@ class PerfilController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $perfil = Perfil::findOrFail($id);
         return response()->json($perfil);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/perfil/{id}",
      *     tags={"Perfis"},
@@ -151,17 +155,17 @@ class PerfilController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $perfil = Perfil::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $perfil->update($validatedData);
@@ -169,6 +173,7 @@ class PerfilController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/perfil/{id}",
      *     tags={"Perfis"},
@@ -188,13 +193,13 @@ class PerfilController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $perfil = Perfil::findOrFail($id);
         $perfil->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Http\Controllers;
 
 /**
+ *
  * @OA\Info(
  *      version="1.0.0",
  *      title="paineldeconflitos-api - Documentação",

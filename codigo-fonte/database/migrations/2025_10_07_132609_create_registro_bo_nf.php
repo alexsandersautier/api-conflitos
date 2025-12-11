@@ -1,11 +1,10 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     /**
      * Run the migrations.
      */
@@ -18,7 +17,7 @@ return new class extends Migration
             $table->string('numero', 100)->nullable();
             $table->string('orgao', 100)->nullable();
             $table->string('tipoOrgao', 100)->nullable();
-            $table->string('numeroSei',50)->nullable();
+            $table->string('numeroSei', 50)->nullable();
             $table->timestamps();
         });
     }

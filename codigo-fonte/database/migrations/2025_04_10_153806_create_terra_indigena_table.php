@@ -1,17 +1,16 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('terra_indigena', function (Blueprint $table) {            
+        Schema::create('terra_indigena', function (Blueprint $table) {
             $table->id('idTerraIndigena')->primary();
             $table->foreignId('idPovo')->constrained('povo');
             $table->foreignId('idSituacaoFundiaria')->constrained('situacao_fundiaria');

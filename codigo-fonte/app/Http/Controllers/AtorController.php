@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Ator;
@@ -8,13 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
+ *
  *  @OA\Schema(
  *     schema="Ator",
  *     type="object",
  *     @OA\Property(property="idAtor", type="integer", example="1"),
  *     @OA\Property(property="nome", type="string", example="Nome do ator")
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/ator"
  * )
@@ -26,7 +26,9 @@ use Illuminate\Http\Response;
  */
 class AtorController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/ator",
      *     tags={"Atores"},
@@ -49,6 +51,7 @@ class AtorController extends Controller
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/ator",
      *     tags={"Atores"},
@@ -57,7 +60,7 @@ class AtorController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome"}, 
+     *             required={"nome"},
      *             @OA\Property(property="nome", type="string", example="João da Silva")
      *         )
      *     ),
@@ -69,13 +72,13 @@ class AtorController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
             'nome' => 'required|string|max:100'
         ]);
@@ -85,6 +88,7 @@ class AtorController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/ator/{id}",
      *     tags={"Atores"},
@@ -105,18 +109,19 @@ class AtorController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $ator = Ator::findOrFail($id);
         return response()->json($ator);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/ator/{id}",
      *     tags={"Atores"},
@@ -131,7 +136,7 @@ class AtorController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"idCategoriaAtor", "idConflito", "nome"}, 
+     *             required={"idCategoriaAtor", "idConflito", "nome"},
      *             @OA\Property(property="idCategoriaAtor", type="integer", example="1"),
      *             @OA\Property(property="idConflito", type="integer", example="1"),
      *             @OA\Property(property="nome", type="string", example="João da Silva")
@@ -145,13 +150,13 @@ class AtorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $ator = Ator::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -163,6 +168,7 @@ class AtorController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/ator/{id}",
      *     tags={"Atores"},
@@ -182,16 +188,15 @@ class AtorController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $ator = Ator::findOrFail($id);
         $ator->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
-    
 }

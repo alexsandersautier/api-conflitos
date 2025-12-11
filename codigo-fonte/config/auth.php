@@ -5,25 +5,25 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'users'
         ],
-        
+
         'api' => [
             'driver' => 'sanctum',
-            'provider' => 'users',
+            'provider' => 'users'
         ],
-        
+
         'sanctum' => [
             'driver' => 'sanctum',
-            'provider' => 'users',
-        ],
+            'provider' => 'users'
+        ]
     ],
-    
+
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Usuario::class,
-        ],
+            'model' => App\Models\Usuario::class
+        ]
     ],
 
     'passwords' => [
@@ -31,7 +31,7 @@ return [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
             'expire' => 60,
-            'throttle' => 60,
-        ],
-    ],
+            'throttle' => 60
+        ]
+    ]
 ];

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,13 +8,17 @@ class ViolenciaPatrimonial extends Model
 {
     use HasFactory;
 
-    protected $table      = 'violencia_patrimonial';
+    protected $table = 'violencia_patrimonial';
+
     protected $primaryKey = 'idViolenciaPatrimonial';
-    
-    protected $fillable = ['idConflito',
-                            'tipoViolencia',
-                            'data',
-                            'numeroSei'];
+
+    protected $fillable = [
+        'idConflito',
+        'tipoViolencia',
+        'data',
+        'numeroSei'
+    ];
+
     /**
      * Relacionamento com Conflito
      */

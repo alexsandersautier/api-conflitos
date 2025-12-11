@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +9,7 @@ class Inquerito extends Model
     use HasFactory;
 
     protected $table = 'inquerito';
+
     protected $primaryKey = 'idInquerito';
 
     protected $fillable = [
@@ -21,7 +21,8 @@ class Inquerito extends Model
         'numeroSei'
     ];
 
-    public function conflito() {
+    public function conflito()
+    {
         return $this->belongsTo(Conflito::class, 'idConflito');
     }
 }

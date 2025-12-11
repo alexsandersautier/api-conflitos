@@ -1,6 +1,5 @@
 <?php
 // app/Http/Controllers/AuthController.php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -10,6 +9,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 /**
+ *
  * @OA\Tag(
  *     name="Autenticação",
  *     description="Endpoints para Autenticação"
@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Auth;
  */
 class AuthController extends Controller
 {
+
     /**
+     *
      * @OA\Post(
      *     path="/api/login",
      *     summary="Autentica um usuário",
@@ -57,26 +59,36 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'senha' => 'required',
+            'senha' => 'required'
         ]);
 
-        $usuario = Usuario::with(['orgao','perfil'])->where('email', $request->email)->first();
+        $usuario = Usuario::with([
+            'orgao',
+            'perfil'
+        ])->where('email', $request->email)->first();
 
-        if (!$usuario || !Hash::check($request->senha, $usuario->senha)) {
-            return response()->json(['message' => 'Credenciais inválidas'], Response::HTTP_UNAUTHORIZED);
+        if (! $usuario || ! Hash::check($request->senha, $usuario->senha)) {
+            return response()->json([
+                'message' => 'Credenciais inválidas'
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $token = $usuario->createToken('auth_token', ['assunto:list', 
-                                                      'assunto:view',
-                                                      'assunto:create',
-                                                      'assunto:update'])->plainTextToken;
+        $token = $usuario->createToken('auth_token', [
+            'assunto:list',
+            'assunto:view',
+            'assunto:create',
+            'assunto:update'
+        ])->plainTextToken;
 
-        return response()->json(['access_token' => $token,
-                                 'token_type'   => 'Bearer',
-                                 'usuario'      => $usuario], Response::HTTP_OK);
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'usuario' => $usuario
+        ], Response::HTTP_OK);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/logout",
      *     summary="Desconecta o usuário",
@@ -101,18 +113,23 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $request->user()->tokens()->delete();
-        return response()->json(['message' => 'Logout realizado com sucesso'], Response::HTTP_OK);
+
+        $request->user()
+            ->tokens()
+            ->delete();
+        return response()->json([
+            'message' => 'Logout realizado com sucesso'
+        ], Response::HTTP_OK);
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/me",
      *     summary="Retorna os dados do usuário autenticado",
@@ -140,13 +157,13 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         return response()->json($request->user());
     }
 }

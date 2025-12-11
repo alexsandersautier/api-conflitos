@@ -26,6 +26,13 @@ use App\Models\ProcessoJudicial;
 use Illuminate\Support\Facades\Log;
 use App\Models\LocalidadeConflito;
 use App\Models\RegistroBoNf;
+use Maatwebsite\Excel\Facades\Excel;
+use \Maatwebsite\Excel\Concerns\FromCollection;
+use \Maatwebsite\Excel\Concerns\WithHeadings;
+use \Maatwebsite\Excel\Concerns\WithMapping;
+use \Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use App\Exports\ConflitosExport;
+use Throwable; // Importante para capturar erros fatais
 
 /**
  *  @OA\Schema(
@@ -113,7 +120,7 @@ class ConflitoController extends Controller
      *     tags={"Conflitos"},
      *     security={ {"sanctum": {} } },
      *     summary="Listar todos os conflitos",
-     *          *     @OA\Parameter(
+     *     @OA\Parameter(
      *         name="per_page",
      *         in="query",
      *         required=false,
@@ -174,9 +181,9 @@ class ConflitoController extends Controller
                 'page'                          => 'nullable|integer|min:1',
                 'search'                        => 'nullable|string|max:255',
                 'estrategiaGeralUtilizadaDemed' => 'nullable|string|max:255',
-                'terras_indigenas'              => 'nullable|string|max:255',
-                'povos'                         => 'nullable|string|max:255',
-                'violencias_pessoa_indigenas'   => 'nullable|string|max:255',
+                'terraIndigena'                 => 'nullable|integer|max:255',
+                'povo'                          => 'nullable|integer|max:255',
+                'tipoViolenciaIndigena'         => 'nullable|string|max:255',
                 'sort_by'                       => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
                 'sort_order'                    => 'nullable|string|in:asc,desc'
             ]);
@@ -190,12 +197,15 @@ class ConflitoController extends Controller
             }
             
             // Configurações
-            $perPage   = $request->per_page ?? 15;
-            $sortBy    = $request->sort_by ?? 'dataInicioConflito';
-            $sortOrder = $request->sort_order ?? 'desc';
-            $search    = $request->search;
-            $page      = $request->page;
+            $perPage                       = $request->per_page ?? 15;
+            $sortBy                        = $request->sort_by ?? 'dataInicioConflito';
+            $sortOrder                     = $request->sort_order ?? 'desc';
+            $search                        = $request->search;
+            $page                          = $request->page;
             $estrategiaGeralUtilizadaDemed = $request->estrategiaGeralUtilizadaDemed;
+            $povo                          = $request->povo;
+            $terraIndigena                 = $request->terraIndigena;
+            $tipoViolenciaIndigena         = $request->tipoViolenciaIndigena;
             
             // Query base
             $query = Conflito::with([
@@ -228,6 +238,29 @@ class ConflitoController extends Controller
                 $query->where('estrategiaGeralUtilizadaDemed', '=', "{$estrategiaGeralUtilizadaDemed}");
             }
             
+            // FILTRO POR POVO - CORRIGIDO (com qualificação de tabela)
+            if (!empty($povo)) {
+                $query->whereHas('povos', function($q) use ($povo) {
+                    // Qualifique a coluna com o nome da tabela (povo)
+                    $q->where('povo.idPovo', '=', $povo);
+                });
+            }
+            
+            // FILTRO POR TERRAS INDÍGENAS
+            if (!empty($terraIndigena)) {
+                $query->whereHas('terrasIndigenas', function($q) use ($terraIndigena) {
+                    // Qualifique também para evitar ambiguidade futura
+                    $q->where('terra_indigena.idTerraIndigena', '=', $terraIndigena);
+                });
+            }
+            
+            // FILTRO POR VIOLÊNCIAS CONTRA PESSOAS INDÍGENAS
+            if (!empty($tipoViolenciaIndigena)) {
+                $query->whereHas('violenciasPessoasIndigenas', function($q) use ($tipoViolenciaIndigena) {
+                    // Qualifique também para evitar ambiguidade futura
+                    $q->where('violencia_pessoa_indigena.tipoViolencia', '=', $tipoViolenciaIndigena);
+                });
+            }
             
             // Aplica ordenação
             $query->orderBy($sortBy, $sortOrder);
@@ -321,19 +354,202 @@ class ConflitoController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome","descricao","regiao","dataConflito","latitude","longitude","municipio","uf","flagOcorrenciaAmeaca","flagOcorrenciaViolencia","flagOcorrenciaAssassinato","flagOcorrenciaFeridos", "flagMembroProgramaProtecao"},
-     *             @OA\Property(property="nome", type="string", example="nome do conflito"),
-     *             @OA\Property(property="relato", type="string", example="Relato do conflito"),
-     *             @OA\Property(property="regiao", type="string", example="norte"),
-     *             @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             required={"latitude",
+     *                       "longitude",
+     *                       "nome",
+     *                       "relato",
+     *                       "dataInicioConflito",
+     *                       "dataAcionamentoMpiConflito",
+     *                       "observacoes",
+     *                       "flagHasImpactoAmbiental",
+     *                       "flagHasImpactoSaude",
+     *                       "flagHasImpactoSocioEconomico",
+     *                       "flagHasViolenciaIndigena",
+     *                       "flagHasMembroProgramaProtecao",
+     *                       "flagHasBOouNF",
+     *                       "flagHasInquerito",
+     *                       "flagHasProcessoJudicial",
+     *                       "flagHasAssistenciaJuridica",
+     *                       "flagHasRegiaoPrioritaria",
+     *                       "flagHasViolenciaPatrimonialIndigena",
+     *                       "flagHasEventoViolenciaIndigena",
+     *                       "flagHasAssassinatoPrisaoNaoIndigena",
+     *                       "tipoInstituicaoAssistenciaJuridica",
+     *                       "advogadoInstituicaoAssistenciaJuridica",
+     *                       "regiaoPrioritaria",
+     *                       "classificacaoGravidadeConflitoDemed",
+     *                       "atualizacaoClassificacaoGravidadeConflito",
+     *                       "dataReferenciaMudancaClassificacao",
+     *                       "estrategiaGeralUtilizadaDemed",
+     *                       "estrategiaColetiva",
+     *                       "status",
+     *                       "assuntosConflito"},
      *             @OA\Property(property="latitude", type="string", example="41.40338"),
      *             @OA\Property(property="longitude", type="string", example="2.17403"),
-     *             @OA\Property(property="flagOcorrenciaAmeaca", type="boolean", example="1"),
-     *             @OA\Property(property="flagOcorrenciaViolencia", type="boolean", example="0"),
-     *             @OA\Property(property="flagOcorrenciaAssassinato", type="boolean", example="1"),
-     *             @OA\Property(property="flagOcorrenciaFeridos", type="boolean", example="0"),
-     *             @OA\Property(property="flagMembroProgramaProtecao", type="boolean", example="1"),
-     *         )
+     *             @OA\Property(property="nome", type="string", example="nome do conflito"),
+     *             @OA\Property(property="relato", type="string", example="Relato do conflito"),
+     *             @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="dataAcionamentoMpiConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="observacoes", type="string", example="Observações do conflito"),
+     *             @OA\Property(property="flagHasImpactoAmbiental", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasImpactoSaude", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasImpactoSocioEconomico", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasMembroProgramaProtecao", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasBOouNF", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasInquerito", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasProcessoJudicial", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssistenciaJuridica", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasRegiaoPrioritaria", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasViolenciaPatrimonialIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasEventoViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssassinatoPrisaoNaoIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="tipoInstituicaoAssistenciaJuridica", type="string", example="Advogada(o) da União"),
+     *             @OA\Property(property="advogadoInstituicaoAssistenciaJuridica", type="string", example="Consultoria Jurídica/MPI"),
+     *             @OA\Property(property="regiaoPrioritaria", type="string", example="Sul do Mato Grosso do Sul"),
+     *             @OA\Property(property="classificacaoGravidadeConflitoDemed", type="string", example="URGENCIA"),
+     *             @OA\Property(property="atualizacaoClassificacaoGravidadeConflito", type="string", example="EMERGÊNCIA"),
+     *             @OA\Property(property="dataReferenciaMudancaClassificacao", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Acompanhamento do conflito com ações complexas"),
+     *             @OA\Property(property="estrategiaColetiva", type="string", example="Descrição da estratégia coletiva"),
+     *             @OA\Property(property="status", type="string", example="EM ANALISE"),
+     *             @OA\Property(property="aldeias", type="array", description="Coleção de IDs de aldeias relacionados ao conflito.", 
+     *              @OA\Items(type="integer", format="int64"), example={2860, 125, 43}),
+     *             @OA\Property(property="assuntos", type="array", description="Coleção de assuntos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="terras_indigenas", type="array", description="Coleção de Terras Indigenas relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="povos", type="array", description="Coleção de povos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="tipos_conflito", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2}),
+     *             @OA\Property(property="categorias_atores", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 7}),
+     *             @OA\Property(property="impactos_ambientais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 3}),
+     *             @OA\Property(property="impactos_saude", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={5, 15}),
+     *             @OA\Property(property="impactos_socio_economicos", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="atores_identificados", type="array", description="Coleção de atores identificados relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"João da Silva", "Maria das Graças"}),
+     *             @OA\Property(property="inqueritos", type="array", description="Coleção de inqueritos relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2010-01-01",
+     *                          "numero": "1.30.014.000051/2010-78",
+     *                          "numeroSei": "48782219",
+     *                          "orgao": "Procuradoria da República em Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Ministério Público Federal"}
+     *                      }),
+     *             @OA\Property(property="localidades_conflito", type="array", description="Coleção de localidades relacionadas ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="regiao",type="string",description="Região da Localidade"),
+     *                        @OA\Property(property="municipio",type="string",description="Municícipio da Localidade"),
+     *                        @OA\Property(property="uf",type="string",description="UF da Localidade")
+     *              ),
+     *              example={
+     *                          {"municipio": "Paraty", 
+     *                          "regiao": "Sudeste", 
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="numeros_sei_identificacao_conflito", type="array", description="Coleção de processos SEI relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"15000.000637/2025-30","15000.002375/2024-67","14021.038584/2025-19"}),
+     *             @OA\Property(property="processos_judiciais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoPoder",type="string",description="Tipo de Poder")
+     *              ),
+     *              example={
+     *                          {"data": "2022-01-01",
+     *                          "numero": "1002052-25.2022.4.01.4103",
+     *                          "numeroSei": "44379030",
+     *                          "orgaoApoio": "Vara Federal Cível e Criminal da Subseção Judicial de Vilhena/RO",
+     *                          "tipoPoder": "Justiça Federal"}
+     *                      }),
+     *             @OA\Property(property="programas_protecao", type="array", description="Coleção de programas de proteção relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPrograma",type="string",description="Tipo de programa"),
+     *                        @OA\Property(property="uf",type="string",description="UF do programa")
+     *              ),
+     *              example={
+     *                          {"numeroSei": "48782219",
+     *                          "tipoPrograma": "Programa de Proteção aos Defensores dos Direitos Humanos (PPDDH)",
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="registros_b_oou_n_f", type="array", description="Coleção de registros de BO relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do BO"),
+     *                        @OA\Property(property="numero",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o BO"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2020-09-21",
+     *                          "numero": "219/2020",
+     *                          "numeroSei": "48781613",
+     *                          "orgao": "Delegacia de Polícia Federal de Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Polícia Federal"}
+     *                      }),
+     *             @OA\Property(property="violencias_patrimoniais", type="array", description="Coleção de violências patrimoniais ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Invasão"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_indigenas", type="array", description="Coleção de violências contra pessoas indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="faixaEtaria",type="string",description="Faixa Etaria"),
+     *                        @OA\Property(property="genero",type="string",description="Gênero"),
+     *                        @OA\Property(property="idade",type="integer",format="int64",description="Idade"),
+     *                        @OA\Property(property="instrumentoViolencia",type="string",description="Instrumento de Violencia"),
+     *                        @OA\Property(property="nome",type="string",description="Nome"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "faixaEtaria": "Jovem adulto (18-25 anos)",
+     *                          "genero": "Homem",
+     *                          "idade": 20,
+     *                          "instrumentoViolencia": "Ameaça verbal e/ou escrita",
+     *                          "nome": "João Silva",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Ameaça à integridade pessoal"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_nao_indigenas", type="array", description="Coleção de violências contra pessoas não indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="nome",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPessoa",type="string",description="Tipo de Pessoa"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2021-08-18",
+     *                          "nome": "Edvaldo Deoclides de Oliveira",
+     *                          "numeroSei": "36607122",
+     *                          "tipoPessoa": "Empresário",
+     *                          "tipoViolencia": "Assassinato de não indígena"}
+     *                      })
+     *          )
      *     ),
      *     @OA\Response(
      *         response=201,
@@ -695,9 +911,202 @@ class ConflitoController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Departamento de TI")
-     *         )
+     *             required={"latitude",
+     *                       "longitude",
+     *                       "nome",
+     *                       "relato",
+     *                       "dataInicioConflito",
+     *                       "dataAcionamentoMpiConflito",
+     *                       "observacoes",
+     *                       "flagHasImpactoAmbiental",
+     *                       "flagHasImpactoSaude",
+     *                       "flagHasImpactoSocioEconomico",
+     *                       "flagHasViolenciaIndigena",
+     *                       "flagHasMembroProgramaProtecao",
+     *                       "flagHasBOouNF",
+     *                       "flagHasInquerito",
+     *                       "flagHasProcessoJudicial",
+     *                       "flagHasAssistenciaJuridica",
+     *                       "flagHasRegiaoPrioritaria",
+     *                       "flagHasViolenciaPatrimonialIndigena",
+     *                       "flagHasEventoViolenciaIndigena",
+     *                       "flagHasAssassinatoPrisaoNaoIndigena",
+     *                       "tipoInstituicaoAssistenciaJuridica",
+     *                       "advogadoInstituicaoAssistenciaJuridica",
+     *                       "regiaoPrioritaria",
+     *                       "classificacaoGravidadeConflitoDemed",
+     *                       "atualizacaoClassificacaoGravidadeConflito",
+     *                       "dataReferenciaMudancaClassificacao",
+     *                       "estrategiaGeralUtilizadaDemed",
+     *                       "estrategiaColetiva",
+     *                       "status",
+     *                       "assuntosConflito"},
+     *             @OA\Property(property="latitude", type="string", example="41.40338"),
+     *             @OA\Property(property="longitude", type="string", example="2.17403"),
+     *             @OA\Property(property="nome", type="string", example="nome do conflito"),
+     *             @OA\Property(property="relato", type="string", example="Relato do conflito"),
+     *             @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="dataAcionamentoMpiConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="observacoes", type="string", example="Observações do conflito"),
+     *             @OA\Property(property="flagHasImpactoAmbiental", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasImpactoSaude", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasImpactoSocioEconomico", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasMembroProgramaProtecao", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasBOouNF", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasInquerito", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasProcessoJudicial", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssistenciaJuridica", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasRegiaoPrioritaria", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasViolenciaPatrimonialIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasEventoViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssassinatoPrisaoNaoIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="tipoInstituicaoAssistenciaJuridica", type="string", example="Advogada(o) da União"),
+     *             @OA\Property(property="advogadoInstituicaoAssistenciaJuridica", type="string", example="Consultoria Jurídica/MPI"),
+     *             @OA\Property(property="regiaoPrioritaria", type="string", example="Sul do Mato Grosso do Sul"),
+     *             @OA\Property(property="classificacaoGravidadeConflitoDemed", type="string", example="URGENCIA"),
+     *             @OA\Property(property="atualizacaoClassificacaoGravidadeConflito", type="string", example="EMERGÊNCIA"),
+     *             @OA\Property(property="dataReferenciaMudancaClassificacao", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Acompanhamento do conflito com ações complexas"),
+     *             @OA\Property(property="estrategiaColetiva", type="string", example="Descrição da estratégia coletiva"),
+     *             @OA\Property(property="status", type="string", example="EM ANALISE"),
+     *             @OA\Property(property="aldeias", type="array", description="Coleção de IDs de aldeias relacionados ao conflito.", 
+     *              @OA\Items(type="integer", format="int64"), example={2860, 125, 43}),
+     *             @OA\Property(property="assuntos", type="array", description="Coleção de assuntos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="terras_indigenas", type="array", description="Coleção de Terras Indigenas relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="povos", type="array", description="Coleção de povos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="tipos_conflito", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2}),
+     *             @OA\Property(property="categorias_atores", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 7}),
+     *             @OA\Property(property="impactos_ambientais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 3}),
+     *             @OA\Property(property="impactos_saude", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={5, 15}),
+     *             @OA\Property(property="impactos_socio_economicos", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="atores_identificados", type="array", description="Coleção de atores identificados relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"João da Silva", "Maria das Graças"}),
+     *             @OA\Property(property="inqueritos", type="array", description="Coleção de inqueritos relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2010-01-01",
+     *                          "numero": "1.30.014.000051/2010-78",
+     *                          "numeroSei": "48782219",
+     *                          "orgao": "Procuradoria da República em Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Ministério Público Federal"}
+     *                      }),
+     *             @OA\Property(property="localidades_conflito", type="array", description="Coleção de localidades relacionadas ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="regiao",type="string",description="Região da Localidade"),
+     *                        @OA\Property(property="municipio",type="string",description="Municícipio da Localidade"),
+     *                        @OA\Property(property="uf",type="string",description="UF da Localidade")
+     *              ),
+     *              example={
+     *                          {"municipio": "Paraty", 
+     *                          "regiao": "Sudeste", 
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="numeros_sei_identificacao_conflito", type="array", description="Coleção de processos SEI relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"15000.000637/2025-30","15000.002375/2024-67","14021.038584/2025-19"}),
+     *             @OA\Property(property="processos_judiciais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoPoder",type="string",description="Tipo de Poder")
+     *              ),
+     *              example={
+     *                          {"data": "2022-01-01",
+     *                          "numero": "1002052-25.2022.4.01.4103",
+     *                          "numeroSei": "44379030",
+     *                          "orgaoApoio": "Vara Federal Cível e Criminal da Subseção Judicial de Vilhena/RO",
+     *                          "tipoPoder": "Justiça Federal"}
+     *                      }),
+     *             @OA\Property(property="programas_protecao", type="array", description="Coleção de programas de proteção relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPrograma",type="string",description="Tipo de programa"),
+     *                        @OA\Property(property="uf",type="string",description="UF do programa")
+     *              ),
+     *              example={
+     *                          {"numeroSei": "48782219",
+     *                          "tipoPrograma": "Programa de Proteção aos Defensores dos Direitos Humanos (PPDDH)",
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="registros_b_oou_n_f", type="array", description="Coleção de registros de BO relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do BO"),
+     *                        @OA\Property(property="numero",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o BO"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2020-09-21",
+     *                          "numero": "219/2020",
+     *                          "numeroSei": "48781613",
+     *                          "orgao": "Delegacia de Polícia Federal de Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Polícia Federal"}
+     *                      }),
+     *             @OA\Property(property="violencias_patrimoniais", type="array", description="Coleção de violências patrimoniais ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Invasão"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_indigenas", type="array", description="Coleção de violências contra pessoas indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="faixaEtaria",type="string",description="Faixa Etaria"),
+     *                        @OA\Property(property="genero",type="string",description="Gênero"),
+     *                        @OA\Property(property="idade",type="integer",format="int64",description="Idade"),
+     *                        @OA\Property(property="instrumentoViolencia",type="string",description="Instrumento de Violencia"),
+     *                        @OA\Property(property="nome",type="string",description="Nome"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "faixaEtaria": "Jovem adulto (18-25 anos)",
+     *                          "genero": "Homem",
+     *                          "idade": 20,
+     *                          "instrumentoViolencia": "Ameaça verbal e/ou escrita",
+     *                          "nome": "João Silva",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Ameaça à integridade pessoal"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_nao_indigenas", type="array", description="Coleção de violências contra pessoas não indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="nome",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPessoa",type="string",description="Tipo de Pessoa"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2021-08-18",
+     *                          "nome": "Edvaldo Deoclides de Oliveira",
+     *                          "numeroSei": "36607122",
+     *                          "tipoPessoa": "Empresário",
+     *                          "tipoViolencia": "Assassinato de não indígena"}
+     *                      })
+     *          )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -3046,6 +3455,187 @@ class ConflitoController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao recuperar conflitos por ator: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Post(
+     *     path="/api/conflito/export",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Exportar conflitos para Excel",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="search", type="string", example="Retomada"),
+     *             @OA\Property(property="municipio", type="string", example="Retomada"),
+     *             @OA\Property(property="terraIndigena", type="integer", format="int64", example="182"),
+     *             @OA\Property(property="povo", type="integer", format="int64", example="72"),
+     *             @OA\Property(property="tipoConflito", type="integer", format="int64", example="1"),
+     *             @OA\Property(property="tipoViolenciaIndigena", type="string", example="Massacre de indígenas"),
+     *             @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Acompanhamento do conflito com ações complexas"),
+     *             @OA\Property(property="status", type="string", example="APROVADO"),
+     *             @OA\Property(property="created_by", type="string", example="usuario@email.com"),
+     *             @OA\Property(property="sort_by", type="string", example="dataInicioConflito"),
+     *             @OA\Property(property="sort_order", type="string", example="desc")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Arquivo Excel gerado com sucesso",
+     *         @OA\MediaType(
+     *             mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro ao exportar dados"
+     *     )
+     * )
+     */
+    public function export(Request $request)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json(['message' => 'Não autorizado'], 401);
+        }
+        
+        try {
+            // 1. LIMPEZA DE BUFFER (Crucial para Excel)
+            // Remove qualquer HTML, espaço em branco ou log que já tenha sido gerado
+            if (ob_get_length() > 0) {
+                ob_end_clean();
+            }
+            
+            $filters = $request->all();
+            $fileName = 'conflitos_' . date('Y-m-d_H-i-s') . '.xlsx';
+            
+            // 2. GERAÇÃO
+            return Excel::download(new ConflitosExport($filters), $fileName);
+            
+        } catch (Throwable $e) {
+            // ^^^ MUDANÇA CRÍTICA: 'Throwable' captura Erros Fatais e Exceptions
+            
+            // Log detalhado para você descobrir o que está quebrando
+            Log::error('Falha crítica na exportação Excel:', [
+                'erro' => $e->getMessage(),
+                'arquivo' => $e->getFile(),
+                'linha' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Retorna JSON limpo para o Swagger não mostrar HTML bagunçado
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro interno ao gerar o Excel. Verifique os logs (storage/logs/laravel.log).',
+                'debug' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+    
+    /**
+     * @OA\Post(
+     *     path="/api/conflito/export-dashboard",
+     *     tags={"Conflitos"},
+     *     summary="Exportar dados do dashboard para Excel",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Arquivo Excel gerado com sucesso",
+     *         @OA\MediaType(
+     *             mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro ao exportar dados"
+     *     )
+     * )
+     */
+    public function exportDashboard(Request $request)
+    {
+        try {
+            // Query base do dashboard
+            $conflitos = Conflito::with(['tiposConflito','localidadesConflito'])->get();
+            
+            // Criação de uma exportação específica para dashboard
+            $export = new class($conflitos) implements FromCollection,
+                                                       WithHeadings,
+                                                       WithMapping,
+                                                       ShouldAutoSize {
+                
+                private $conflitos;
+                
+                public function __construct($conflitos)
+                {
+                    $this->conflitos = $conflitos;
+                }
+                
+                public function collection()
+                {
+                    return $this->conflitos;
+                }
+                
+                public function headings(): array
+                {
+                    return [
+                        'ID',
+                        'Nome',
+                        'Data Início',
+                        'Status',
+                        'Classificação Gravidade',
+                        'Localidades',
+                        'Processos SEI',
+                        'Tipos de Conflito',
+                        'Latitude',
+                        'Longitude',
+                        'Data Criação'
+                    ];
+                }
+                
+                public function map($conflito): array
+                {
+                    return [
+                        $conflito->idConflito,
+                        $conflito->nome,
+                        $conflito->dataInicioConflito,
+                        $conflito->status,
+                        $conflito->classificacaoGravidadeConflitoDemed,
+                        $conflito->localidadesConflito
+                        ->map(function($localidade) {
+                            return "({$localidade->regiao}/{$localidade->uf}/{$localidade->municipio})";
+                        })
+                        ->implode('; '),
+                        $conflito->numerosSeiIdentificacaoConflito
+                        ->map(function($sei) {
+                            return "({$sei->numeroSei})";
+                        })->implode('; '),
+                        $conflito->tiposConflito->pluck('nome')->implode('; '),
+                        $conflito->latitude,
+                        $conflito->longitude,
+                        $conflito->created_at
+                    ];
+                }
+            };
+            
+            return Excel::download(
+                $export,
+                'dashboard_conflitos_' . date('Y-m-d_H-i-s') . '.xlsx'
+                );
+            
+        } catch (\Exception $e) {
+            Log::error('Erro ao exportar dashboard:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao exportar dados do dashboard: ' . $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

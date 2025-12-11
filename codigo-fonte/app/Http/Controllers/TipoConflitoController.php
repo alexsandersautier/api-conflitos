@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\TipoConflito;
@@ -8,13 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
+ *
  * @OA\Schema(
  *     schema="TipoConflito",
  *     type="object",
  *     @OA\Property(property="idTipoConflito", type="integer", example="1"),
  *     @OA\Property(property="nome", type="string", example="Prevenção e acompanhamento de conflito: Disputas territoriais"),
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/tipo-conflito"
  * )
@@ -26,7 +26,9 @@ use Illuminate\Http\Response;
  */
 class TipoConflitoController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/tipo-conflito",
      *     tags={"TiposConflito"},
@@ -44,18 +46,19 @@ class TipoConflitoController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $tipoconflito = TipoConflito::all();
         return response()->json($tipoconflito);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/tipo-conflito",
      *     tags={"TiposConflito"},
@@ -76,15 +79,15 @@ class TipoConflitoController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $tipoconflito = TipoConflito::create($validatedData);
@@ -92,6 +95,7 @@ class TipoConflitoController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/tipo-conflito/{id}",
      *     tags={"TiposConflito"},
@@ -112,18 +116,19 @@ class TipoConflitoController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $tipoconflito = TipoConflito::findOrFail($id);
         return response()->json($tipoconflito);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/tipo-conflito/{id}",
      *     tags={"TiposConflito"},
@@ -150,25 +155,25 @@ class TipoConflitoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $tipoconflito = TipoConflito::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $tipoconflito->update($validatedData);
         return response()->json($tipoconflito);
     }
-    
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/tipo-conflito/{id}",
      *     tags={"TiposConflito"},
@@ -188,13 +193,13 @@ class TipoConflitoController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $tipoconflito = TipoConflito::findOrFail($id);
         $tipoconflito->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

@@ -1,11 +1,10 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     /**
      * Run the migrations.
      */
@@ -19,7 +18,7 @@ return new class extends Migration
             $table->longText('observacao')->nullable();
             $table->timestamps();
         });
-        
+
         Schema::create('tipo_responsavel', function (Blueprint $table) {
             $table->id('idTipoResponsavel')->primary();
             $table->string('nome', 200);

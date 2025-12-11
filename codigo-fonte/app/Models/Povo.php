@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +9,7 @@ class Povo extends Model
     use HasFactory;
 
     protected $table = 'povo';
+
     protected $primaryKey = 'idPovo';
 
     protected $fillable = [
@@ -20,6 +20,4 @@ class Povo extends Model
         'ufs_povo',
         'qtd_ti_povo'
     ];
-
-
 }

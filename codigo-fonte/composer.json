@@ -11,9 +11,10 @@
 		"php": "^8.2",
 		"darkaonline/l5-swagger": "^8.6",
 		"fakerphp/faker": "^1.24",
-		"laravel/framework": "^11.9",
+		"laravel/framework": "^12.41",
 		"laravel/sanctum": "^4.1",
-		"laravel/tinker": "^2.9"
+		"laravel/tinker": "^2.9",
+		"maatwebsite/excel": "^3.1"
 	},
 	"require-dev" : {
 		"laravel/pint" : "^1.13",
