@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\TipoConflito;
-use App\Models\ProcessoSei;
 use App\Models\ImpactoAmbiental;
 use App\Models\ImpactoSaude;
 use App\Models\ImpactoSocioEconomico;
@@ -25,19 +24,25 @@ use App\Models\Inquerito;
 use App\Models\ProgramaProtecao;
 use App\Models\ProcessoJudicial;
 use Illuminate\Support\Facades\Log;
+use App\Models\LocalidadeConflito;
+use App\Models\RegistroBoNf;
+use Maatwebsite\Excel\Facades\Excel;
+use \Maatwebsite\Excel\Concerns\FromCollection;
+use \Maatwebsite\Excel\Concerns\WithHeadings;
+use \Maatwebsite\Excel\Concerns\WithMapping;
+use \Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use App\Exports\ConflitosExport;
+use Throwable; // Importante para capturar erros fatais
 
 /**
  *  @OA\Schema(
  *     schema="Conflito",
  *     type="object",
  *     @OA\Property(property="nome", type="string", example="nome do conflito"),
- *     @OA\Property(property="descrição", type="string", example="descrição do conflito"),
- *     @OA\Property(property="regiao", type="string", example="norte"),
+ *     @OA\Property(property="relato", type="string", example="Relato do conflito"),
  *     @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
  *     @OA\Property(property="latitude", type="string", example="41.40338"),
  *     @OA\Property(property="longitude", type="string", example="2.17403"),
- *     @OA\Property(property="municipio", type="string", example="Marabá"),
- *     @OA\Property(property="uf", type="string", example="PA"),
  *     @OA\Property(property="flagOcorrenciaAmeaca", type="boolean", example="1"),
  *     @OA\Property(property="flagOcorrenciaViolencia", type="boolean", example="0"),
  *     @OA\Property(property="flagOcorrenciaAssassinato", type="boolean", example="1"),
@@ -115,6 +120,41 @@ class ConflitoController extends Controller
      *     tags={"Conflitos"},
      *     security={ {"sanctum": {} } },
      *     summary="Listar todos os conflitos",
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Número de itens por página",
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, example=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Número da página",
+     *         @OA\Schema(type="integer", minimum=1, example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         required=false,
+     *         description="Termo de busca por nome",
+     *         @OA\Schema(type="string", example="conflito teste")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         description="Campo para ordenação",
+     *         @OA\Schema(type="string", enum={"nome", "dataInicioConflito", "created_at", "updated_at"}, example="dataInicioConflito")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         description="Direção da ordenação",
+     *         @OA\Schema(type="string", enum={"asc", "desc"}, example="desc")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Lista de conflitos",
@@ -125,7 +165,7 @@ class ConflitoController extends Controller
      *     )
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
         if (!Auth::guard('sanctum')->check()) {
             return response()->json([
@@ -134,48 +174,139 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflitos = Conflito::with([
-                                        'aldeias',
-                                        'assuntos',
-                                        'atoresIdentificados',
-                                        'categoriasAtores',
-                                        'impactosAmbientais',
-                                        'impactosSaude',
-                                        'impactosSocioEconomicos',
-                                        'inqueritos',
-                                        'numerosSeiIdentificacaoConflito',
-                                        'povos',
-                                        'processosJudiciais',
-                                        'programasProtecao',
-                                        'terrasIndigenas',
-                                        'tiposConflito',
-                                        'violenciasPatrimoniais',
-                                        'violenciasPessoasIndigenas',
-                                        'violenciasPessoasNaoIndigenas',
-                                    ])->orderBy('dataInicioConflito', 'desc')->get();
-        return response()->json($conflitos);
+        try {
+            // Valida parâmetros
+            $validator = validator($request->all(), [
+                'per_page'                      => 'nullable|integer|min:1|max:100',
+                'page'                          => 'nullable|integer|min:1',
+                'search'                        => 'nullable|string|max:255',
+                'estrategiaGeralUtilizadaDemed' => 'nullable|string|max:255',
+                'terraIndigena'                 => 'nullable|integer|max:255',
+                'povo'                          => 'nullable|integer|max:255',
+                'tipoViolenciaIndigena'         => 'nullable|string|max:255',
+                'sort_by'                       => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
+                'sort_order'                    => 'nullable|string|in:asc,desc'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parâmetros inválidos',
+                    'errors' => $validator->errors()
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Configurações
+            $perPage                       = $request->per_page ?? 15;
+            $sortBy                        = $request->sort_by ?? 'dataInicioConflito';
+            $sortOrder                     = $request->sort_order ?? 'desc';
+            $search                        = $request->search;
+            $page                          = $request->page;
+            $estrategiaGeralUtilizadaDemed = $request->estrategiaGeralUtilizadaDemed;
+            $povo                          = $request->povo;
+            $terraIndigena                 = $request->terraIndigena;
+            $tipoViolenciaIndigena         = $request->tipoViolenciaIndigena;
+            
+            // Query base
+            $query = Conflito::with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'localidadesConflito',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'
+            ]);
+            
+            // Aplica busca se fornecida
+            if (!empty($search)) {
+                $query->where('nome', 'LIKE', "%{$search}%");
+            }
+            
+            if (!empty($estrategiaGeralUtilizadaDemed)) {
+                $query->where('estrategiaGeralUtilizadaDemed', '=', "{$estrategiaGeralUtilizadaDemed}");
+            }
+            
+            // FILTRO POR POVO - CORRIGIDO (com qualificação de tabela)
+            if (!empty($povo)) {
+                $query->whereHas('povos', function($q) use ($povo) {
+                    // Qualifique a coluna com o nome da tabela (povo)
+                    $q->where('povo.idPovo', '=', $povo);
+                });
+            }
+            
+            // FILTRO POR TERRAS INDÍGENAS
+            if (!empty($terraIndigena)) {
+                $query->whereHas('terrasIndigenas', function($q) use ($terraIndigena) {
+                    // Qualifique também para evitar ambiguidade futura
+                    $q->where('terra_indigena.idTerraIndigena', '=', $terraIndigena);
+                });
+            }
+            
+            // FILTRO POR VIOLÊNCIAS CONTRA PESSOAS INDÍGENAS
+            if (!empty($tipoViolenciaIndigena)) {
+                $query->whereHas('violenciasPessoasIndigenas', function($q) use ($tipoViolenciaIndigena) {
+                    // Qualifique também para evitar ambiguidade futura
+                    $q->where('violencia_pessoa_indigena.tipoViolencia', '=', $tipoViolenciaIndigena);
+                });
+            }
+            
+            // Aplica ordenação
+            $query->orderBy($sortBy, $sortOrder);
+            
+            // Lógica de paginação/busca
+            if (!empty($search)) {
+                // Se há busca, retorna todos os resultados sem paginação
+                $conflitos = $query->get();
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => ['data' => $conflitos],
+                    'message' => 'Resultados da busca retornados com sucesso.'
+                ]);
+            } else {
+                // Se não há busca, usa paginação
+                $currentPage = $page ?? 1; // Se page for nulo, usa 1 como padrão
+                
+                $conflitos = $query->paginate($perPage, ['*'], 'page', $currentPage);
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $conflitos,
+                    'message' => 'Conflitos paginados recuperados com sucesso.'
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em index:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
     
     /**
      * @OA\Get(
-     *     path="/api/conflito/paginar",
+     *     path="/api/conflito/dashboard",
      *     tags={"Conflitos"},
-     *     security={ {"sanctum": {} } },
-     *     @OA\Parameter(
-     *         name="page",
-     *         description="Página de registros",
-     *         in="query",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         description="Registros por Página",
-     *         in="query",
-     *         required=false,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     summary="Listar os conflitos por página",
+     *     summary="Listar todos os conflitos para o dashboard",
      *     @OA\Response(
      *         response=200,
      *         description="Lista de conflitos",
@@ -186,19 +317,33 @@ class ConflitoController extends Controller
      *     )
      * )
      */
-    public function getAllPage(Request $request)
+    public function getAllDashboard(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
-            return response()->json([
-                'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
-            ], Response::HTTP_UNAUTHORIZED);
-        }
         
-        $per_page = $request->per_page ?? 10;
-        $conflitos = Conflito::orderBy('created_at', 'desc')->paginate($per_page);
-        return response()->json($conflitos);
+        try {
+            // Query base
+            $conflitos = Conflito::with(['tiposConflito'])->get();
+                        
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => 'Dados de Conflito retornados com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em index:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
+
 
     /**
      * @OA\Post(
@@ -209,19 +354,202 @@ class ConflitoController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome","descricao","regiao","dataConflito","latitude","longitude","municipio","uf","flagOcorrenciaAmeaca","flagOcorrenciaViolencia","flagOcorrenciaAssassinato","flagOcorrenciaFeridos", "flagMembroProgramaProtecao"},
-     *             @OA\Property(property="nome", type="string", example="nome do conflito"),
-     *             @OA\Property(property="relato", type="string", example="Relato do conflito"),
-     *             @OA\Property(property="regiao", type="string", example="norte"),
-     *             @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             required={"latitude",
+     *                       "longitude",
+     *                       "nome",
+     *                       "relato",
+     *                       "dataInicioConflito",
+     *                       "dataAcionamentoMpiConflito",
+     *                       "observacoes",
+     *                       "flagHasImpactoAmbiental",
+     *                       "flagHasImpactoSaude",
+     *                       "flagHasImpactoSocioEconomico",
+     *                       "flagHasViolenciaIndigena",
+     *                       "flagHasMembroProgramaProtecao",
+     *                       "flagHasBOouNF",
+     *                       "flagHasInquerito",
+     *                       "flagHasProcessoJudicial",
+     *                       "flagHasAssistenciaJuridica",
+     *                       "flagHasRegiaoPrioritaria",
+     *                       "flagHasViolenciaPatrimonialIndigena",
+     *                       "flagHasEventoViolenciaIndigena",
+     *                       "flagHasAssassinatoPrisaoNaoIndigena",
+     *                       "tipoInstituicaoAssistenciaJuridica",
+     *                       "advogadoInstituicaoAssistenciaJuridica",
+     *                       "regiaoPrioritaria",
+     *                       "classificacaoGravidadeConflitoDemed",
+     *                       "atualizacaoClassificacaoGravidadeConflito",
+     *                       "dataReferenciaMudancaClassificacao",
+     *                       "estrategiaGeralUtilizadaDemed",
+     *                       "estrategiaColetiva",
+     *                       "status",
+     *                       "assuntosConflito"},
      *             @OA\Property(property="latitude", type="string", example="41.40338"),
      *             @OA\Property(property="longitude", type="string", example="2.17403"),
-     *             @OA\Property(property="flagOcorrenciaAmeaca", type="boolean", example="1"),
-     *             @OA\Property(property="flagOcorrenciaViolencia", type="boolean", example="0"),
-     *             @OA\Property(property="flagOcorrenciaAssassinato", type="boolean", example="1"),
-     *             @OA\Property(property="flagOcorrenciaFeridos", type="boolean", example="0"),
-     *             @OA\Property(property="flagMembroProgramaProtecao", type="boolean", example="1"),
-     *         )
+     *             @OA\Property(property="nome", type="string", example="nome do conflito"),
+     *             @OA\Property(property="relato", type="string", example="Relato do conflito"),
+     *             @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="dataAcionamentoMpiConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="observacoes", type="string", example="Observações do conflito"),
+     *             @OA\Property(property="flagHasImpactoAmbiental", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasImpactoSaude", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasImpactoSocioEconomico", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasMembroProgramaProtecao", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasBOouNF", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasInquerito", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasProcessoJudicial", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssistenciaJuridica", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasRegiaoPrioritaria", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasViolenciaPatrimonialIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasEventoViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssassinatoPrisaoNaoIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="tipoInstituicaoAssistenciaJuridica", type="string", example="Advogada(o) da União"),
+     *             @OA\Property(property="advogadoInstituicaoAssistenciaJuridica", type="string", example="Consultoria Jurídica/MPI"),
+     *             @OA\Property(property="regiaoPrioritaria", type="string", example="Sul do Mato Grosso do Sul"),
+     *             @OA\Property(property="classificacaoGravidadeConflitoDemed", type="string", example="URGENCIA"),
+     *             @OA\Property(property="atualizacaoClassificacaoGravidadeConflito", type="string", example="EMERGÊNCIA"),
+     *             @OA\Property(property="dataReferenciaMudancaClassificacao", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Acompanhamento do conflito com ações complexas"),
+     *             @OA\Property(property="estrategiaColetiva", type="string", example="Descrição da estratégia coletiva"),
+     *             @OA\Property(property="status", type="string", example="EM ANALISE"),
+     *             @OA\Property(property="aldeias", type="array", description="Coleção de IDs de aldeias relacionados ao conflito.", 
+     *              @OA\Items(type="integer", format="int64"), example={2860, 125, 43}),
+     *             @OA\Property(property="assuntos", type="array", description="Coleção de assuntos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="terras_indigenas", type="array", description="Coleção de Terras Indigenas relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="povos", type="array", description="Coleção de povos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="tipos_conflito", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2}),
+     *             @OA\Property(property="categorias_atores", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 7}),
+     *             @OA\Property(property="impactos_ambientais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 3}),
+     *             @OA\Property(property="impactos_saude", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={5, 15}),
+     *             @OA\Property(property="impactos_socio_economicos", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="atores_identificados", type="array", description="Coleção de atores identificados relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"João da Silva", "Maria das Graças"}),
+     *             @OA\Property(property="inqueritos", type="array", description="Coleção de inqueritos relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2010-01-01",
+     *                          "numero": "1.30.014.000051/2010-78",
+     *                          "numeroSei": "48782219",
+     *                          "orgao": "Procuradoria da República em Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Ministério Público Federal"}
+     *                      }),
+     *             @OA\Property(property="localidades_conflito", type="array", description="Coleção de localidades relacionadas ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="regiao",type="string",description="Região da Localidade"),
+     *                        @OA\Property(property="municipio",type="string",description="Municícipio da Localidade"),
+     *                        @OA\Property(property="uf",type="string",description="UF da Localidade")
+     *              ),
+     *              example={
+     *                          {"municipio": "Paraty", 
+     *                          "regiao": "Sudeste", 
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="numeros_sei_identificacao_conflito", type="array", description="Coleção de processos SEI relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"15000.000637/2025-30","15000.002375/2024-67","14021.038584/2025-19"}),
+     *             @OA\Property(property="processos_judiciais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoPoder",type="string",description="Tipo de Poder")
+     *              ),
+     *              example={
+     *                          {"data": "2022-01-01",
+     *                          "numero": "1002052-25.2022.4.01.4103",
+     *                          "numeroSei": "44379030",
+     *                          "orgaoApoio": "Vara Federal Cível e Criminal da Subseção Judicial de Vilhena/RO",
+     *                          "tipoPoder": "Justiça Federal"}
+     *                      }),
+     *             @OA\Property(property="programas_protecao", type="array", description="Coleção de programas de proteção relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPrograma",type="string",description="Tipo de programa"),
+     *                        @OA\Property(property="uf",type="string",description="UF do programa")
+     *              ),
+     *              example={
+     *                          {"numeroSei": "48782219",
+     *                          "tipoPrograma": "Programa de Proteção aos Defensores dos Direitos Humanos (PPDDH)",
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="registros_b_oou_n_f", type="array", description="Coleção de registros de BO relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do BO"),
+     *                        @OA\Property(property="numero",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o BO"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2020-09-21",
+     *                          "numero": "219/2020",
+     *                          "numeroSei": "48781613",
+     *                          "orgao": "Delegacia de Polícia Federal de Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Polícia Federal"}
+     *                      }),
+     *             @OA\Property(property="violencias_patrimoniais", type="array", description="Coleção de violências patrimoniais ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Invasão"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_indigenas", type="array", description="Coleção de violências contra pessoas indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="faixaEtaria",type="string",description="Faixa Etaria"),
+     *                        @OA\Property(property="genero",type="string",description="Gênero"),
+     *                        @OA\Property(property="idade",type="integer",format="int64",description="Idade"),
+     *                        @OA\Property(property="instrumentoViolencia",type="string",description="Instrumento de Violencia"),
+     *                        @OA\Property(property="nome",type="string",description="Nome"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "faixaEtaria": "Jovem adulto (18-25 anos)",
+     *                          "genero": "Homem",
+     *                          "idade": 20,
+     *                          "instrumentoViolencia": "Ameaça verbal e/ou escrita",
+     *                          "nome": "João Silva",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Ameaça à integridade pessoal"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_nao_indigenas", type="array", description="Coleção de violências contra pessoas não indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="nome",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPessoa",type="string",description="Tipo de Pessoa"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2021-08-18",
+     *                          "nome": "Edvaldo Deoclides de Oliveira",
+     *                          "numeroSei": "36607122",
+     *                          "tipoPessoa": "Empresário",
+     *                          "tipoViolencia": "Assassinato de não indígena"}
+     *                      })
+     *          )
      *     ),
      *     @OA\Response(
      *         response=201,
@@ -246,6 +574,8 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
+        $auth = Auth::guard('sanctum')->user();
+        
         $validator = Validator::make($request->all(), $this->getRegrasValidacao());
         
         if ($validator->fails()) {
@@ -263,29 +593,40 @@ class ConflitoController extends Controller
             
             DB::beginTransaction();
             
+            
             // Criar o conflito principal
-            $conflitoData = $request->only([
-                'latitude',
-                'longitude',
-                'nome',
-                'relato',
-                'dataInicioConflito',
-                'dataAcionamentoMpiConflito',
-                'observacoes',
-                'flagHasImpactoAmbiental',
-                'flagHasImpactoSaude',
-                'flagHasImpactoSocioEconomico',
-                'flagHasViolenciaIndigena',
-                'flagHasMembroProgramaProtecao',
-                'flagHasBOouNF',
-                'flagHasInquerito',
-                'flagHasProcessoJudicial',
-                'flagHasAssistenciaJuridica',
-                'flagHasRegiaoPrioritaria',
-                'flagHasViolenciaPatrimonialIndigena',
-                'flagHasEventoViolenciaIndigena',
-                'flagHasAssassinatoPrisaoNaoIndigena'
-            ]);
+            $conflitoData = $request->only(['latitude',
+                                            'longitude',
+                                            'nome',
+                                            'relato',
+                                            'dataInicioConflito',
+                                            'dataAcionamentoMpiConflito',
+                                            'observacoes',
+                                            'flagHasImpactoAmbiental',
+                                            'flagHasImpactoSaude',
+                                            'flagHasImpactoSocioEconomico',
+                                            'flagHasViolenciaIndigena',
+                                            'flagHasMembroProgramaProtecao',
+                                            'flagHasBOouNF',
+                                            'flagHasInquerito',
+                                            'flagHasProcessoJudicial',
+                                            'flagHasAssistenciaJuridica',
+                                            'flagHasRegiaoPrioritaria',
+                                            'flagHasViolenciaPatrimonialIndigena',
+                                            'flagHasEventoViolenciaIndigena',
+                                            'flagHasAssassinatoPrisaoNaoIndigena',
+                                            'tipoInstituicaoAssistenciaJuridica',
+                                            'advogadoInstituicaoAssistenciaJuridica',
+                                            'regiaoPrioritaria',
+                                            'classificacaoGravidadeConflitoDemed',
+                                            'atualizacaoClassificacaoGravidadeConflito',
+                                            'dataReferenciaMudancaClassificacao',
+                                            'estrategiaGeralUtilizadaDemed',
+                                            'estrategiaColetiva']);
+            
+            
+            $conflitoData['created_by'] = $auth->email;
+            $conflitoData['updated_by'] = $auth->email;
             
             $conflito = Conflito::create($conflitoData);
             
@@ -302,8 +643,8 @@ class ConflitoController extends Controller
             }
             
             // Cadastrar processos SEI de identificação
-            if ($request->has('numerosSeiIdentificacaoConflito') && is_array($request->numerosSeiIdentificacaoConflito)) {
-                foreach ($request->numerosSeiIdentificacaoConflito as $numeroSei) {
+            if ($request->has('numeros_sei_identificacao_conflito') && is_array($request->numeros_sei_identificacao_conflito)) {
+                foreach ($request->numeros_sei_identificacao_conflito as $numeroSei) {
                     if (!empty(trim($numeroSei))) {
                         NumeroSeiIdentificacaoConflito::create([
                             'idConflito' => $conflito->idConflito,
@@ -327,9 +668,22 @@ class ConflitoController extends Controller
                 }
             }
             
+            // Criar localidadesConflito
+            if ($request->has('localidades_conflito') && is_array($request->localidades_conflito)) {
+                foreach ($request->localidades_conflito as $localidade) {
+                    LocalidadeConflito::create([
+                        'idConflito' => $conflito->idConflito,
+                        'regiao'     => $localidade['regiao'] ?? null,
+                        'uf'         => $localidade['uf'] ?? null,
+                        'municipio'  => $localidade['municipio'] ?? null
+                    ]);
+                }
+            }
+            
+            
             // Criar processosJudiciais
-            if ($request->has('processosJudiciais') && is_array($request->processosJudiciais)) {
-                foreach ($request->processosJudiciais as $processo) {
+            if ($request->has('processos_judiciais') && is_array($request->processos_judiciais)) {
+                foreach ($request->processos_judiciais as $processo) {
                     ProcessoJudicial::create([
                         'idConflito' => $conflito->idConflito,
                         'data'       => $processo['data'] ?? null,
@@ -342,8 +696,8 @@ class ConflitoController extends Controller
             }
             
             // Criar programasProtecao
-            if ($request->has('programasProtecao') && is_array($request->programasProtecao)) {
-                foreach ($request->programasProtecao as $programaProtecao) {
+            if ($request->has('programas_protecao') && is_array($request->programas_protecao)) {
+                foreach ($request->programas_protecao as $programaProtecao) {
                     ProgramaProtecao::create([
                         'idConflito'   => $conflito->idConflito,
                         'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
@@ -353,45 +707,59 @@ class ConflitoController extends Controller
                 }
             }
             
-            // Criar violências patrimoniais
-            if ($request->has('violenciasPatrimoniais') && is_array($request->violenciasPatrimoniais)) {
-                foreach ($request->violenciasPatrimoniais as $violenciaPatrimonial) {
-                    ViolenciaPatrimonial::create([
+            //Criar 
+            if ($request->has('registros_b_oou_n_f') && is_array($request->registros_b_oou_n_f)) {
+                foreach ($request->registros_b_oou_n_f as $registro) {
+                    RegistroBoNf::create([
                         'idConflito' => $conflito->idConflito,
+                        'data'       => $registro['data'] ?? null,
+                        'numero'     => $registro['numero'] ?? null,
+                        'orgao'      => $registro['orgao'] ?? null,
+                        'tipoOrgao'  => $registro['tipoOrgao'] ?? null,
+                        'numeroSei'  => $registro['numeroSei'] ?? null
+                    ]);
+                }
+            }
+            
+            // Criar violências patrimoniais
+            if ($request->has('violencias_patrimoniais') && is_array($request->violencias_patrimoniais)) {
+                foreach ($request->violencias_patrimoniais as $violenciaPatrimonial) {
+                    ViolenciaPatrimonial::create([
+                        'idConflito'    => $conflito->idConflito,
                         'tipoViolencia' => $violenciaPatrimonial['tipoViolencia'] ?? null,
-                        'data' => $violenciaPatrimonial['data'] ?? null,
-                        'numeroSei' => $violenciaPatrimonial['numeroSei'] ?? null
+                        'data'          => $violenciaPatrimonial['data'] ?? null,
+                        'numeroSei'     => $violenciaPatrimonial['numeroSei'] ?? null
                     ]);
                 }
             }
             
             // Criar violências contra pessoas indígenas
-            if ($request->has('violenciasPessoasIndigenas') && is_array($request->violenciasPessoasIndigenas)) {
-                foreach ($request->violenciasPessoasIndigenas as $violenciaIndigena) {
+            if ($request->has('violencias_pessoas_indigenas') && is_array($request->violencias_pessoas_indigenas)) {
+                foreach ($request->violencias_pessoas_indigenas as $violenciaIndigena) {
                     ViolenciaPessoaIndigena::create([
                         'idConflito' => $conflito->idConflito,
-                        'tipoViolencia' => $violenciaIndigena['tipoViolencia'] ?? null,
-                        'data' => $violenciaIndigena['data'] ?? null,
-                        'nome' => $violenciaIndigena['nome'] ?? null,
-                        'idade' => $violenciaIndigena['idade'] ?? null,
-                        'faixaEtaria' => $violenciaIndigena['faixaEtaria'] ?? null,
-                        'genero' => $violenciaIndigena['genero'] ?? null,
+                        'tipoViolencia'        => $violenciaIndigena['tipoViolencia'] ?? null,
+                        'data'                 => $violenciaIndigena['data'] ?? null,
+                        'nome'                 => $violenciaIndigena['nome'] ?? null,
+                        'idade'                => $violenciaIndigena['idade'] ?? null,
+                        'faixaEtaria'          => $violenciaIndigena['faixaEtaria'] ?? null,
+                        'genero'               => $violenciaIndigena['genero'] ?? null,
                         'instrumentoViolencia' => $violenciaIndigena['instrumentoViolencia'] ?? null,
-                        'numeroSei' => $violenciaIndigena['numeroSei'] ?? null
+                        'numeroSei'            => $violenciaIndigena['numeroSei'] ?? null
                     ]);
                 }
             }
             
             // Criar violências contra pessoas não indígenas
-            if ($request->has('violenciasPessoasNaoIndigenas') && is_array($request->violenciasPessoasNaoIndigenas)) {
-                foreach ($request->violenciasPessoasNaoIndigenas as $violenciaNaoIndigena) {
+            if ($request->has('violencias_pessoas_nao_indigenas') && is_array($request->violencias_pessoas_nao_indigenas)) {
+                foreach ($request->violencias_pessoas_nao_indigenas as $violenciaNaoIndigena) {
                     ViolenciaPessoaNaoIndigena::create([
-                        'idConflito' => $conflito->idConflito,
+                        'idConflito'    => $conflito->idConflito,
                         'tipoViolencia' => $violenciaNaoIndigena['tipoViolencia'] ?? null,
-                        'tipoPessoa' => $violenciaNaoIndigena['tipoPessoa'] ?? null,
-                        'data' => $violenciaNaoIndigena['data'] ?? null,
-                        'nome' => $violenciaNaoIndigena['nome'] ?? null,
-                        'numeroSei' => $violenciaNaoIndigena['numeroSei'] ?? null
+                        'tipoPessoa'    => $violenciaNaoIndigena['tipoPessoa'] ?? null,
+                        'data'          => $violenciaNaoIndigena['data'] ?? null,
+                        'nome'          => $violenciaNaoIndigena['nome'] ?? null,
+                        'numeroSei'     => $violenciaNaoIndigena['numeroSei'] ?? null
                     ]);
                 }
             }
@@ -434,33 +802,29 @@ class ConflitoController extends Controller
                 $conflito->categoriasAtores()->sync($request->categorias_atores);
             }
             
-            // Sincronizar atores identificados
-            if ($request->has('atoresIdentificados') && is_array($request->atoresIdentificados)) {
-                $conflito->atores()->sync($request->atoresIdentificados);
-            }
-            
             DB::commit();
             
             // Carregar relacionamentos para retornar o conflito completo
-            $conflitoCompleto = Conflito::with([
-                'aldeias',
-                'assuntos',
-                'atoresIdentificados',
-                'categoriasAtores',
-                'impactosAmbientais',
-                'impactosSaude',
-                'impactosSocioEconomicos',
-                'inqueritos',
-                'numerosSeiIdentificacaoConflito',
-                'povos',
-                'processosJudiciais',
-                'programasProtecao',
-                'terrasIndigenas',
-                'tiposConflito',
-                'violenciasPatrimoniais',
-                'violenciasPessoasIndigenas',
-                'violenciasPessoasNaoIndigenas',
-            ])->find($conflito->idConflito);
+            $conflitoCompleto = Conflito::with(['aldeias',
+                                                'assuntos',
+                                                'atoresIdentificados',
+                                                'categoriasAtores',
+                                                'impactosAmbientais',
+                                                'impactosSaude',
+                                                'impactosSocioEconomicos',
+                                                'inqueritos',
+                                                'localidadesConflito',
+                                                'numerosSeiIdentificacaoConflito',
+                                                'povos',
+                                                'processosJudiciais',
+                                                'programasProtecao',
+                                                'registrosBOouNF',
+                                                'terrasIndigenas',
+                                                'tiposConflito',
+                                                'violenciasPatrimoniais',
+                                                'violenciasPessoasIndigenas',
+                                                'violenciasPessoasNaoIndigenas'
+                                            ])->find($conflito->idConflito);
             
             return response()->json($conflitoCompleto, Response::HTTP_CREATED);
             
@@ -510,15 +874,17 @@ class ConflitoController extends Controller
                                     'impactosSaude',
                                     'impactosSocioEconomicos',
                                     'inqueritos',
+                                    'localidadesConflito',
                                     'numerosSeiIdentificacaoConflito',
                                     'povos',
                                     'processosJudiciais',
                                     'programasProtecao',
+                                    'registrosBOouNF',
                                     'terrasIndigenas',
                                     'tiposConflito',
                                     'violenciasPatrimoniais',
                                     'violenciasPessoasIndigenas',
-                                    'violenciasPessoasNaoIndigenas',
+                                    'violenciasPessoasNaoIndigenas'
                                 ])->findOrFail($id);
         
         if (!$conflito) {
@@ -545,9 +911,202 @@ class ConflitoController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Departamento de TI")
-     *         )
+     *             required={"latitude",
+     *                       "longitude",
+     *                       "nome",
+     *                       "relato",
+     *                       "dataInicioConflito",
+     *                       "dataAcionamentoMpiConflito",
+     *                       "observacoes",
+     *                       "flagHasImpactoAmbiental",
+     *                       "flagHasImpactoSaude",
+     *                       "flagHasImpactoSocioEconomico",
+     *                       "flagHasViolenciaIndigena",
+     *                       "flagHasMembroProgramaProtecao",
+     *                       "flagHasBOouNF",
+     *                       "flagHasInquerito",
+     *                       "flagHasProcessoJudicial",
+     *                       "flagHasAssistenciaJuridica",
+     *                       "flagHasRegiaoPrioritaria",
+     *                       "flagHasViolenciaPatrimonialIndigena",
+     *                       "flagHasEventoViolenciaIndigena",
+     *                       "flagHasAssassinatoPrisaoNaoIndigena",
+     *                       "tipoInstituicaoAssistenciaJuridica",
+     *                       "advogadoInstituicaoAssistenciaJuridica",
+     *                       "regiaoPrioritaria",
+     *                       "classificacaoGravidadeConflitoDemed",
+     *                       "atualizacaoClassificacaoGravidadeConflito",
+     *                       "dataReferenciaMudancaClassificacao",
+     *                       "estrategiaGeralUtilizadaDemed",
+     *                       "estrategiaColetiva",
+     *                       "status",
+     *                       "assuntosConflito"},
+     *             @OA\Property(property="latitude", type="string", example="41.40338"),
+     *             @OA\Property(property="longitude", type="string", example="2.17403"),
+     *             @OA\Property(property="nome", type="string", example="nome do conflito"),
+     *             @OA\Property(property="relato", type="string", example="Relato do conflito"),
+     *             @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="dataAcionamentoMpiConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="observacoes", type="string", example="Observações do conflito"),
+     *             @OA\Property(property="flagHasImpactoAmbiental", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasImpactoSaude", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasImpactoSocioEconomico", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasMembroProgramaProtecao", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasBOouNF", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasInquerito", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasProcessoJudicial", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssistenciaJuridica", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasRegiaoPrioritaria", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasViolenciaPatrimonialIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="flagHasEventoViolenciaIndigena", type="string", example="NÃO"),
+     *             @OA\Property(property="flagHasAssassinatoPrisaoNaoIndigena", type="string", example="SIM"),
+     *             @OA\Property(property="tipoInstituicaoAssistenciaJuridica", type="string", example="Advogada(o) da União"),
+     *             @OA\Property(property="advogadoInstituicaoAssistenciaJuridica", type="string", example="Consultoria Jurídica/MPI"),
+     *             @OA\Property(property="regiaoPrioritaria", type="string", example="Sul do Mato Grosso do Sul"),
+     *             @OA\Property(property="classificacaoGravidadeConflitoDemed", type="string", example="URGENCIA"),
+     *             @OA\Property(property="atualizacaoClassificacaoGravidadeConflito", type="string", example="EMERGÊNCIA"),
+     *             @OA\Property(property="dataReferenciaMudancaClassificacao", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+     *             @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Acompanhamento do conflito com ações complexas"),
+     *             @OA\Property(property="estrategiaColetiva", type="string", example="Descrição da estratégia coletiva"),
+     *             @OA\Property(property="status", type="string", example="EM ANALISE"),
+     *             @OA\Property(property="aldeias", type="array", description="Coleção de IDs de aldeias relacionados ao conflito.", 
+     *              @OA\Items(type="integer", format="int64"), example={2860, 125, 43}),
+     *             @OA\Property(property="assuntos", type="array", description="Coleção de assuntos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="terras_indigenas", type="array", description="Coleção de Terras Indigenas relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="povos", type="array", description="Coleção de povos relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2, 7}),
+     *             @OA\Property(property="tipos_conflito", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={1, 2}),
+     *             @OA\Property(property="categorias_atores", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 7}),
+     *             @OA\Property(property="impactos_ambientais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={2, 3}),
+     *             @OA\Property(property="impactos_saude", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={5, 15}),
+     *             @OA\Property(property="impactos_socio_economicos", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(type="integer", format="int64"), example={12, 15}),
+     *             @OA\Property(property="atores_identificados", type="array", description="Coleção de atores identificados relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"João da Silva", "Maria das Graças"}),
+     *             @OA\Property(property="inqueritos", type="array", description="Coleção de inqueritos relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2010-01-01",
+     *                          "numero": "1.30.014.000051/2010-78",
+     *                          "numeroSei": "48782219",
+     *                          "orgao": "Procuradoria da República em Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Ministério Público Federal"}
+     *                      }),
+     *             @OA\Property(property="localidades_conflito", type="array", description="Coleção de localidades relacionadas ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="regiao",type="string",description="Região da Localidade"),
+     *                        @OA\Property(property="municipio",type="string",description="Municícipio da Localidade"),
+     *                        @OA\Property(property="uf",type="string",description="UF da Localidade")
+     *              ),
+     *              example={
+     *                          {"municipio": "Paraty", 
+     *                          "regiao": "Sudeste", 
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="numeros_sei_identificacao_conflito", type="array", description="Coleção de processos SEI relacionados ao conflito.",
+     *              @OA\Items(type="string"), example={"15000.000637/2025-30","15000.002375/2024-67","14021.038584/2025-19"}),
+     *             @OA\Property(property="processos_judiciais", type="array", description="Coleção de tipos de Conflito relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do inquérito"),
+     *                        @OA\Property(property="numero",type="string",description="Número do inquérito"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o inquérito"),
+     *                        @OA\Property(property="tipoPoder",type="string",description="Tipo de Poder")
+     *              ),
+     *              example={
+     *                          {"data": "2022-01-01",
+     *                          "numero": "1002052-25.2022.4.01.4103",
+     *                          "numeroSei": "44379030",
+     *                          "orgaoApoio": "Vara Federal Cível e Criminal da Subseção Judicial de Vilhena/RO",
+     *                          "tipoPoder": "Justiça Federal"}
+     *                      }),
+     *             @OA\Property(property="programas_protecao", type="array", description="Coleção de programas de proteção relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPrograma",type="string",description="Tipo de programa"),
+     *                        @OA\Property(property="uf",type="string",description="UF do programa")
+     *              ),
+     *              example={
+     *                          {"numeroSei": "48782219",
+     *                          "tipoPrograma": "Programa de Proteção aos Defensores dos Direitos Humanos (PPDDH)",
+     *                          "uf": "RJ"}
+     *                      }),
+     *             @OA\Property(property="registros_b_oou_n_f", type="array", description="Coleção de registros de BO relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do BO"),
+     *                        @OA\Property(property="numero",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="orgao",type="string",description="Órgão que registrou o BO"),
+     *                        @OA\Property(property="tipoOrgao",type="string",description="Tipo do Órgão")
+     *              ),
+     *              example={
+     *                          {"data": "2020-09-21",
+     *                          "numero": "219/2020",
+     *                          "numeroSei": "48781613",
+     *                          "orgao": "Delegacia de Polícia Federal de Angra dos Reis/RJ",
+     *                          "tipoOrgao": "Polícia Federal"}
+     *                      }),
+     *             @OA\Property(property="violencias_patrimoniais", type="array", description="Coleção de violências patrimoniais ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Invasão"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_indigenas", type="array", description="Coleção de violências contra pessoas indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="faixaEtaria",type="string",description="Faixa Etaria"),
+     *                        @OA\Property(property="genero",type="string",description="Gênero"),
+     *                        @OA\Property(property="idade",type="integer",format="int64",description="Idade"),
+     *                        @OA\Property(property="instrumentoViolencia",type="string",description="Instrumento de Violencia"),
+     *                        @OA\Property(property="nome",type="string",description="Nome"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2023-01-23",
+     *                          "faixaEtaria": "Jovem adulto (18-25 anos)",
+     *                          "genero": "Homem",
+     *                          "idade": 20,
+     *                          "instrumentoViolencia": "Ameaça verbal e/ou escrita",
+     *                          "nome": "João Silva",
+     *                          "numeroSei": "48782219",
+     *                          "tipoViolencia": "Ameaça à integridade pessoal"}
+     *                      }),
+     *             @OA\Property(property="violencias_pessoas_nao_indigenas", type="array", description="Coleção de violências contra pessoas não indigenas relacionados ao conflito.",
+     *              @OA\Items(
+     *                        @OA\Property(property="data",type="date",format="yyyy-mm-dd",description="Data do incidente de violência"),
+     *                        @OA\Property(property="nome",type="string",description="Número do BO"),
+     *                        @OA\Property(property="numeroSei",type="string",description="Número do documento SEI"),
+     *                        @OA\Property(property="tipoPessoa",type="string",description="Tipo de Pessoa"),
+     *                        @OA\Property(property="tipoViolencia",type="string",description="Tipo de violência")
+     *              ),
+     *              example={
+     *                          {"data": "2021-08-18",
+     *                          "nome": "Edvaldo Deoclides de Oliveira",
+     *                          "numeroSei": "36607122",
+     *                          "tipoPessoa": "Empresário",
+     *                          "tipoViolencia": "Assassinato de não indígena"}
+     *                      })
+     *          )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -572,56 +1131,323 @@ class ConflitoController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
         
-        $conflito = Conflito::findOrFail($id);
-
-        $validator = Validator::make($request->all(), [
-            'nome'                       => 'required|string|max:255',
-            'descricao'                  => 'required|string',
-            'relato'                     => 'required|string',
-            'processoSei'                => 'required|string',
-            'regiao'                     => 'required|string|max:100',
-            'dataInicioConflito'         => 'required|date',
-            'dataFimConflito'            => 'nullable|date|after_or_equal:dataInicioConflito',
-            'latitude'                   => 'required|numeric',
-            'longitude'                  => 'required|numeric',
-            'municipio'                  => 'required|string|max:100',
-            'uf'                         => 'required|string|size:2',
-            'flagOcorrenciaAmeaca'       => 'required|string',
-            'flagOcorrenciaViolencia'    => 'required|string',
-            'flagOcorrenciaAssassinato'  => 'required|string',
-            'flagOcorrenciaFeridos'      => 'required|string',
-            'flagMembroProgramaProtecao' => 'required|string'
-        ],[
-            'nome.required'              => 'O título é obrigatório',
-            'descricao.required'         => 'A descrição é obrigatória',
-        ]);
-
+        $auth = Auth::guard('sanctum')->user();
+        
+        $validator = Validator::make($request->all(), $this->getRegrasValidacao());
+        
         if ($validator->fails()) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro de validação',
                 'errors' => $validator->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
-        $validatedData = $validator->validated();
-        
-        // Define valores padrão para flags booleanas caso não sejam fornecidas
-        $booleanFields = [
-            'flagOcorrenciaAmeaca',
-            'flagOcorrenciaViolencia',
-            'flagOcorrenciaAssassinato',
-            'flagOcorrenciaFeridos',
-            'flagMembroProgramaProtecao'
-        ];
-        
-        foreach ($booleanFields as $field) {
-            if (!isset($validatedData[$field])) {
-                $validatedData[$field] = false;
+        try {
+            DB::beginTransaction();
+            
+            // Buscar o conflito existente
+            $conflito = Conflito::findOrFail($id);
+            
+            // Atualizar o conflito principal
+            $conflitoData = $request->only(['latitude',
+                                            'longitude',
+                                            'nome',
+                                            'relato',
+                                            'dataInicioConflito',
+                                            'dataAcionamentoMpiConflito',
+                                            'observacoes',
+                                            'flagHasImpactoAmbiental',
+                                            'flagHasImpactoSaude',
+                                            'flagHasImpactoSocioEconomico',
+                                            'flagHasViolenciaIndigena',
+                                            'flagHasMembroProgramaProtecao',
+                                            'flagHasBOouNF',
+                                            'flagHasInquerito',
+                                            'flagHasProcessoJudicial',
+                                            'flagHasAssistenciaJuridica',
+                                            'flagHasRegiaoPrioritaria',
+                                            'flagHasViolenciaPatrimonialIndigena',
+                                            'flagHasEventoViolenciaIndigena',
+                                            'flagHasAssassinatoPrisaoNaoIndigena',
+                                            'tipoInstituicaoAssistenciaJuridica',
+                                            'advogadoInstituicaoAssistenciaJuridica',
+                                            'regiaoPrioritaria',
+                                            'classificacaoGravidadeConflitoDemed',
+                                            'atualizacaoClassificacaoGravidadeConflito',
+                                            'dataReferenciaMudancaClassificacao',
+                                            'estrategiaGeralUtilizadaDemed',
+                                            'estrategiaColetiva']);
+            
+            $conflitoData['updated_by'] = $auth->email;
+            
+            $conflito->update($conflitoData);
+            
+            // ATUALIZAR: Atores identificados - deletar e recriar
+            if ($request->has('atores_identificados')) {
+                $conflito->atoresIdentificados()->delete();
+                if (is_array($request->atores_identificados)) {
+                    foreach ($request->atores_identificados as $ator) {
+                        AtorIdentificadoConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'nome' => (is_array($ator)) ? $ator['nome'] : $ator
+                        ]);
+                    }
+                }
             }
+            
+            // ATUALIZAR: Números SEI de identificação - deletar e recriar
+            if ($request->has('numeros_sei_identificacao_conflito')) {
+                $conflito->numerosSeiIdentificacaoConflito()->delete();
+                if (is_array($request->numeros_sei_identificacao_conflito)) {
+                    foreach ($request->numeros_sei_identificacao_conflito as $numeroSei) {
+                        NumeroSeiIdentificacaoConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'numeroSei' => (is_array($numeroSei)) ? $numeroSei['numeroSei'] : $numeroSei
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Inquéritos - deletar e recriar
+            if ($request->has('inqueritos')) {
+                $conflito->inqueritos()->delete();
+                if (is_array($request->inqueritos)) {
+                    foreach ($request->inqueritos as $inquerito) {
+                        Inquerito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'data'       => $inquerito['data'] ?? null,
+                            'numero'     => $inquerito['numero'] ?? null,
+                            'orgao'      => $inquerito['orgao'] ?? null,
+                            'tipoOrgao'  => $inquerito['tipoOrgao'] ?? null,
+                            'numeroSei'  => $inquerito['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Localidades - deletar e recriar
+            if ($request->has('localidades_conflito')) {
+                $conflito->localidadesConflito()->delete();
+                if (is_array($request->localidades_conflito)) {
+                    foreach ($request->localidades_conflito as $localidade) {
+                        LocalidadeConflito::create([
+                            'idConflito' => $conflito->idConflito,
+                            'regiao'     => $localidade['regiao'] ?? null,
+                            'uf'         => $localidade['uf'] ?? null,
+                            'municipio'  => $localidade['municipio'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Processos judiciais - deletar e recriar
+            if ($request->has('processos_judiciais')) {
+                $conflito->processosJudiciais()->delete();
+                if (is_array($request->processos_judiciais)) {
+                    foreach ($request->processos_judiciais as $processo) {
+                        ProcessoJudicial::create([
+                            'idConflito' => $conflito->idConflito,
+                            'data'       => $processo['data'] ?? null,
+                            'numero'     => $processo['numero'] ?? null,
+                            'tipoPoder'  => $processo['tipoPoder'] ?? null,
+                            'orgaoApoio' => $processo['orgaoApoio'] ?? null,
+                            'numeroSei'  => $processo['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Programas de proteção - deletar e recriar
+            if ($request->has('programas_protecao')) {
+                $conflito->programasProtecao()->delete();
+                if (is_array($request->programas_protecao)) {
+                    foreach ($request->programas_protecao as $programaProtecao) {
+                        ProgramaProtecao::create([
+                            'idConflito'   => $conflito->idConflito,
+                            'tipoPrograma' => $programaProtecao['tipoPrograma'] ?? null,
+                            'uf'           => $programaProtecao['uf'] ?? null,
+                            'numeroSei'    => $programaProtecao['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            //ATUALIZAR: Registros BO ou NF - deletar e recriar
+            if ($request->has('registros_b_oou_n_f') && is_array($request->registros_b_oou_n_f)) {
+                $conflito->registrosBOouNF()->delete();
+                foreach ($request->registros_b_oou_n_f as $registro) {
+                    RegistroBoNf::create([
+                        'idConflito' => $conflito->idConflito,
+                        'data'       => $registro['data'] ?? null,
+                        'numero'     => $registro['numero'] ?? null,
+                        'orgao'      => $registro['orgao'] ?? null,
+                        'tipoOrgao'  => $registro['tipoOrgao'] ?? null,
+                        'numeroSei'  => $registro['numeroSei'] ?? null
+                    ]);
+                }
+            }
+            
+            // ATUALIZAR: Violências patrimoniais - deletar e recriar
+            if ($request->has('violencias_patrimoniais')) {
+                $conflito->violenciasPatrimoniais()->delete();
+                if (is_array($request->violencias_patrimoniais)) {
+                    foreach ($request->violencias_patrimoniais as $violenciaPatrimonial) {
+                        ViolenciaPatrimonial::create([
+                            'idConflito' => $conflito->idConflito,
+                            'tipoViolencia' => $violenciaPatrimonial['tipoViolencia'] ?? null,
+                            'data' => $violenciaPatrimonial['data'] ?? null,
+                            'numeroSei' => $violenciaPatrimonial['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Violências contra pessoas indígenas - deletar e recriar
+            if ($request->has('violencias_pessoas_indigenas')) {
+                $conflito->violenciasPessoasIndigenas()->delete();
+                if (is_array($request->violencias_pessoas_indigenas)) {
+                    foreach ($request->violencias_pessoas_indigenas as $violenciaIndigena) {
+                        ViolenciaPessoaIndigena::create([
+                            'idConflito'           => $conflito->idConflito,
+                            'tipoViolencia'        => $violenciaIndigena['tipoViolencia'] ?? null,
+                            'data'                 => $violenciaIndigena['data'] ?? null,
+                            'nome'                 => $violenciaIndigena['nome'] ?? null,
+                            'idade'                => $violenciaIndigena['idade'] ?? null,
+                            'faixaEtaria'          => $violenciaIndigena['faixaEtaria'] ?? null,
+                            'genero'               => $violenciaIndigena['genero'] ?? null,
+                            'instrumentoViolencia' => $violenciaIndigena['instrumentoViolencia'] ?? null,
+                            'numeroSei'            => $violenciaIndigena['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+            // ATUALIZAR: Violências contra pessoas não indígenas - deletar e recriar
+            if ($request->has('violencias_pessoas_nao_indigenas')) {
+                $conflito->violenciasPessoasNaoIndigenas()->delete();
+                if (is_array($request->violencias_pessoas_nao_indigenas)) {
+                    foreach ($request->violencias_pessoas_nao_indigenas as $violenciaNaoIndigena) {
+                        ViolenciaPessoaNaoIndigena::create([
+                            'idConflito'    => $conflito->idConflito,
+                            'tipoViolencia' => $violenciaNaoIndigena['tipoViolencia'] ?? null,
+                            'tipoPessoa'    => $violenciaNaoIndigena['tipoPessoa'] ?? null,
+                            'data'          => $violenciaNaoIndigena['data'] ?? null,
+                            'nome'          => $violenciaNaoIndigena['nome'] ?? null,
+                            'numeroSei'     => $violenciaNaoIndigena['numeroSei'] ?? null
+                        ]);
+                    }
+                }
+            }
+            
+             
+            
+            // ATUALIZAR: Relações N:M - usar sync (já faz update automático)
+            
+            if ($request->has('aldeias')) {
+                $ids = $this->processarRelacionamento($request->aldeias, 'idAldeia');
+                $conflito->aldeias()->sync($ids);
+            } else {
+                $conflito->aldeias()->sync([]);
+            }
+            
+            if ($request->has('assuntos') && is_array($request->assuntos)) {
+                $ids = $this->processarRelacionamento($request->assuntos, 'idAssunto');
+                $conflito->assuntos()->sync($ids);
+            } else {
+                $conflito->assuntos()->sync([]);
+            }
+            
+            if ($request->has('impactos_ambientais') && is_array($request->impactos_ambientais)) {
+                $ids = $this->processarRelacionamento($request->impactos_ambientais, 'idImpactoAmbiental');
+                $conflito->impactosAmbientais()->sync($ids);
+            } else {
+                $conflito->impactosAmbientais()->sync([]);
+            }
+            
+            if ($request->has('impactos_saude') && is_array($request->impactos_saude)) {
+                $ids = $this->processarRelacionamento($request->impactos_saude, 'idImpactoSaude');
+                $conflito->impactosSaude()->sync($ids);
+            } else {
+                $conflito->impactosSaude()->sync([]);
+            }
+            
+            if ($request->has('impactos_socio_economicos') && is_array($request->impactos_socio_economicos)) {
+                $ids = $this->processarRelacionamento($request->impactos_socio_economicos, 'idImpactoSocioEconomico');
+                $conflito->impactosSocioEconomicos()->sync($ids);
+            } else {
+                $conflito->impactosSocioEconomicos()->sync([]);
+            }
+            
+            if ($request->has('povos') && is_array($request->povos)) {
+                $ids = $this->processarRelacionamento($request->povos, 'idPovo');
+                $conflito->povos()->sync($ids);
+            } else {
+                $conflito->povos()->sync([]);
+            }
+            
+            if ($request->has('terras_indigenas') && is_array($request->terras_indigenas)) {
+                $ids = $this->processarRelacionamento($request->terras_indigenas, 'idTerraIndigena');
+                $conflito->terrasIndigenas()->sync($ids);
+            } else {
+                $conflito->terrasIndigenas()->sync([]);
+            }
+            
+            if ($request->has('tipos_conflito') && is_array($request->tipos_conflito)) {
+                $ids = $this->processarRelacionamento($request->tipos_conflito, 'idTipoConflito');
+                $conflito->tiposConflito()->sync($ids);
+            } else {
+                $conflito->tiposConflito()->sync([]);
+            }
+            
+            // ATUALIZAR: Categorias de atores
+            if ($request->has('categorias_atores') && is_array($request->categorias_atores)) {
+                $ids = $this->processarRelacionamento($request->categorias_atores, 'idCategoriaAtor');
+                $conflito->categoriasAtores()->sync($ids);
+            } else {
+                $conflito->categoriasAtores()->sync([]);
+            }
+            
+            DB::commit();
+            
+            // Carregar relacionamentos para retornar o conflito completo
+            $conflitoCompleto = Conflito::with(['aldeias',
+                                                'assuntos',
+                                                'atoresIdentificados',
+                                                'categoriasAtores',
+                                                'impactosAmbientais',
+                                                'impactosSaude',
+                                                'impactosSocioEconomicos',
+                                                'inqueritos',
+                                                'localidadesConflito',
+                                                'numerosSeiIdentificacaoConflito',
+                                                'povos',
+                                                'processosJudiciais',
+                                                'programasProtecao',
+                                                'registrosBOouNF',
+                                                'terrasIndigenas',
+                                                'tiposConflito',
+                                                'violenciasPatrimoniais',
+                                                'violenciasPessoasIndigenas',
+                                                'violenciasPessoasNaoIndigenas'
+                                            ])->find($conflito->idConflito);
+            
+            return response()->json($conflitoCompleto, Response::HTTP_OK);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Erro ao atualizar conflito:', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Erro ao atualizar conflito',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $conflito->update($validatedData);
-        return response()->json($conflito);
     }
 
     /**
@@ -2037,6 +2863,784 @@ class ConflitoController extends Controller
     }
     
     /**
+     * @OA\Get(
+     *     path="/api/conflito/por-status/{status}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Listar conflitos por status",
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="path",
+     *         required=true,
+     *         description="Status do conflito",
+     *         @OA\Schema(type="string", example="ATIVO")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Número de itens por página",
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, example=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Número da página",
+     *         @OA\Schema(type="integer", minimum=1, example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos por status",
+     *         @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="success", type="boolean", example=true),
+     *              @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Conflito")),
+     *              @OA\Property(property="message", type="string", example="Conflitos com status ATIVO recuperados com sucesso.")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Parâmetros inválidos"
+     *     )
+     * )
+     */
+    public function getConflitosPorStatus(Request $request, $status)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        try {
+            $validator = validator(['status' => $status], [
+                'status' => 'required|string|max:50'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status inválido',
+                    'errors' => $validator->errors()
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            $perPage = $request->query('per_page', 15);
+            $page = $request->query('page');
+            
+            $query = Conflito::where('status', $status)
+            ->with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'
+            ])->orderBy('dataInicioConflito', 'desc');
+            
+            if (!empty($page)) {
+                $conflitos = $query->paginate($perPage);
+            } else {
+                $conflitos = $query->get();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => "Conflitos com status {$status} recuperados com sucesso."
+                ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em getConflitosPorStatus:', [
+                'status' => $status,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos por status: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/por-status-usuario/{status}/{email}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Listar conflitos por status e usuário",
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="path",
+     *         required=true,
+     *         description="Status do conflito",
+     *         @OA\Schema(type="string", example="ATIVO")
+     *     ),
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="path",
+     *         required=true,
+     *         description="Email do usuário",
+     *         @OA\Schema(type="string", example="usuario@example.com")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Número de itens por página",
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, example=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Número da página",
+     *         @OA\Schema(type="integer", minimum=1, example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos por status e usuário",
+     *         @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="success", type="boolean", example=true),
+     *              @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Conflito")),
+     *              @OA\Property(property="message", type="string", example="Conflitos com status ATIVO do usuário usuario@example.com recuperados com sucesso.")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Parâmetros inválidos"
+     *     )
+     * )
+     */
+    public function getConflitosPorStatusEUsuario(Request $request, $status, $email)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        try {
+            $validator = validator([
+                'status' => $status,
+                'email' => $email
+            ], [
+                'status' => 'required|string|max:50',
+                'email' => 'required|email|max:255'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parâmetros inválidos',
+                    'errors' => $validator->errors()
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            $perPage = $request->query('per_page', 15);
+            $page = $request->query('page');
+            
+            $query = Conflito::where('status', $status)
+            ->where('created_by', $email)
+            ->with([
+                'aldeias',
+                'assuntos',
+                'atoresIdentificados',
+                'categoriasAtores',
+                'impactosAmbientais',
+                'impactosSaude',
+                'impactosSocioEconomicos',
+                'inqueritos',
+                'numerosSeiIdentificacaoConflito',
+                'povos',
+                'processosJudiciais',
+                'programasProtecao',
+                'terrasIndigenas',
+                'tiposConflito',
+                'violenciasPatrimoniais',
+                'violenciasPessoasIndigenas',
+                'violenciasPessoasNaoIndigenas'
+            ])->orderBy('dataInicioConflito', 'desc');
+            
+            if (!empty($page)) {
+                $conflitos = $query->paginate($perPage);
+            } else {
+                $conflitos = $query->get();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => "Conflitos com status {$status} do usuário {$email} recuperados com sucesso."
+                ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em getConflitosPorStatusEUsuario:', [
+                'status' => $status,
+                'email' => $email,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos por status e usuário: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Patch(
+     *     path="/api/conflito/{id}/set-analise",
+     *     summary="Define conflito como EM ANÁLISE",
+     *     description="Altera o status do conflito para 'EM ANALISE'",
+     *     operationId="setAnalise",
+     *     tags={"Conflitos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do conflito",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Conflito definido como EM ANÁLISE com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Conflito definido como EM ANÁLISE com sucesso.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Conflito não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro interno do servidor"
+     *     )
+     * )
+     */
+    public function setAnalise($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $auth = Auth::guard('sanctum')->user();
+        
+        try {
+            $conflito = Conflito::find($id);
+            
+            if (!$conflito) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito não encontrado.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Verifica se já está em análise
+            if ($conflito->status === 'EM ANALISE') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito já está EM ANÁLISE.'
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Atualiza o status
+            $conflito->update([
+                'status' => 'EM ANALISE',
+                'updated_by' => $auth->email
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflito,
+                'message' => 'Conflito definido como EM ANÁLISE com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em setAnalise: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao definir conflito como EM ANÁLISE. - '.$e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/conflito/{id}/set-devolvido",
+     *     summary="Define conflito como DEVOLVIDO",
+     *     description="Altera o status do conflito para 'DEVOLVIDO'",
+     *     operationId="setDevolvido",
+     *     tags={"Conflitos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do conflito",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"revisao"},
+     *             @OA\Property(property="revisao", type="text", example="Texto de revisão do conflito")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Conflito definido como DEVOLVIDO com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Conflito definido como DEVOLVIDO com sucesso.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Conflito não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Conflito já devolvido"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro interno do servidor"
+     *     )
+     * )
+     */
+    public function setDevolvido(Request $request, $id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $auth = Auth::guard('sanctum')->user();
+        
+        try {
+            $conflito = Conflito::find($id);
+            
+            if (!$conflito) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito não encontrado.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Verifica se já está em análise
+            if ($conflito->status === 'DEVOLVIDO') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito já está DEVOLVIDO.'
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Atualiza o status
+            $conflito->update([
+                'status' => 'DEVOLVIDO',
+                'revisao' => $request->input('revisao'),
+                'revised_by' => $auth->email
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflito,
+                'message' => 'Conflito definido como DEVOLVIDO com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em setAprovado: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao definir conflito como DEVOLVIDO. - '.$e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Patch(
+     *     path="/api/conflito/{id}/set-aprovado",
+     *     summary="Define conflito como APROVADO",
+     *     description="Altera o status do conflito para 'APROVADO'",
+     *     operationId="setAprovado",
+     *     tags={"Conflitos"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do conflito",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Conflito definido como APROVADO com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Conflito definido como APROVADO com sucesso.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Conflito não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Conflito já aprovado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro interno do servidor"
+     *     )
+     * )
+     */
+    public function setAprovado($id)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $auth = Auth::guard('sanctum')->user();
+        
+        try {
+            $conflito = Conflito::find($id);
+            
+            if (!$conflito) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito não encontrado.'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Verifica se já está em análise
+            if ($conflito->status === 'APROVADO') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conflito já está APROVADO.'
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
+            // Atualiza o status
+            $conflito->update([
+                'status' => 'APROVADO',
+                'updated_by' => $auth->email
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflito,
+                'message' => 'Conflito definido como APROVADO com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em setAprovado: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao definir conflito como APROVADO. - '.$e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/conflito/conflitos-por-ator/{nomeAtor}",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Recuperar conflitos por ator",
+     *     @OA\Parameter(
+     *         name="nomeAtor",
+     *         in="path",
+     *         required=true,
+     *         description="Nome exato do ator identificado",
+     *         @OA\Schema(type="string", example="Nome Exato do Ator")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de conflitos encontrados",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(ref="#/components/schemas/Conflito")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Conflitos vinculados ao ator recuperados com sucesso.")
+     *         )
+     *     )
+     * )
+     */
+    public function getConflitosPorAtor($nomeAtor)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'message' => 'Não autorizado',
+                'status'  => Response::HTTP_UNAUTHORIZED
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        try {
+            // Buscar IDs dos conflitos que possuem o ator com nome exato
+            $conflitoIds = AtorIdentificadoConflito::where('nome', '=', trim($nomeAtor))
+            ->pluck('idConflito')
+            ->toArray();
+            
+            if (empty($conflitoIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nenhum conflito encontrado para o ator especificado'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // Buscar os conflitos apenas com os campos básicos
+            $conflitos = Conflito::whereIn('idConflito', $conflitoIds)->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $conflitos,
+                'message' => 'Conflitos vinculados ao ator recuperados com sucesso.'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erro em getConflitosPorAtorExatoJoin:', [
+                'nomeAtor' => $nomeAtor,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao recuperar conflitos por ator: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * @OA\Post(
+     *     path="/api/conflito/export",
+     *     tags={"Conflitos"},
+     *     security={ {"sanctum": {} } },
+     *     summary="Exportar conflitos para Excel",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="search", type="string", example="Retomada"),
+     *             @OA\Property(property="municipio", type="string", example="Retomada"),
+     *             @OA\Property(property="terraIndigena", type="integer", format="int64", example="182"),
+     *             @OA\Property(property="povo", type="integer", format="int64", example="72"),
+     *             @OA\Property(property="tipoConflito", type="integer", format="int64", example="1"),
+     *             @OA\Property(property="tipoViolenciaIndigena", type="string", example="Massacre de indígenas"),
+     *             @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Acompanhamento do conflito com ações complexas"),
+     *             @OA\Property(property="status", type="string", example="APROVADO"),
+     *             @OA\Property(property="created_by", type="string", example="usuario@email.com"),
+     *             @OA\Property(property="sort_by", type="string", example="dataInicioConflito"),
+     *             @OA\Property(property="sort_order", type="string", example="desc")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Arquivo Excel gerado com sucesso",
+     *         @OA\MediaType(
+     *             mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autorizado"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro ao exportar dados"
+     *     )
+     * )
+     */
+    public function export(Request $request)
+    {
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json(['message' => 'Não autorizado'], 401);
+        }
+        
+        try {
+            // 1. LIMPEZA DE BUFFER (Crucial para Excel)
+            // Remove qualquer HTML, espaço em branco ou log que já tenha sido gerado
+            if (ob_get_length() > 0) {
+                ob_end_clean();
+            }
+            
+            $filters = $request->all();
+            $fileName = 'conflitos_' . date('Y-m-d_H-i-s') . '.xlsx';
+            
+            // 2. GERAÇÃO
+            return Excel::download(new ConflitosExport($filters), $fileName);
+            
+        } catch (Throwable $e) {
+            // ^^^ MUDANÇA CRÍTICA: 'Throwable' captura Erros Fatais e Exceptions
+            
+            // Log detalhado para você descobrir o que está quebrando
+            Log::error('Falha crítica na exportação Excel:', [
+                'erro' => $e->getMessage(),
+                'arquivo' => $e->getFile(),
+                'linha' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Retorna JSON limpo para o Swagger não mostrar HTML bagunçado
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro interno ao gerar o Excel. Verifique os logs (storage/logs/laravel.log).',
+                'debug' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+    
+    /**
+     * @OA\Post(
+     *     path="/api/conflito/export-dashboard",
+     *     tags={"Conflitos"},
+     *     summary="Exportar dados do dashboard para Excel",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Arquivo Excel gerado com sucesso",
+     *         @OA\MediaType(
+     *             mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Erro ao exportar dados"
+     *     )
+     * )
+     */
+    public function exportDashboard(Request $request)
+    {
+        try {
+            // Query base do dashboard
+            $conflitos = Conflito::with(['tiposConflito','localidadesConflito'])->get();
+            
+            // Criação de uma exportação específica para dashboard
+            $export = new class($conflitos) implements FromCollection,
+                                                       WithHeadings,
+                                                       WithMapping,
+                                                       ShouldAutoSize {
+                
+                private $conflitos;
+                
+                public function __construct($conflitos)
+                {
+                    $this->conflitos = $conflitos;
+                }
+                
+                public function collection()
+                {
+                    return $this->conflitos;
+                }
+                
+                public function headings(): array
+                {
+                    return [
+                        'ID',
+                        'Nome',
+                        'Data Início',
+                        'Status',
+                        'Classificação Gravidade',
+                        'Localidades',
+                        'Processos SEI',
+                        'Tipos de Conflito',
+                        'Latitude',
+                        'Longitude',
+                        'Data Criação'
+                    ];
+                }
+                
+                public function map($conflito): array
+                {
+                    return [
+                        $conflito->idConflito,
+                        $conflito->nome,
+                        $conflito->dataInicioConflito,
+                        $conflito->status,
+                        $conflito->classificacaoGravidadeConflitoDemed,
+                        $conflito->localidadesConflito
+                        ->map(function($localidade) {
+                            return "({$localidade->regiao}/{$localidade->uf}/{$localidade->municipio})";
+                        })
+                        ->implode('; '),
+                        $conflito->numerosSeiIdentificacaoConflito
+                        ->map(function($sei) {
+                            return "({$sei->numeroSei})";
+                        })->implode('; '),
+                        $conflito->tiposConflito->pluck('nome')->implode('; '),
+                        $conflito->latitude,
+                        $conflito->longitude,
+                        $conflito->created_at
+                    ];
+                }
+            };
+            
+            return Excel::download(
+                $export,
+                'dashboard_conflitos_' . date('Y-m-d_H-i-s') . '.xlsx'
+                );
+            
+        } catch (\Exception $e) {
+            Log::error('Erro ao exportar dashboard:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao exportar dados do dashboard: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
      * Regras de validação do formulário de conflito
      * 
      * @param array $conflito
@@ -2051,19 +3655,7 @@ class ConflitoController extends Controller
             'nome'               => ['required', 'string', 'max:255'],
             'relato'             => ['required', 'string'],
             'dataInicioConflito' => ['required', 'date'],
-
-            // Campos condicionais baseados nas flags
-            'dataAcionamentoMpiConflito' => [
-                'nullable',
-                'date',
-                function ($attribute, $value, $fail) {
-                    $dataInicio = request('dataInicioConflito');
-                    if ($dataInicio && $value && $value < $dataInicio) {
-                        $fail('A data de acionamento do MPI não pode ser anterior à data de início do conflito.');
-                    }
-                }
-                ],
-                
+            
             // Flags (valores permitidos: SIM/NÃO)
             'flagHasImpactoAmbiental'               => ['required', 'in:SIM,NÃO'],
             'flagHasImpactoSaude'                   => ['required', 'in:SIM,NÃO'],
@@ -2075,10 +3667,41 @@ class ConflitoController extends Controller
             'flagHasProcessoJudicial'               => ['required', 'in:SIM,NÃO'],
             'flagHasAssistenciaJuridica'            => ['required', 'in:SIM,NÃO'],
             'flagHasRegiaoPrioritaria'              => ['required', 'in:SIM,NÃO'],
-            'flagHasViolenciaPatrimonialIndigena'   => ['required', 'in:SIM,NÃO'],
-            'flagHasEventoViolenciaIndigena'        => ['required', 'in:SIM,NÃO'],
-            'flagHasAssassinatoPrisaoNaoIndigena'   => ['required', 'in:SIM,NÃO'],
+            
+            // Flags de violência - CONDICIONAIS
+            'flagHasViolenciaPatrimonialIndigena' => [
+                'nullable',
+                'in:SIM,NÃO',
+                function ($attribute, $value, $fail) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    if ($hasViolenciaIndigena && empty($value)) {
+                        $fail('Quando há violência indígena, é obrigatório informar se há violência patrimonial indígena.');
+                    }
+                }
+                ],
                 
+            'flagHasEventoViolenciaIndigena' => [
+                'nullable',
+                'in:SIM,NÃO',
+                function ($attribute, $value, $fail) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    if ($hasViolenciaIndigena && empty($value)) {
+                        $fail('Quando há violência indígena, é obrigatório informar se há evento de violência indígena.');
+                    }
+                }
+                ],
+                    
+            'flagHasAssassinatoPrisaoNaoIndigena' => [
+                'nullable',
+                'in:SIM,NÃO',
+                function ($attribute, $value, $fail) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    if ($hasViolenciaIndigena && empty($value)) {
+                        $fail('Quando há violência indígena, é obrigatório informar se há assassinato ou prisão de não indígena.');
+                    }
+                }
+                ],
+                        
             // Validações condicionais para arrays
             'impactos_ambientais' => [
                 'nullable',
@@ -2090,7 +3713,7 @@ class ConflitoController extends Controller
                     }
                 }
                 ],
-                    
+                            
             'impactos_saude' => [
                 'nullable',
                 'array',
@@ -2101,7 +3724,7 @@ class ConflitoController extends Controller
                     }
                 }
                 ],
-                        
+                                
             'impactos_socio_economicos' => [
                 'nullable',
                 'array',
@@ -2112,120 +3735,123 @@ class ConflitoController extends Controller
                     }
                 }
                 ],
-                    
+                                    
+            // Validações condicionais para violências - ATUALIZADAS
             'violenciasPatrimoniais' => [
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) {
                     $hasViolencia = request('flagHasViolenciaPatrimonialIndigena') === 'SIM';
-                    if ($hasViolencia && empty($value)) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    
+                    // Só valida se houver violência indígena E violência patrimonial marcada como SIM
+                    if ($hasViolenciaIndigena && $hasViolencia && empty($value)) {
                         $fail('Quando há violência patrimonial indígena, pelo menos uma ocorrência deve ser informada.');
                     }
                 }
                 ],
-                                
+                                        
             'violenciasPessoasIndigenas' => [
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) {
                     $hasViolencia = request('flagHasEventoViolenciaIndigena') === 'SIM';
-                    if ($hasViolencia && empty($value)) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    
+                    // Só valida se houver violência indígena E evento de violência marcada como SIM
+                    if ($hasViolenciaIndigena && $hasViolencia && empty($value)) {
                         $fail('Quando há evento de violência indígena, pelo menos uma ocorrência deve ser informada.');
                     }
                 }
                 ],
-                                    
+                                            
             'violenciasPessoasNaoIndigenas' => [
                 'nullable',
                 'array',
                 function ($attribute, $value, $fail) {
                     $hasViolencia = request('flagHasAssassinatoPrisaoNaoIndigena') === 'SIM';
-                    if ($hasViolencia && empty($value)) {
+                    $hasViolenciaIndigena = request('flagHasViolenciaIndigena') === 'SIM';
+                    
+                    // Só valida se houver violência indígena E assassinato/prisão marcada como SIM
+                    if ($hasViolenciaIndigena && $hasViolencia && empty($value)) {
                         $fail('Quando há assassinato ou prisão de não indígena, pelo menos uma ocorrência deve ser informada.');
                     }
                 }
                 ],
-                                    
+                                                
             // Regras para elementos dos arrays
-            'numerosSeiIdentificacaoConflito' => 'nullable|array',
-            'numerosSeiIdentificacaoConflito.*' => 'string|max:50',
+//             'numerosSeiIdentificacaoConflito' => 'nullable|array',
+//             'numerosSeiIdentificacaoConflito.*' => 'string|max:50',
             
-            'atores_identificados' => 'nullable|array',
-            'atores_identificados.*' => 'string|max:200',
+//             'atores_identificados' => 'nullable|array',
+//             'atores_identificados.*' => 'string|max:200',
             
-            'aldeias' => 'nullable|array',
-            'aldeias.*' => 'required|integer|exists:aldeia,idAldeia',
+//             'aldeias' => 'nullable|array',
+//             'aldeias.*' => 'required|integer|exists:aldeia,idAldeia',
             
-            'assuntos' => 'nullable|array',
-            'assuntos.*' => 'required|integer|exists:assunto,idAssunto',
+//             'assuntos' => 'nullable|array',
+//             'assuntos.*' => 'required|integer|exists:assunto,idAssunto',
             
-            'impactos_ambientais' => 'nullable|array',
-            'impactos_ambientais.*' => 'required|integer|exists:impacto_ambiental,idImpactoAmbiental',
+//             'impactos_ambientais' => 'nullable|array',
+//             'impactos_ambientais.*' => 'required|integer|exists:impacto_ambiental,idImpactoAmbiental',
             
-            'impactos_saude' => 'nullable|array',
-            'impactos_saude.*' => 'required|integer|exists:impacto_saude,idImpactoSaude',
+//             'impactos_saude' => 'nullable|array',
+//             'impactos_saude.*' => 'required|integer|exists:impacto_saude,idImpactoSaude',
             
-            'impactos_socio_economicos' => 'nullable|array',
-            'impactos_socio_economicos.*' => 'required|integer|exists:impacto_socio_economico,idImpactoSocioEconomico',
+//             'impactos_socio_economicos' => 'nullable|array',
+//             'impactos_socio_economicos.*' => 'required|integer|exists:impacto_socio_economico,idImpactoSocioEconomico',
             
-            'povos' => 'nullable|array',
-            'povos.*' => 'required|integer|exists:povo,idPovo',
+//             'povos' => 'nullable|array',
+//             'povos.*' => 'required|integer|exists:povo,idPovo',
             
-            'terras_indigenas' => 'nullable|array',
-            'terras_indigenas.*' => 'required|integer|exists:terra_indigena,idTerraIndigena',
+//             'terras_indigenas' => 'nullable|array',
+//             'terras_indigenas.*' => 'required|integer|exists:terra_indigena,idTerraIndigena',
             
-            'tipos_conflito' => 'nullable|array',
-            'tipos_conflito.*' => 'required|integer|exists:tipo_conflito,idTipoConflito',
+//             'tipos_conflito' => 'nullable|array',
+//             'tipos_conflito.*' => 'required|integer|exists:tipo_conflito,idTipoConflito',
             
-            'categorias_atores' => 'nullable|array',
-            'categorias_atores.*' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
-                        
-            'violenciasPatrimoniais.*.tipoViolencia' => 'required|string|max:100',
-            'violenciasPatrimoniais.*.data' => 'required|date',
-            'violenciasPatrimoniais.*.numeroSei' => 'nullable|string|max:50',
+//             'categorias_atores' => 'nullable|array',
+//             'categorias_atores.*' => 'required|integer|exists:categoria_ator,idCategoriaAtor',
             
-            'violenciasPessoasIndigenas.*.tipoViolencia' => 'required|string|max:100',
-            'violenciasPessoasIndigenas.*.data' => 'required|date',
-            'violenciasPessoasIndigenas.*.nome' => 'required|string|max:255',
-            'violenciasPessoasIndigenas.*.idade' => 'nullable|string|max:20',
-            'violenciasPessoasIndigenas.*.faixaEtaria' => 'nullable|string|max:50',
-            'violenciasPessoasIndigenas.*.genero' => 'nullable|string|max:50',
-            'violenciasPessoasIndigenas.*.instrumentoViolencia' => 'nullable|string|max:255',
-            'violenciasPessoasIndigenas.*.numeroSei' => 'nullable|string|max:50',
+//             'violenciasPatrimoniais.*.tipoViolencia' => 'required|string|max:100',
+//             'violenciasPatrimoniais.*.data' => 'required|date',
+//             'violenciasPatrimoniais.*.numeroSei' => 'nullable|string|max:50',
             
-            'violenciasPessoasNaoIndigenas.*.tipoViolencia' => 'required|string|max:100',
-            'violenciasPessoasNaoIndigenas.*.tipoPessoa' => 'required|string|max:100',
-            'violenciasPessoasNaoIndigenas.*.data' => 'required|date',
-            'violenciasPessoasNaoIndigenas.*.nome' => 'required|string|max:255',
-            'violenciasPessoasNaoIndigenas.*.numeroSei' => 'nullable|string|max:50',
+//             'violenciasPessoasIndigenas.*.tipoViolencia' => 'required|string|max:100',
+//             'violenciasPessoasIndigenas.*.data' => 'required|date',
+//             'violenciasPessoasIndigenas.*.nome' => 'required|string|max:255',
+//             'violenciasPessoasIndigenas.*.idade' => 'nullable|string|max:20',
+//             'violenciasPessoasIndigenas.*.faixaEtaria' => 'nullable|string|max:50',
+//             'violenciasPessoasIndigenas.*.genero' => 'nullable|string|max:50',
+//             'violenciasPessoasIndigenas.*.instrumentoViolencia' => 'nullable|string|max:255',
+//             'violenciasPessoasIndigenas.*.numeroSei' => 'nullable|string|max:50',
+            
+//             'violenciasPessoasNaoIndigenas.*.tipoViolencia' => 'required|string|max:100',
+//             'violenciasPessoasNaoIndigenas.*.tipoPessoa' => 'required|string|max:100',
+//             'violenciasPessoasNaoIndigenas.*.data' => 'required|date',
+//             'violenciasPessoasNaoIndigenas.*.nome' => 'required|string|max:255',
+//             'violenciasPessoasNaoIndigenas.*.numeroSei' => 'nullable|string|max:50',
             ];
     }
     
     /**
-     * Método auxiliar para extrair IDs de forma segura
-     * 
-     * @param array $data
-     * @param string $idField
-     * @return array
+     * Processa array de relacionamentos que pode vir como objetos ou IDs
      */
-    private function extrairIds(array $data, string $idField): array
-    {
-//         $ids = [];
-//         foreach ($data as $item) {
-//             if (is_array($item) && isset($item[$idField])) {
-//                 $ids[] = $item[$idField];
-//             } elseif (is_object($item) && isset($item->{$idField})) {
-//                 $ids[] = $item->{$idField};
-//             } elseif (is_numeric($item)) {
-//                 // Se for apenas um array de IDs numéricos
-//                 $ids[] = $item;
-//             }
-//         }
+    private function processarRelacionamento($dados, $chaveId = 'id') {
+        if (empty($dados)) {
+            return [];
+        }
         
-//         return array_filter($ids);
-
-        return array_map(function ($item) use ($idField) {
-            return $item[$idField] ?? null; // Aqui ele extrai apenas o valor do ID.
-        }, $data); 
+        // Se já é array de IDs simples
+        if (!is_array($dados[0]) && !is_object($dados[0])) {
+            return array_map('intval', $dados);
+        }
+        
+        // É array de objetos - extrair IDs
+        return array_map(function ($item) use ($chaveId) {
+            $itemArray = (array) $item;
+            return intval($itemArray[$chaveId] ?? $itemArray['id'] ?? null);
+        }, $dados);
     }
+        
 }

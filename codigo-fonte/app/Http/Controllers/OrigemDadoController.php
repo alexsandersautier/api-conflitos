@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\OrigemDado;
@@ -8,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
 
 /**
+ *
  * @OA\Schema(
  *     schema="OrigemDado",
  *     type="object",
@@ -17,7 +17,7 @@ use Illuminate\Http\Response;
  *     @OA\Property(property="setor_cadastrante", type="string", example="FUNAI"),
  *     @OA\Property(property="observacao", type="string", example="Lista de observações")
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/origem-dado"
  * )
@@ -29,7 +29,9 @@ use Illuminate\Http\Response;
  */
 class OrigemDadoController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/origem-dado",
      *     tags={"OrigemDado"},
@@ -47,18 +49,22 @@ class OrigemDadoController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $origens_dados = OrigemDado::with(['conflito', 'tipo_responsavel'])->get();
+
+        $origens_dados = OrigemDado::with([
+            'conflito',
+            'tipo_responsavel'
+        ])->get();
         return response()->json($origens_dados);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/origem-dado",
      *     tags={"OrigemDado"},
@@ -82,18 +88,18 @@ class OrigemDadoController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'idConflito'        => 'required|integer|exists:conflito,idConflito',
+            'idConflito' => 'required|integer|exists:conflito,idConflito',
             'idTipoResponsavel' => 'required|integer|exists:tipo_responsavel,idTipoResponsavel',
             'setor_cadastrante' => 'string|max:50',
-            'observacao'        => 'string|max:100'
+            'observacao' => 'string|max:100'
         ]);
 
         $origemDado = OrigemDado::create($validatedData);
@@ -101,6 +107,7 @@ class OrigemDadoController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/origem-dado/{id}",
      *     tags={"OrigemDado"},
@@ -121,18 +128,22 @@ class OrigemDadoController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $origemDado = OrigemDado::with(['conflito', 'tipo_responsavel'])->findOrFail($id);
+
+        $origemDado = OrigemDado::with([
+            'conflito',
+            'tipo_responsavel'
+        ])->findOrFail($id);
         return response()->json($origemDado);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/origem-dado/{id}",
      *     tags={"OrigemDado"},
@@ -162,20 +173,20 @@ class OrigemDadoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $origemDado = OrigemDado::findOrFail($id);
 
         $validatedData = $request->validate([
-            'idConflito'        => 'required|integer|exists:conflito,idConflito',
+            'idConflito' => 'required|integer|exists:conflito,idConflito',
             'idTipoResponsavel' => 'required|integer|exists:tipo_responsavel,idTipoResponsavel',
             'setor_cadastrante' => 'string|max:50',
-            'observacao'        => 'string|max:100'
+            'observacao' => 'string|max:100'
         ]);
 
         $origemDado->update($validatedData);
@@ -183,6 +194,7 @@ class OrigemDadoController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/origem-dado/{id}",
      *     tags={"OrigemDado"},
@@ -202,19 +214,20 @@ class OrigemDadoController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $origemDado = OrigemDado::findOrFail($id);
         $origemDado->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/origem-dado/conflito/{idConflito}",
      *     tags={"OrigemDado"},
@@ -236,17 +249,20 @@ class OrigemDadoController extends Controller
      *     )
      * )
      */
-    public function getAllByConflito($idConflito){
+    public function getAllByConflito($idConflito)
+    {
         try {
-            if (!Auth::guard('sanctum')->check()) {
+            if (! Auth::guard('sanctum')->check()) {
                 return response()->json([
                     'message' => 'Não autorizado',
-                    'status'  => Response::HTTP_UNAUTHORIZED
+                    'status' => Response::HTTP_UNAUTHORIZED
                 ], Response::HTTP_UNAUTHORIZED);
             }
-            
-            return OrigemDado::with(['conflito', 'tipo_responsavel'])->where('idConflito', $idConflito)->get();
-            
+
+            return OrigemDado::with([
+                'conflito',
+                'tipo_responsavel'
+            ])->where('idConflito', $idConflito)->get();
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Erro na consulta',

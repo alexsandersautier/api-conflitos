@@ -1,21 +1,22 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LiderancaAmeacada extends Model
+class LocalidadeConflito extends Model
 {
     use HasFactory;
 
-    protected $table = 'lideranca_ameacada';
-    protected $primaryKey = 'idLiderancaAmeacada';
+    protected $table = 'localidade_conflito';
+
+    protected $primaryKey = 'idLocalidadeConflito';
 
     protected $fillable = [
         'idConflito',
-        'nome',
-        'distancia_conflito'
+        'regiao',
+        'uf',
+        'municipio'
     ];
 
     public function conflito()

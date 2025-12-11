@@ -1,11 +1,10 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
+
     /**
      * Run the migrations.
      */
@@ -13,11 +12,12 @@ return new class extends Migration
     {
         Schema::create('registro_bo_nf', function (Blueprint $table) {
             $table->id('idRegistroBoNf')->primary();
-            $table->date('data');
-            $table->integer('numero');
-            $table->string('orgao', 100);
-            $table->string('tipoOrgao', 100);
-            $table->string('numeroSei', 50);
+            $table->foreignId('idConflito')->constrained('conflito');
+            $table->date('data')->nullable();
+            $table->string('numero', 100)->nullable();
+            $table->string('orgao', 100)->nullable();
+            $table->string('tipoOrgao', 100)->nullable();
+            $table->string('numeroSei', 50)->nullable();
             $table->timestamps();
         });
     }

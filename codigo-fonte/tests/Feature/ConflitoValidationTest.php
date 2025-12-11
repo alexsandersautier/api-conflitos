@@ -1,5 +1,4 @@
 <?php
-
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -8,7 +7,7 @@ use Tests\TestCase;
 class ConflitoValidationTest extends TestCase
 {
     use RefreshDatabase;
-    
+
     public function test_validacao_flags_sim_nao()
     {
         $payload = [
@@ -33,15 +32,16 @@ class ConflitoValidationTest extends TestCase
             "flagHasRegiaoPrioritaria" => "NÃO",
             "flagHasViolenciaPatrimonialIndigena" => "NÃO",
             "flagHasEventoViolenciaIndigena" => "NÃO",
-            "flagHasAssassinatoPrisaoNaoIndigena" => "NÃO",
+            "flagHasAssassinatoPrisaoNaoIndigena" => "NÃO"
         ];
-        
+
         $response = $this->postJson('/api/conflitos', $payload);
-        
-        $response->assertStatus(422)
-        ->assertJsonValidationErrors(['flagHasImpactoAmbiental']);
+
+        $response->assertStatus(422)->assertJsonValidationErrors([
+            'flagHasImpactoAmbiental'
+        ]);
     }
-    
+
     public function test_validacao_datas()
     {
         $payload = [
@@ -66,16 +66,16 @@ class ConflitoValidationTest extends TestCase
             "flagHasRegiaoPrioritaria" => "NÃO",
             "flagHasViolenciaPatrimonialIndigena" => "NÃO",
             "flagHasEventoViolenciaIndigena" => "NÃO",
-            "flagHasAssassinatoPrisaoNaoIndigena" => "NÃO",
+            "flagHasAssassinatoPrisaoNaoIndigena" => "NÃO"
         ];
-        
+
         $response = $this->postJson('/api/conflitos', $payload);
-        
+
         // A validação de datas deve passar mesmo com data anterior
         // pois não há regra de negócio que impeça isso
         $response->assertStatus(201);
     }
-    
+
     public function test_validacao_uf()
     {
         $payload = [
@@ -100,12 +100,13 @@ class ConflitoValidationTest extends TestCase
             "flagHasRegiaoPrioritaria" => "NÃO",
             "flagHasViolenciaPatrimonialIndigena" => "NÃO",
             "flagHasEventoViolenciaIndigena" => "NÃO",
-            "flagHasAssassinatoPrisaoNaoIndigena" => "NÃO",
+            "flagHasAssassinatoPrisaoNaoIndigena" => "NÃO"
         ];
-        
+
         $response = $this->postJson('/api/conflitos', $payload);
-        
-        $response->assertStatus(422)
-        ->assertJsonValidationErrors(['uf']);
+
+        $response->assertStatus(422)->assertJsonValidationErrors([
+            'uf'
+        ]);
     }
 }

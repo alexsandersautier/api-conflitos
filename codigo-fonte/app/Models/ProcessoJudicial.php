@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,19 +9,20 @@ class ProcessoJudicial extends Model
     use HasFactory;
 
     protected $table = 'processo_judicial';
-    protected $primaryKey = 'idProcessoJudicial';
-    
-    protected $fillable = ['idConflito', 
-                           'data', 
-                           'numero', 
-                           'tipoPoder', 
-                           'orgaoApoio', 
-                           'numeroSei'];
-    
-    protected $cast = ['data' => 'date'];
 
-    
-    public function conflito() {
+    protected $primaryKey = 'idProcessoJudicial';
+
+    protected $fillable = [
+        'idConflito',
+        'data',
+        'numero',
+        'tipoPoder',
+        'orgaoApoio',
+        'numeroSei'
+    ];
+
+    public function conflito()
+    {
         return $this->belongsTo(Conflito::class, 'idConflito');
     }
 }

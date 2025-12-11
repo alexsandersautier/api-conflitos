@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Assunto;
@@ -9,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
 /**
+ *
  * @OA\Schema(
  *     schema="Assunto",
  *     type="object",
@@ -26,8 +26,9 @@ use App\Http\Controllers\Controller;
  */
 class AssuntoController extends Controller
 {
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/assunto",
      *     tags={"Assuntos"},
@@ -47,19 +48,21 @@ class AssuntoController extends Controller
      *     )
      * )
      */
-    public function index(Request $request){
-        if (!Auth::guard('sanctum')->check()) {
+    public function index(Request $request)
+    {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $assunto = Assunto::all();
         return response()->json($assunto);
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/assunto",
      *     tags={"Assuntos"},
@@ -80,15 +83,15 @@ class AssuntoController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $assunto = Assunto::create($validatedData);
@@ -96,6 +99,7 @@ class AssuntoController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/assunto/{id}",
      *     tags={"Assuntos"},
@@ -116,18 +120,19 @@ class AssuntoController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $assunto = Assunto::findOrFail($id);
         return response()->json($assunto);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/assunto/{id}",
      *     tags={"Assuntos"},
@@ -155,17 +160,17 @@ class AssuntoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $assunto = Assunto::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255'
         ]);
 
         $assunto->update($validatedData);
@@ -173,6 +178,7 @@ class AssuntoController extends Controller
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/assunto/{id}",
      *     tags={"Assuntos"},
@@ -192,13 +198,13 @@ class AssuntoController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
+                'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $assunto = Assunto::findOrFail($id);
         $assunto->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);

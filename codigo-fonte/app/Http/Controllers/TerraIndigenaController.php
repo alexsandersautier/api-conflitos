@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\TerraIndigena;
@@ -8,7 +7,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * 
+ *
  * @OA\Schema(
  *     schema="TerraIndigena",
  *     type="object",
@@ -43,7 +42,7 @@ use Illuminate\Support\Facades\Auth;
  *     @OA\Property(property="qtd_familias", type="string"),
  *     @OA\Property(property="links_documentos_vinculados", type="string")
  * )
- * 
+ *
  * @OA\PathItem(
  *     path="/api/terra-indigena"
  * )
@@ -55,7 +54,9 @@ use Illuminate\Support\Facades\Auth;
  */
 class TerraIndigenaController extends Controller
 {
+
     /**
+     *
      * @OA\Get(
      *     path="/api/terra-indigena",
      *     tags={"TerraIndigenas"},
@@ -73,18 +74,22 @@ class TerraIndigenaController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $terraindigenas = TerraIndigena::with(['situacao_fundiaria', 'povo'])->get();
+
+        $terraindigenas = TerraIndigena::with([
+            'situacao_fundiaria',
+            'povo'
+        ])->get();
         return response()->json($terraindigenas, Response::HTTP_OK);
     }
-    
+
     /**
+     *
      * @OA\Get(
      *     path="/api/terra-indigena/paginar",
      *     tags={"TerraIndigenas"},
@@ -117,24 +122,23 @@ class TerraIndigenaController extends Controller
     public function getAllPage(Request $request)
     {
         // Verificação de autenticação
-        if (!$request->user('sanctum')) {
+        if (! $request->user('sanctum')) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        return TerraIndigena::with(['situacao_fundiaria', 'povo'])
-        ->orderBy('idTerraIndigena')
-        ->paginate(
-            $request->input('per_page', 10),
-            ['*'],
-            'page',
-            $request->input('page', 1)
-            );
+
+        return TerraIndigena::with([
+            'situacao_fundiaria',
+            'povo'
+        ])->orderBy('idTerraIndigena')->paginate($request->input('per_page', 10), [
+            '*'
+        ], 'page', $request->input('page', 1));
     }
 
     /**
+     *
      * @OA\Post(
      *     path="/api/terra-indigena",
      *     tags={"TerraIndigenas"},
@@ -155,22 +159,65 @@ class TerraIndigenaController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $validatedData = $request->validate([
+
+        $validator = validator($request->all(), [
             'nome' => 'required|string|max:255',
+            'idPovo' => 'required|integer|exists:povo,idPovo',
+            'idSituacaoFundiaria' => 'required|integer|exists:situacao_fundiaria,idSituacaoFundiaria'
         ]);
 
-        $terraindigena = TerraIndigena::create($validatedData);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parâmetros inválidos',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $terraIndigenaData = $request->only([
+            'idPovo',
+            'idSituacaoFundiaria',
+            'codigo_ti',
+            'nome',
+            'superficie_perimetro_ha',
+            'modalidade_ti',
+            'etnia_nome',
+            'municipio_nome',
+            'uf_sigla',
+            'coordenacao_regional',
+            'faixa_fronteira',
+            'undadm_codigo',
+            'undadm_nome',
+            'undadm_sigla',
+            'data_atualizacao',
+            'data_homologacao',
+            'decreto_homologacao',
+            'data_regularizacao',
+            'matricula_regularizacao',
+            'acao_recuperacao_territorial',
+            'dominio_uniao',
+            'numero_processo_funai',
+            'data_abertura_processo_funai',
+            'numero_portaria_funai',
+            'numero_processo_sei',
+            'numero_portaria_declaratoria',
+            'qtd_aldeias',
+            'qtd_familias',
+            'links_documentos_vinculados'
+        ]);
+
+        $terraindigena = TerraIndigena::create($terraIndigenaData);
         return response()->json($terraindigena, Response::HTTP_CREATED);
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/terra-indigena/{id}",
      *     tags={"TerraIndigenas"},
@@ -190,18 +237,22 @@ class TerraIndigenaController extends Controller
      */
     public function show($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $terraindigena = TerraIndigena::with(['situacao_fundiaria', 'povo'])->findOrFail($id);
+
+        $terraindigena = TerraIndigena::with([
+            'situacao_fundiaria',
+            'povo'
+        ])->findOrFail($id);
         return response()->json($terraindigena);
     }
 
     /**
+     *
      * @OA\Put(
      *     path="/api/terra-indigena/{id}",
      *     tags={"TerraIndigenas"},
@@ -229,24 +280,67 @@ class TerraIndigenaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $terraindigena = TerraIndigena::findOrFail($id);
 
-        $validatedData = $request->validate([
+        $validator = validator($request->all(), [
             'nome' => 'required|string|max:255',
+            'idPovo' => 'required|integer|exists:povo,idPovo',
+            'idSituacaoFundiaria' => 'required|integer|exists:situacao_fundiaria,idSituacaoFundiaria'
         ]);
 
-        $terraindigena->update($validatedData);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parâmetros inválidos',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $terraIndigenaData = $request->only([
+            'idPovo',
+            'idSituacaoFundiaria',
+            'codigo_ti',
+            'nome',
+            'superficie_perimetro_ha',
+            'modalidade_ti',
+            'etnia_nome',
+            'municipio_nome',
+            'uf_sigla',
+            'coordenacao_regional',
+            'faixa_fronteira',
+            'undadm_codigo',
+            'undadm_nome',
+            'undadm_sigla',
+            'data_atualizacao',
+            'data_homologacao',
+            'decreto_homologacao',
+            'data_regularizacao',
+            'matricula_regularizacao',
+            'acao_recuperacao_territorial',
+            'dominio_uniao',
+            'numero_processo_funai',
+            'data_abertura_processo_funai',
+            'numero_portaria_funai',
+            'numero_processo_sei',
+            'numero_portaria_declaratoria',
+            'qtd_aldeias',
+            'qtd_familias',
+            'links_documentos_vinculados'
+        ]);
+
+        $terraindigena->update($terraIndigenaData);
         return response()->json($terraindigena);
     }
 
     /**
+     *
      * @OA\Delete(
      *     path="/api/terra-indigena/{id}",
      *     tags={"TerraIndigenas"},
@@ -266,13 +360,13 @@ class TerraIndigenaController extends Controller
      */
     public function destroy($id)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        if (! Auth::guard('sanctum')->check()) {
             return response()->json([
                 'message' => 'Não autorizado',
                 'status' => Response::HTTP_UNAUTHORIZED
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $terraindigena = TerraIndigena::findOrFail($id);
         $terraindigena->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
