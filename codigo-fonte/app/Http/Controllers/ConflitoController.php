@@ -209,29 +209,30 @@ class ConflitoController extends Controller
             
             // Query base
             $query = Conflito::with([
-                'aldeias',
-                'assuntos',
-                'atoresIdentificados',
-                'categoriasAtores',
-                'impactosAmbientais',
-                'impactosSaude',
-                'impactosSocioEconomicos',
-                'inqueritos',
-                'localidadesConflito',
-                'numerosSeiIdentificacaoConflito',
-                'povos',
-                'processosJudiciais',
-                'programasProtecao',
-                'terrasIndigenas',
-                'tiposConflito',
-                'violenciasPatrimoniais',
-                'violenciasPessoasIndigenas',
-                'violenciasPessoasNaoIndigenas'
-            ]);
+                                    'aldeias',
+                                    'assuntos',
+                                    'atoresIdentificados',
+                                    'categoriasAtores',
+                                    'impactosAmbientais',
+                                    'impactosSaude',
+                                    'impactosSocioEconomicos',
+                                    'inqueritos',
+                                    'localidadesConflito',
+                                    'numerosSeiIdentificacaoConflito',
+                                    'povos',
+                                    'processosJudiciais',
+                                    'programasProtecao',
+                                    'terrasIndigenas',
+                                    'tiposConflito',
+                                    'violenciasPatrimoniais',
+                                    'violenciasPessoasIndigenas',
+                                    'violenciasPessoasNaoIndigenas'
+                                ]);
             
             // Aplica busca se fornecida
             if (!empty($search)) {
                 $query->where('nome', 'LIKE', "%{$search}%");
+                $query->where('relato', 'LIKE', "%{$search}%");
             }
             
             if (!empty($estrategiaGeralUtilizadaDemed)) {
@@ -1514,7 +1515,7 @@ class ConflitoController extends Controller
         }
         
         $conflito = Conflito::findOrFail($id);
-        $terrasIndigenas = $conflito->terras_indigenas()->get();
+        $terrasIndigenas = $conflito->terrasIndigenas()->get();
         
         return response()->json($terrasIndigenas);
     }
@@ -1579,14 +1580,14 @@ class ConflitoController extends Controller
         }
         
         // Verifica se a relação já existe
-        if ($conflito->terras_indigenas()->where('terra_indigena_conflito.idTerraIndigena', $idTerraIndigena)->exists()) {
+        if ($conflito->terrasIndigenas()->where('terra_indigena_conflito.idTerraIndigena', $idTerraIndigena)->exists()) {
             return response()->json([
                 'message' => 'Este Povo já está associado ao conflito'
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         
         // Cria a relação
-        $conflito->terras_indigenas()->attach($idTerraIndigena);
+        $conflito->terrasIndigenas()->attach($idTerraIndigena);
         
         // Retorna o conflito com os assuntos atualizados
         return response()->json([
@@ -1646,7 +1647,7 @@ class ConflitoController extends Controller
         TerraIndigena::findOrFail($idTerraIndigena);
         
         // Remove a relação
-        $conflito->terras_indigenas()->detach($idTerraIndigena);
+        $conflito->terrasIndigenas()->detach($idTerraIndigena);
         
         return response()->json([
             'message' => 'Terra Indigena removida com sucesso',
@@ -3558,14 +3559,15 @@ class ConflitoController extends Controller
     public function exportDashboard(Request $request)
     {
         try {
-            // Query base do dashboard
-            $conflitos = Conflito::with(['tiposConflito','localidadesConflito'])->get();
+            // 1. Query base do dashboard (Carregando os relacionamentos necessários)
+            $conflitos = Conflito::with([
+                'tiposConflito',
+                'localidadesConflito',
+                'numerosSeiIdentificacaoConflito'
+            ])->get();
             
-            // Criação de uma exportação específica para dashboard
-            $export = new class($conflitos) implements FromCollection,
-                                                       WithHeadings,
-                                                       WithMapping,
-                                                       ShouldAutoSize {
+            // 2. Criação da classe anônima para exportação
+            $export = new class($conflitos) implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize {
                 
                 private $conflitos;
                 
@@ -3604,35 +3606,35 @@ class ConflitoController extends Controller
                         $conflito->dataInicioConflito,
                         $conflito->status,
                         $conflito->classificacaoGravidadeConflitoDemed,
-                        $conflito->localidadesConflito
-                        ->map(function($localidade) {
+                        
+                        // Coluna Localidades
+                        $conflito->localidadesConflito->map(function($localidade) {
                             return "({$localidade->regiao}/{$localidade->uf}/{$localidade->municipio})";
-                        })
-                        ->implode('; '),
-                        $conflito->numerosSeiIdentificacaoConflito
-                        ->map(function($sei) {
-                            return "({$sei->numeroSei})";
                         })->implode('; '),
+                        collect($conflito->numerosSeiIdentificacaoConflito)->pluck('numeroSei')->implode('; '),
                         $conflito->tiposConflito->pluck('nome')->implode('; '),
                         $conflito->latitude,
                         $conflito->longitude,
                         $conflito->created_at
-                    ];
+                        ];
                 }
             };
             
+            // 3. Download do arquivo
             return Excel::download(
                 $export,
                 'dashboard_conflitos_' . date('Y-m-d_H-i-s') . '.xlsx'
                 );
             
         } catch (\Exception $e) {
+            // Log do erro real
             Log::error('Erro ao exportar dashboard:', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
             
+            // Retorno JSON em caso de falha
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao exportar dados do dashboard: ' . $e->getMessage()

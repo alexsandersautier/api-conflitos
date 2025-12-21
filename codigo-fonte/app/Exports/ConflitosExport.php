@@ -100,8 +100,11 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
             } else {
                 $query->orderBy('dataInicioConflito', 'desc');
             }
-
-            return $query->get();
+            $conflitos = $query->get();
+            
+            \Log::info('Conflitos da planilha:', ['Conflitos' => $conflitos]);
+            
+            return $conflitos;
         } catch (\Exception $e) {
             abort(Response::HTTP_INTERNAL_SERVER_ERROR, 'Erro ao exportar conflitos: ' . $e->getMessage());
         }
@@ -156,8 +159,8 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
         return [
             $conflito->idConflito,
             $conflito->nome,
-            $conflito->dataInicioConflito,
-            $conflito->dataAcionamentoMpiConflito,
+            $this->formatDate($conflito->dataInicioConflito),
+            $this->formatDate($conflito->dataAcionamentoMpiConflito),
             $conflito->status,
             $conflito->classificacaoGravidadeConflitoDemed,
             $conflito->estrategiaGeralUtilizadaDemed,
@@ -173,7 +176,7 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
             $this->formatRelacionamentos($conflito->atoresIdentificados, 'nome'),
             $this->formatRelacionamentos($conflito->categoriasAtores, 'nome'),
             $this->formatInqueritos($conflito->inqueritos),
-            $this->formatRelacionamentos($conflito->numerosSeiIdentificacaoConflito, 'numeroSei'),
+            $this->formatNumerosSei($conflito->numerosSeiIdentificacaoConflito),
             $this->formatProcessosJudiciais($conflito->processosJudiciais),
             $this->formatProgramasProtecao($conflito->programasProtecao),
             $this->formatViolenciasPatrimoniais($conflito->violenciasPatrimoniais),
@@ -189,14 +192,18 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
             $conflito->created_by,
             $conflito->updated_by,
             $conflito->revised_by,
-            $conflito->created_at,
-            $conflito->updated_at,
-            $conflito->revised_at,
+            $this->formatDateTime($conflito->created_at),
+            $this->formatDateTime($conflito->updated_at),
+            $this->formatDateTime($conflito->revised_at)
         ];
     }
 
     private function formatDate($date){
         return date('d/m/Y', strtotime($date));
+    }
+    
+    private function formatDateTime($date){
+        return date('d/m/Y h:i:s', strtotime($date));
     }
     
     private function formatRelacionamentos($data, $field)
@@ -219,6 +226,20 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
         return implode('; ', $array);
     }
 
+    private function formatNumerosSei($data)
+    {
+        $numSei= collect($data); // Converte para garantir que é Collection
+        
+        if ($numSei->isEmpty()) {
+            return '';
+        }
+        
+        return $numSei->map(function ($sei) {
+            $sei = (object) $sei;
+            return $sei->numeroSei;
+        })->implode('; ');
+    }
+    
     private function formatInqueritos($data)
     {
         $inqueritos = collect($data); // Converte para garantir que é Collection

@@ -5,6 +5,7 @@ use App\Models\TerraIndigena;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 /**
  *
@@ -147,8 +148,36 @@ class TerraIndigenaController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Terra Indígena")
+     *             required={"idPovo", "idSituacaoFundiaria", "nome"},
+     *                  @OA\Property(property="idPovo", type="integer"),
+     *                  @OA\Property(property="idSituacaoFundiaria", type="integer"),
+     *                  @OA\Property(property="codigo_ti", type="string"),
+     *                  @OA\Property(property="nome", type="string"),
+     *                  @OA\Property(property="superficie_perimetro_ha", type="string"),
+     *                  @OA\Property(property="modalidade_ti", type="string"),
+     *                  @OA\Property(property="etnia_nome", type="string"),
+     *                  @OA\Property(property="municipio_nome", type="string"),
+     *                  @OA\Property(property="uf_sigla", type="string"),
+     *                  @OA\Property(property="coordenacao_regional", type="string"),
+     *                  @OA\Property(property="faixa_fronteira", type="string"),
+     *                  @OA\Property(property="undadm_codigo", type="string"),
+     *                  @OA\Property(property="undadm_nome", type="string"),
+     *                  @OA\Property(property="undadm_sigla", type="string"),
+     *                  @OA\Property(property="data_atualizacao", type="string"),
+     *                  @OA\Property(property="data_homologacao", type="string"),
+     *                  @OA\Property(property="decreto_homologacao", type="string"),
+     *                  @OA\Property(property="data_regularizacao", type="string"),
+     *                  @OA\Property(property="matricula_regularizacao", type="string"),
+     *                  @OA\Property(property="acao_recuperacao_territorial", type="string"),
+     *                  @OA\Property(property="dominio_uniao", type="string"),
+     *                  @OA\Property(property="numero_processo_funai", type="string"),
+     *                  @OA\Property(property="data_abertura_processo_funai", type="string"),
+     *                  @OA\Property(property="numero_portaria_funai", type="string"),
+     *                  @OA\Property(property="numero_processo_sei", type="string"),
+     *                  @OA\Property(property="numero_portaria_declaratoria", type="string"),
+     *                  @OA\Property(property="qtd_aldeias", type="string"),
+     *                  @OA\Property(property="qtd_familias", type="string"),
+     *                  @OA\Property(property="links_documentos_vinculados", type="string")
      *         )
      *     ),
      *     @OA\Response(
@@ -267,8 +296,36 @@ class TerraIndigenaController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome"},
-     *             @OA\Property(property="nome", type="string", example="Terra Indigena")
+     *             required={"idPovo", "idSituacaoFundiaria", "nome"},
+     *                  @OA\Property(property="idPovo", type="integer"),
+     *                  @OA\Property(property="idSituacaoFundiaria", type="integer"),
+     *                  @OA\Property(property="codigo_ti", type="string"),
+     *                  @OA\Property(property="nome", type="string"),
+     *                  @OA\Property(property="superficie_perimetro_ha", type="string"),
+     *                  @OA\Property(property="modalidade_ti", type="string"),
+     *                  @OA\Property(property="etnia_nome", type="string"),
+     *                  @OA\Property(property="municipio_nome", type="string"),
+     *                  @OA\Property(property="uf_sigla", type="string"),
+     *                  @OA\Property(property="coordenacao_regional", type="string"),
+     *                  @OA\Property(property="faixa_fronteira", type="string"),
+     *                  @OA\Property(property="undadm_codigo", type="string"),
+     *                  @OA\Property(property="undadm_nome", type="string"),
+     *                  @OA\Property(property="undadm_sigla", type="string"),
+     *                  @OA\Property(property="data_atualizacao", type="string"),
+     *                  @OA\Property(property="data_homologacao", type="string"),
+     *                  @OA\Property(property="decreto_homologacao", type="string"),
+     *                  @OA\Property(property="data_regularizacao", type="string"),
+     *                  @OA\Property(property="matricula_regularizacao", type="string"),
+     *                  @OA\Property(property="acao_recuperacao_territorial", type="string"),
+     *                  @OA\Property(property="dominio_uniao", type="string"),
+     *                  @OA\Property(property="numero_processo_funai", type="string"),
+     *                  @OA\Property(property="data_abertura_processo_funai", type="string"),
+     *                  @OA\Property(property="numero_portaria_funai", type="string"),
+     *                  @OA\Property(property="numero_processo_sei", type="string"),
+     *                  @OA\Property(property="numero_portaria_declaratoria", type="string"),
+     *                  @OA\Property(property="qtd_aldeias", type="string"),
+     *                  @OA\Property(property="qtd_familias", type="string"),
+     *                  @OA\Property(property="links_documentos_vinculados", type="string")
      *         )
      *     ),
      *     @OA\Response(
@@ -304,41 +361,127 @@ class TerraIndigenaController extends Controller
         }
 
         $terraIndigenaData = $request->only([
-            'idPovo',
-            'idSituacaoFundiaria',
-            'codigo_ti',
-            'nome',
-            'superficie_perimetro_ha',
-            'modalidade_ti',
-            'etnia_nome',
-            'municipio_nome',
-            'uf_sigla',
-            'coordenacao_regional',
-            'faixa_fronteira',
-            'undadm_codigo',
-            'undadm_nome',
-            'undadm_sigla',
-            'data_atualizacao',
-            'data_homologacao',
-            'decreto_homologacao',
-            'data_regularizacao',
-            'matricula_regularizacao',
-            'acao_recuperacao_territorial',
-            'dominio_uniao',
-            'numero_processo_funai',
-            'data_abertura_processo_funai',
-            'numero_portaria_funai',
-            'numero_processo_sei',
-            'numero_portaria_declaratoria',
-            'qtd_aldeias',
-            'qtd_familias',
-            'links_documentos_vinculados'
-        ]);
+                                            'idPovo',
+                                            'idSituacaoFundiaria',
+                                            'codigo_ti',
+                                            'nome',
+                                            'superficie_perimetro_ha',
+                                            'modalidade_ti',
+                                            'etnia_nome',
+                                            'municipio_nome',
+                                            'uf_sigla',
+                                            'coordenacao_regional',
+                                            'faixa_fronteira',
+                                            'undadm_codigo',
+                                            'undadm_nome',
+                                            'undadm_sigla',
+                                            'data_atualizacao',
+                                            'data_homologacao',
+                                            'decreto_homologacao',
+                                            'data_regularizacao',
+                                            'matricula_regularizacao',
+                                            'acao_recuperacao_territorial',
+                                            'dominio_uniao',
+                                            'numero_processo_funai',
+                                            'data_abertura_processo_funai',
+                                            'numero_portaria_funai',
+                                            'numero_processo_sei',
+                                            'numero_portaria_declaratoria',
+                                            'qtd_aldeias',
+                                            'qtd_familias',
+                                            'links_documentos_vinculados'
+                                        ]);
 
         $terraindigena->update($terraIndigenaData);
         return response()->json($terraindigena);
     }
 
+    /**
+     *
+     * @OA\Get(
+     *     path="/api/terra-indigena/pesquisar/buscar-texto",
+     *     summary="Pesquisa Terra Indigena por texto",
+     *     description="Retorna uma lista de Terra Indigena cujos nomes correspondem ao termo de pesquisa",
+     *     tags={"TerraIndigenas"},
+     *     security={ {"sanctum": {} } },
+     *     @OA\Parameter(
+     *         name="texto",
+     *         description="Texto para pesquisa de Terra Indigena",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de Terra Indigena encontrados",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/TerraIndigena")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Termo de pesquisa não fornecido"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Nenhum resultado encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro de validação"
+     *     )
+     * )
+     */
+    public function getAllByTexto(Request $request)
+    {
+        try {
+            // 1. Verificação de Auth (Pode ser removida se usar rota protegida por middleware)
+            if (!Auth::guard('sanctum')->check()) {
+                return response()->json([
+                    'message' => 'Não autorizado',
+                    'status'  => Response::HTTP_UNAUTHORIZED
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+            
+            // 2. Validação
+            $validated = $request->validate([
+                'texto' => 'required|string|min:2'
+            ], [
+                'texto.required' => 'O termo é obrigatório.',
+                'texto.string'   => 'O termo deve ser uma string.',
+                'texto.min'      => 'O termo deve ter no mínimo :min caracteres.'
+            ]);
+            
+            // 3. Consulta (Sintaxe Corrigida: ::where)
+            $TerraIndigenas = TerraIndigena::where('nome', 'LIKE', '%' . $validated['texto'] . '%')->get();
+            
+            // 4. Verificação de Vazio
+            if ($TerraIndigenas->isEmpty()) {
+                return response()->json([
+                    'message' => 'Nenhum resultado encontrado'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // 5. Retorno de Sucesso (Padronizado como JSON)
+            return response()->json($TerraIndigenas, Response::HTTP_OK);
+            
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors'  => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            
+        } catch (\Exception $e) {
+            // Logar o erro real internamente é uma boa prática aqui: Log::error($e);
+            return response()->json([
+                'error'   => 'Erro interno na pesquisa',
+                // Cuidado: Em produção, evite enviar $e->getMessage() para o usuário final
+                'details' => config('app.debug') ? $e->getMessage() : 'Contate o suporte'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     /**
      *
      * @OA\Delete(
