@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Validation\ValidationException;
 
 /**
  *
@@ -177,6 +178,92 @@ class AssuntoController extends Controller
         return response()->json($assunto);
     }
 
+    /**
+     *
+     * @OA\Get(
+     *     path="/api/assunto/pesquisar/buscar-texto",
+     *     summary="Pesquisa assunto por texto",
+     *     description="Retorna uma lista de assunto cujos nomes correspondem ao termo de pesquisa",
+     *     tags={"Assuntos"},
+     *     security={ {"sanctum": {} } },
+     *     @OA\Parameter(
+     *         name="texto",
+     *         description="Texto para pesquisa de assunto",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de Assunto encontrados",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Assunto")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Termo de pesquisa não fornecido"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Nenhum resultado encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro de validação"
+     *     )
+     * )
+     */
+    public function getAllByTexto(Request $request)
+    {
+        try {
+            // 1. Verificação de Auth (Pode ser removida se usar rota protegida por middleware)
+            if (!Auth::guard('sanctum')->check()) {
+                return response()->json([
+                    'message' => 'Não autorizado',
+                    'status'  => Response::HTTP_UNAUTHORIZED
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+            
+            // 2. Validação
+            $validated = $request->validate([
+                'texto' => 'required|string|min:2'
+            ], [
+                'texto.required' => 'O termo é obrigatório.',
+                'texto.string'   => 'O termo deve ser uma string.',
+                'texto.min'      => 'O termo deve ter no mínimo :min caracteres.'
+            ]);
+            
+            // 3. Consulta (Sintaxe Corrigida: ::where)
+            $assuntos = Assunto::where('nome', 'LIKE', '%' . $validated['texto'] . '%')->get();
+            
+            // 4. Verificação de Vazio
+            if ($assuntos->isEmpty()) {
+                return response()->json([
+                    'message' => 'Nenhum resultado encontrado'
+                ], Response::HTTP_NOT_FOUND);
+            }
+            
+            // 5. Retorno de Sucesso (Padronizado como JSON)
+            return response()->json($assuntos, Response::HTTP_OK);
+            
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors'  => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            
+        } catch (\Exception $e) {
+            // Logar o erro real internamente é uma boa prática aqui: Log::error($e);
+            return response()->json([
+                'error'   => 'Erro interno na pesquisa',
+                // Cuidado: Em produção, evite enviar $e->getMessage() para o usuário final
+                'details' => config('app.debug') ? $e->getMessage() : 'Contate o suporte'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     /**
      *
      * @OA\Delete(

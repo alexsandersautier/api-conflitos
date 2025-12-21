@@ -15,7 +15,6 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\AtorController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrigemDadoController;
 use App\Http\Controllers\TipoResponsavelController;
 use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\AldeiaController;
@@ -67,6 +66,7 @@ Route::prefix('aldeia')->group(function () {
     Route::get('/{id}', [AldeiaController::class, 'show']);
     Route::put('/{id}', [AldeiaController::class, 'update']);
     Route::patch('/{id}', [AldeiaController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [AldeiaController::class, 'getAllByTexto']);
     Route::delete('/{id}', [AldeiaController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -76,6 +76,7 @@ Route::prefix('assunto')->group(function () {
     Route::get('/{id}', [AssuntoController::class, 'show']);
     Route::put('/{id}', [AssuntoController::class, 'update']);
     Route::patch('/{id}', [AssuntoController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [AssuntoController::class, 'getAllByTexto']);
     Route::delete('/{id}', [AssuntoController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -86,7 +87,7 @@ Route::prefix('ator')->group(function () {
     Route::put('/{id}', [AtorController::class, 'update']);
     Route::patch('/{id}', [AtorController::class, 'update']);
     Route::delete('/{id}', [AtorController::class, 'destroy']);
-
+    Route::get('/pesquisar/buscar-texto', [AtorController::class, 'getAllByTexto']);
     Route::get('/conflito/{idConflito}', [AtorController::class, 'getAllByConflito']);
 })->middleware('auth:sanctum');
 
@@ -141,7 +142,6 @@ Route::prefix('conflito')->group(function () {
     Route::patch('/{id}/set-devolvido', [ConflitoController::class,'setDevolvido']);
 
     Route::get('/conflitos-por-ator/{nomeAtor}', [ConflitoController::class, 'getConflitosPorAtor']);
-
     Route::post('/export', [ConflitoController::class, 'export'])->name('conflito.export');
 })->middleware('auth:sanctum');
 
@@ -151,6 +151,7 @@ Route::prefix('impacto-ambiental')->group(function () {
     Route::get('/{id}', [ImpactoAmbientalController::class, 'show']);
     Route::put('/{id}', [ImpactoAmbientalController::class, 'update']);
     Route::patch('/{id}', [ImpactoAmbientalController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [ImpactoAmbientalController::class, 'getAllByTexto']);
     Route::delete('/{id}', [ImpactoAmbientalController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -160,6 +161,7 @@ Route::prefix('impacto-saude')->group(function () {
     Route::get('/{id}', [ImpactoSaudeController::class, 'show']);
     Route::put('/{id}', [ImpactoSaudeController::class, 'update']);
     Route::patch('/{id}', [ImpactoSaudeController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [ImpactoSaudeController::class, 'getAllByTexto']);
     Route::delete('/{id}', [ImpactoSaudeController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -169,25 +171,17 @@ Route::prefix('impacto-socio-economico')->group(function () {
     Route::get('/{id}', [ImpactoSocioEconomicoController::class, 'show']);
     Route::put('/{id}', [ImpactoSocioEconomicoController::class, 'update']);
     Route::patch('/{id}', [ImpactoSocioEconomicoController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [ImpactoSocioEconomicoController::class, 'getAllByTexto']);
     Route::delete('/{id}', [ImpactoSocioEconomicoController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
-Route::prefix('origem-dado')->group(function () {
-    Route::get('/', [OrigemDadoController::class, 'index']);
-    Route::post('/', [OrigemDadoController::class, 'store']);
-    Route::get('/{id}', [OrigemDadoController::class, 'show']);
-    Route::put('/{id}', [OrigemDadoController::class, 'update']);
-    Route::delete('/{id}', [OrigemDadoController::class, 'destroy']);
-
-    Route::get('/conflito/{idConflito}', [OrigemDadoController::class, 'getAllByConflito']);
-})->middleware('auth:sanctum');
-
 Route::prefix('orgao')->group(function () {
-    Route::get('/', [OrgaoController::class, 'index']);
-    Route::post('/', [OrgaoController::class, 'store']);
-    Route::get('/{id}', [OrgaoController::class, 'show']);
-    Route::put('/{id}', [OrgaoController::class, 'update']);
-    Route::delete('/{id}', [OrgaoController::class, 'destroy']);
+    Route::get('/',                       [OrgaoController::class, 'index']);
+    Route::post('/',                      [OrgaoController::class, 'store']);
+    Route::get('/{id}',                   [OrgaoController::class, 'show']);
+    Route::put('/{id}',                   [OrgaoController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [OrgaoController::class, 'getAllByTexto']);
+    Route::delete('/{id}',                [OrgaoController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
 Route::prefix('perfil')->group(function () {
@@ -196,6 +190,7 @@ Route::prefix('perfil')->group(function () {
     Route::get('/{id}', [PerfilController::class, 'show']);
     Route::put('/{id}', [PerfilController::class, 'update']);
     Route::patch('/{id}', [PerfilController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [PerfilController::class, 'getAllByTexto']);
     Route::delete('/{id}', [PerfilController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -205,6 +200,7 @@ Route::prefix('povo')->group(function () {
     Route::get('/{id}', [PovoController::class, 'show']);
     Route::put('/{id}', [PovoController::class, 'update']);
     Route::patch('/{id}', [PovoController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [PovoController::class, 'getAllByTexto']);
     Route::delete('/{id}', [PovoController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -214,6 +210,7 @@ Route::prefix('situacao-fundiaria')->group(function () {
     Route::get('/{id}', [SituacaoFundiariaController::class, 'show']);
     Route::put('/{id}', [SituacaoFundiariaController::class, 'update']);
     Route::patch('/{id}', [SituacaoFundiariaController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [SituacaoFundiariaController::class, 'getAllByTexto']);
     Route::delete('/{id}', [SituacaoFundiariaController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -228,6 +225,7 @@ Route::prefix('terra-indigena')->group(function () {
     Route::get('/{id}', [TerraIndigenaController::class, 'show']);
     Route::put('/{id}', [TerraIndigenaController::class, 'update']);
     Route::patch('/{id}', [TerraIndigenaController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [TerraIndigenaController::class, 'getAllByTexto']);
     Route::delete('/{id}', [TerraIndigenaController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -237,6 +235,7 @@ Route::prefix('categoria-ator')->group(function () {
     Route::get('/{id}', [CategoriaAtorController::class, 'show']);
     Route::put('/{id}', [CategoriaAtorController::class, 'update']);
     Route::patch('/{id}', [CategoriaAtorController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [TerraIndigenaController::class, 'getAllByTexto']);
     Route::delete('/{id}', [CategoriaAtorController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -246,6 +245,7 @@ Route::prefix('tipo-conflito')->group(function () {
     Route::get('/{id}', [TipoConflitoController::class, 'show']);
     Route::put('/{id}', [TipoConflitoController::class, 'update']);
     Route::patch('/{id}', [TipoConflitoController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [TipoConflitoController::class, 'getAllByTexto']);
     Route::delete('/{id}', [TipoConflitoController::class, 'destroy']);
 })->middleware('auth:sanctum');
 
@@ -255,6 +255,7 @@ Route::prefix('tipo-responsavel')->group(function () {
     Route::get('/{id}', [TipoResponsavelController::class, 'show']);
     Route::put('/{id}', [TipoResponsavelController::class, 'update']);
     Route::patch('/{id}', [TipoResponsavelController::class, 'update']);
+    Route::get('/pesquisar/buscar-texto', [TipoResponsavelController::class, 'getAllByTexto']);
     Route::delete('/{id}', [TipoResponsavelController::class, 'destroy']);
 })->middleware('auth:sanctum');
 

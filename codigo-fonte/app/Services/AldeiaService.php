@@ -36,6 +36,7 @@ class AldeiaService
             return Aldeia::select([
                 'idAldeia',
                 'nome',
+                'nm_munic',
                 'nm_uf'
             ])->orderBy('nome')
                 ->get()
@@ -43,6 +44,7 @@ class AldeiaService
                 return [
                     'idAldeia' => $aldeia->idAldeia,
                     'nome' => $aldeia->nome,
+                    'nm_munic' => $aldeia->nm_munic,
                     'nm_uf' => $aldeia->nm_uf
                 ];
             });

@@ -63,27 +63,27 @@ class Conflito extends Model
         parent::boot();
 
         // Evento para deletar relacionamentos um-para-muitos
-        static::deleting(function ($conflito) {
-            $conflito->aldeias()->delete();
-            $conflito->assuntos()->delete();
-            $conflito->atoresIdentificados()->delete();
-            $conflito->categoriasAtores()->delete();
-            $conflito->impactosAmbientais()->delete();
-            $conflito->impactosSaude()->delete();
-            $conflito->impactosSocioEconomicos()->delete();
-            $conflito->inqueritos()->delete();
-            $conflito->localidadesConflito()->delete();
-            $conflito->numerosSeiIdentificacaoConflito()->delete();
-            $conflito->povos()->delete();
-            $conflito->processosJudiciais()->delete();
-            $conflito->programasProtecao()->delete();
-            $conflito->registrosBOouNF()->delete();
-            $conflito->terrasIndigenas()->delete();
-            $conflito->tiposConflito()->delete();
-            $conflito->violenciasPatrimoniais()->delete();
-            $conflito->violenciasPessoasIndigenas()->delete();
-            $conflito->violenciasPessoasNaoIndigenas()->delete();
-        });
+//         static::deleting(function ($conflito) {
+//             $conflito->aldeias()->delete();
+//             $conflito->assuntos()->delete();
+//             $conflito->atoresIdentificados()->delete();
+//             $conflito->categoriasAtores()->delete();
+//             $conflito->impactosAmbientais()->delete();
+//             $conflito->impactosSaude()->delete();
+//             $conflito->impactosSocioEconomicos()->delete();
+//             $conflito->inqueritos()->delete();
+//             $conflito->localidadesConflito()->delete();
+//             $conflito->numerosSeiIdentificacaoConflito()->delete();
+//             $conflito->povos()->delete();
+//             $conflito->processosJudiciais()->delete();
+//             $conflito->programasProtecao()->delete();
+//             $conflito->registrosBOouNF()->delete();
+//             $conflito->terrasIndigenas()->delete();
+//             $conflito->tiposConflito()->delete();
+//             $conflito->violenciasPatrimoniais()->delete();
+//             $conflito->violenciasPessoasIndigenas()->delete();
+//             $conflito->violenciasPessoasNaoIndigenas()->delete();
+//         });
     }
 
     /**

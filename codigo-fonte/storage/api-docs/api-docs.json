@@ -52,12 +52,42 @@
                         "application/json": {
                             "schema": {
                                 "required": [
+                                    "nm_uf",
+                                    "nm_munic",
                                     "nome"
                                 ],
                                 "properties": {
+                                    "nm_uf": {
+                                        "type": "string",
+                                        "example": "Amazonas"
+                                    },
+                                    "nm_munic": {
+                                        "type": "string",
+                                        "example": "Careiro"
+                                    },
                                     "nome": {
                                         "type": "string",
-                                        "example": "Departamento de TI"
+                                        "example": "Aldeia Indígena Itaboca"
+                                    },
+                                    "situacao": {
+                                        "type": "string",
+                                        "example": "Rural"
+                                    },
+                                    "fase": {
+                                        "type": "string",
+                                        "example": "Regularizada"
+                                    },
+                                    "amz_leg": {
+                                        "type": "string",
+                                        "example": "1"
+                                    },
+                                    "lat": {
+                                        "type": "string",
+                                        "example": "41.40338"
+                                    },
+                                    "long": {
+                                        "type": "string",
+                                        "example": "2.17403"
                                     }
                                 },
                                 "type": "object"
@@ -255,7 +285,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Categoria de Ator do Conflito"
+                                        "example": "Latifundiário"
                                     }
                                 },
                                 "type": "object"
@@ -322,7 +352,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Impacto"
+                                        "example": "Contaminação de cursos hídricos"
                                     }
                                 },
                                 "type": "object"
@@ -387,7 +417,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Epidemia"
+                                        "example": "Lesões por acidentes"
                                     }
                                 },
                                 "type": "object"
@@ -452,7 +482,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Departamento de TI"
+                                        "example": "Aliciamento e cooptação da população indígena"
                                     }
                                 },
                                 "type": "object"
@@ -517,7 +547,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Departamento de TI"
+                                        "example": "MPI"
                                     }
                                 },
                                 "type": "object"
@@ -528,85 +558,6 @@
                 "responses": {
                     "201": {
                         "description": "Orgão criado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/origem-dado": {
-            "get": {
-                "tags": [
-                    "OrigemDado"
-                ],
-                "summary": "Listar todos as origens de dados",
-                "operationId": "69c76dd415ab43774b18c0e3abfbbf4a",
-                "responses": {
-                    "200": {
-                        "description": "Lista de Origens de Dados",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/OrigemDado"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "OrigemDado"
-                ],
-                "summary": "Criar uma novo origem de dados",
-                "operationId": "1b8e8ad91958e65107be36a404179e5c",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "idConflito",
-                                    "idTiporesponsavel",
-                                    "setor_cadastrante"
-                                ],
-                                "properties": {
-                                    "idConflito": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "idTiporesponsavel": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "setor_cadastrante": {
-                                        "type": "string",
-                                        "example": "FUNAI"
-                                    },
-                                    "observacao": {
-                                        "type": "string",
-                                        "example": "Observações"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Origem de Dados criado"
                     }
                 },
                 "security": [
@@ -726,7 +677,27 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Departamento de TI"
+                                        "example": "Tupi-guarani"
+                                    },
+                                    "codEtnia": {
+                                        "type": "string",
+                                        "example": "267.00"
+                                    },
+                                    "lingua": {
+                                        "type": "string",
+                                        "example": "Tupi-guarani"
+                                    },
+                                    "familia_linguistica": {
+                                        "type": "string",
+                                        "example": "Tupi"
+                                    },
+                                    "ufs_povos": {
+                                        "type": "string",
+                                        "example": "PA,MA"
+                                    },
+                                    "qtd_ti_povo": {
+                                        "type": "integer",
+                                        "example": "3"
                                     }
                                 },
                                 "type": "object"
@@ -791,7 +762,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Situação Fundiária"
+                                        "example": "Declarada"
                                     }
                                 },
                                 "type": "object"
@@ -851,12 +822,97 @@
                         "application/json": {
                             "schema": {
                                 "required": [
+                                    "idPovo",
+                                    "idSituacaoFundiaria",
                                     "nome"
                                 ],
                                 "properties": {
+                                    "idPovo": {
+                                        "type": "integer"
+                                    },
+                                    "idSituacaoFundiaria": {
+                                        "type": "integer"
+                                    },
+                                    "codigo_ti": {
+                                        "type": "string"
+                                    },
                                     "nome": {
-                                        "type": "string",
-                                        "example": "Terra Indígena"
+                                        "type": "string"
+                                    },
+                                    "superficie_perimetro_ha": {
+                                        "type": "string"
+                                    },
+                                    "modalidade_ti": {
+                                        "type": "string"
+                                    },
+                                    "etnia_nome": {
+                                        "type": "string"
+                                    },
+                                    "municipio_nome": {
+                                        "type": "string"
+                                    },
+                                    "uf_sigla": {
+                                        "type": "string"
+                                    },
+                                    "coordenacao_regional": {
+                                        "type": "string"
+                                    },
+                                    "faixa_fronteira": {
+                                        "type": "string"
+                                    },
+                                    "undadm_codigo": {
+                                        "type": "string"
+                                    },
+                                    "undadm_nome": {
+                                        "type": "string"
+                                    },
+                                    "undadm_sigla": {
+                                        "type": "string"
+                                    },
+                                    "data_atualizacao": {
+                                        "type": "string"
+                                    },
+                                    "data_homologacao": {
+                                        "type": "string"
+                                    },
+                                    "decreto_homologacao": {
+                                        "type": "string"
+                                    },
+                                    "data_regularizacao": {
+                                        "type": "string"
+                                    },
+                                    "matricula_regularizacao": {
+                                        "type": "string"
+                                    },
+                                    "acao_recuperacao_territorial": {
+                                        "type": "string"
+                                    },
+                                    "dominio_uniao": {
+                                        "type": "string"
+                                    },
+                                    "numero_processo_funai": {
+                                        "type": "string"
+                                    },
+                                    "data_abertura_processo_funai": {
+                                        "type": "string"
+                                    },
+                                    "numero_portaria_funai": {
+                                        "type": "string"
+                                    },
+                                    "numero_processo_sei": {
+                                        "type": "string"
+                                    },
+                                    "numero_portaria_declaratoria": {
+                                        "type": "string"
+                                    },
+                                    "qtd_aldeias": {
+                                        "type": "string"
+                                    },
+                                    "qtd_familias": {
+                                        "type": "string"
+                                    },
+                                    "links_documentos_vinculados": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -921,7 +977,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Tipo de Conflito"
+                                        "example": "Prevenção e acompanhamento de conflito: Disputas territoriais"
                                     }
                                 },
                                 "type": "object"
@@ -986,7 +1042,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Tipo de Responsavel do Conflito"
+                                        "example": "Latifundiário"
                                     }
                                 },
                                 "type": "object"
@@ -1270,6 +1326,56 @@
                 ]
             }
         },
+        "/api/aldeia/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "Aldeias"
+                ],
+                "summary": "Pesquisa aldeia por texto",
+                "description": "Retorna uma lista de aldeia cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "027b5cf2b6a58c0a378580b9f77f941d",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de aldeia",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Aldeia encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Aldeia"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/assunto/{id}": {
             "get": {
                 "tags": [
@@ -1386,6 +1492,56 @@
                 ]
             }
         },
+        "/api/assunto/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "Assuntos"
+                ],
+                "summary": "Pesquisa assunto por texto",
+                "description": "Retorna uma lista de assunto cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "55a696f774e505f0901ffa90dc306b0e",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de assunto",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Assunto encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Assunto"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/ator/{id}": {
             "get": {
                 "tags": [
@@ -1443,19 +1599,9 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "idCategoriaAtor",
-                                    "idConflito",
                                     "nome"
                                 ],
                                 "properties": {
-                                    "idCategoriaAtor": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "idConflito": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
                                     "nome": {
                                         "type": "string",
                                         "example": "João da Silva"
@@ -1496,6 +1642,56 @@
                 "responses": {
                     "204": {
                         "description": "Ator excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/ator/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "Ators"
+                ],
+                "summary": "Pesquisa ator por texto",
+                "description": "Retorna uma lista de ator cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "3a0713d459f30719ad83eb39e9264f55",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de ator",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Ator encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Ator"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -1768,7 +1964,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Categoria de Ator do Conflito"
+                                        "example": "Latifundiário"
                                     }
                                 },
                                 "type": "object"
@@ -1806,6 +2002,56 @@
                 "responses": {
                     "204": {
                         "description": "Categoria de Ator excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/categoria-ator/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "Perfis"
+                ],
+                "summary": "Pesquisa categoriaAtor por texto",
+                "description": "Retorna uma lista de categoriaAtor cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "260a65245e7e7393abeba675d00cdd17",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de categoriaAtor",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de CategoriaAtor encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CategoriaAtor"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -5887,7 +6133,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Departamento de TI"
+                                        "example": "Contaminação de cursos hídricos"
                                     }
                                 },
                                 "type": "object"
@@ -5925,6 +6171,56 @@
                 "responses": {
                     "204": {
                         "description": "Impacto Ambiental excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/impacto-ambiental/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "ImpactoAmbiental"
+                ],
+                "summary": "Pesquisa ImpactoAmbiental por texto",
+                "description": "Retorna uma lista de ImpactoAmbiental cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "9bd7f8bcd318671c548758aa37c994d1",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de ImpactoAmbiental",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de ImpactoAmbiental encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ImpactoAmbiental"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -5996,7 +6292,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Impacto"
+                                        "example": "Lesões por acidentes"
                                     }
                                 },
                                 "type": "object"
@@ -6034,6 +6330,56 @@
                 "responses": {
                     "204": {
                         "description": "Impacto Saude excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/impacto-saude/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "ImpactoSaude"
+                ],
+                "summary": "Pesquisa ImpactoSaude por texto",
+                "description": "Retorna uma lista de ImpactoSaude cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "704f7fc9e4408f783fc8697441fc8992",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de ImpactoSaude",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de ImpactoSaude encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ImpactoSaude"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -6105,7 +6451,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Nome do Impacto Sócio Econômicos"
+                                        "example": "Aliciamento e cooptação da população indígena"
                                     }
                                 },
                                 "type": "object"
@@ -6143,6 +6489,56 @@
                 "responses": {
                     "204": {
                         "description": "Impacto Sócio Econômico excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/impacto-socio-economico/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "ImpactoSocioEconomico"
+                ],
+                "summary": "Pesquisa ImpactoSocioEconomico por texto",
+                "description": "Retorna uma lista de ImpactoSocioEconomico cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "c9a46214f415536b7898d4e149164199",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de ImpactoSocioEconomico",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de ImpactoSocioEconomico encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ImpactoSocioEconomico"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -6261,152 +6657,47 @@
                 ]
             }
         },
-        "/api/origem-dado/{id}": {
+        "/api/orgao/pesquisar/buscar-texto": {
             "get": {
                 "tags": [
-                    "OrigemDado"
+                    "Orgaos"
                 ],
-                "summary": "Obter um origem de dados específico",
-                "operationId": "e3469ee6042c62268ede4dc02b756f07",
+                "summary": "Pesquisa orgao por texto",
+                "description": "Retorna uma lista de orgao cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "31f28ca34ce4ec75271992d0e7559fed",
                 "parameters": [
                     {
-                        "name": "id",
-                        "in": "path",
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de orgao",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Dados do origem de dados",
+                        "description": "Lista de Orgao encontrados",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/OrigemDado"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Orgao"
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "OrigemDado"
-                ],
-                "summary": "Atualizar um origem de dados específico",
-                "operationId": "45cfd8d102668882acfe64993bbbeb36",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "idConflito",
-                                    "idTiporesponsavel",
-                                    "setor_cadastrante"
-                                ],
-                                "properties": {
-                                    "idConflito": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "idTiporesponsavel": {
-                                        "type": "integer",
-                                        "example": "1"
-                                    },
-                                    "setor_cadastrante": {
-                                        "type": "string",
-                                        "example": "FUNAI"
-                                    },
-                                    "observacao": {
-                                        "type": "string",
-                                        "example": "Observações"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Origem de Dados atualizado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "OrigemDado"
-                ],
-                "summary": "Excluir um origem de dados específico",
-                "operationId": "f93b02414b5238a0d44cd0eea16d082c",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Origem de Dados excluída"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/origem-dado/conflito/{idConflito}": {
-            "get": {
-                "tags": [
-                    "OrigemDado"
-                ],
-                "summary": "Listar todos as origens de dados de um Conflito",
-                "operationId": "355ff7ab786da6cb51792686ead7f38f",
-                "parameters": [
-                    {
-                        "name": "idConflito",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lista de Origens de Dados"
                     },
-                    "500": {
-                        "description": "Erro no consulta"
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -6525,6 +6816,56 @@
                 ]
             }
         },
+        "/api/perfil/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "Perfis"
+                ],
+                "summary": "Pesquisa perfil por texto",
+                "description": "Retorna uma lista de perfil cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "89aed94f3ecf5bfcdeec2d47ceee27f4",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de perfil",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Perfil encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Perfil"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/povo/{id}": {
             "get": {
                 "tags": [
@@ -6587,7 +6928,27 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Yanomami"
+                                        "example": "Tupi-guarani"
+                                    },
+                                    "codEtnia": {
+                                        "type": "string",
+                                        "example": "267.00"
+                                    },
+                                    "lingua": {
+                                        "type": "string",
+                                        "example": "Tupi-guarani"
+                                    },
+                                    "familia_linguistica": {
+                                        "type": "string",
+                                        "example": "Tupi"
+                                    },
+                                    "ufs_povos": {
+                                        "type": "string",
+                                        "example": "PA,MA"
+                                    },
+                                    "qtd_ti_povo": {
+                                        "type": "integer",
+                                        "example": "3"
                                     }
                                 },
                                 "type": "object"
@@ -6625,6 +6986,56 @@
                 "responses": {
                     "204": {
                         "description": "Povo excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/povo/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "Povos"
+                ],
+                "summary": "Pesquisa Povo por texto",
+                "description": "Retorna uma lista de Povo cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "940e9dc875405713bacbaa3b475b6dbd",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de Povo",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Povo encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Povo"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -6696,7 +7107,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Situação Fundiária"
+                                        "example": "Declarada"
                                     }
                                 },
                                 "type": "object"
@@ -6734,6 +7145,56 @@
                 "responses": {
                     "204": {
                         "description": "Situação Fundiária excluída"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/situacao-fundiaria/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "SituacaoFundiarias"
+                ],
+                "summary": "Pesquisa situacao Fundiaria por texto",
+                "description": "Retorna uma lista de situacao Fundiaria cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "df2cf338d01884be27a299439702274c",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de situacao Fundiaria",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de SituacaoFundiaria encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SituacaoFundiaria"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -6842,12 +7303,97 @@
                         "application/json": {
                             "schema": {
                                 "required": [
+                                    "idPovo",
+                                    "idSituacaoFundiaria",
                                     "nome"
                                 ],
                                 "properties": {
+                                    "idPovo": {
+                                        "type": "integer"
+                                    },
+                                    "idSituacaoFundiaria": {
+                                        "type": "integer"
+                                    },
+                                    "codigo_ti": {
+                                        "type": "string"
+                                    },
                                     "nome": {
-                                        "type": "string",
-                                        "example": "Terra Indigena"
+                                        "type": "string"
+                                    },
+                                    "superficie_perimetro_ha": {
+                                        "type": "string"
+                                    },
+                                    "modalidade_ti": {
+                                        "type": "string"
+                                    },
+                                    "etnia_nome": {
+                                        "type": "string"
+                                    },
+                                    "municipio_nome": {
+                                        "type": "string"
+                                    },
+                                    "uf_sigla": {
+                                        "type": "string"
+                                    },
+                                    "coordenacao_regional": {
+                                        "type": "string"
+                                    },
+                                    "faixa_fronteira": {
+                                        "type": "string"
+                                    },
+                                    "undadm_codigo": {
+                                        "type": "string"
+                                    },
+                                    "undadm_nome": {
+                                        "type": "string"
+                                    },
+                                    "undadm_sigla": {
+                                        "type": "string"
+                                    },
+                                    "data_atualizacao": {
+                                        "type": "string"
+                                    },
+                                    "data_homologacao": {
+                                        "type": "string"
+                                    },
+                                    "decreto_homologacao": {
+                                        "type": "string"
+                                    },
+                                    "data_regularizacao": {
+                                        "type": "string"
+                                    },
+                                    "matricula_regularizacao": {
+                                        "type": "string"
+                                    },
+                                    "acao_recuperacao_territorial": {
+                                        "type": "string"
+                                    },
+                                    "dominio_uniao": {
+                                        "type": "string"
+                                    },
+                                    "numero_processo_funai": {
+                                        "type": "string"
+                                    },
+                                    "data_abertura_processo_funai": {
+                                        "type": "string"
+                                    },
+                                    "numero_portaria_funai": {
+                                        "type": "string"
+                                    },
+                                    "numero_processo_sei": {
+                                        "type": "string"
+                                    },
+                                    "numero_portaria_declaratoria": {
+                                        "type": "string"
+                                    },
+                                    "qtd_aldeias": {
+                                        "type": "string"
+                                    },
+                                    "qtd_familias": {
+                                        "type": "string"
+                                    },
+                                    "links_documentos_vinculados": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -6892,6 +7438,56 @@
                 "responses": {
                     "204": {
                         "description": "Terra Indigena excluída"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/terra-indigena/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "TerraIndigenas"
+                ],
+                "summary": "Pesquisa Terra Indigena por texto",
+                "description": "Retorna uma lista de Terra Indigena cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "e44c661d46d72beb13b2413f1013d4f9",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de Terra Indigena",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Terra Indigena encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TerraIndigena"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -6963,7 +7559,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Tipo de Conflito"
+                                        "example": "Prevenção e acompanhamento de conflito: Disputas territoriais"
                                     }
                                 },
                                 "type": "object"
@@ -7001,6 +7597,56 @@
                 "responses": {
                     "204": {
                         "description": "Tipo de Conflito excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo-conflito/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "TiposConflito"
+                ],
+                "summary": "Pesquisa Tipo de Conflito por texto",
+                "description": "Retorna uma lista de TipoConflito cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "016b4847d38b57626c0767d458a62377",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de Tipo de Conflito",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de Tipo de Conflito encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TipoConflito"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -7072,7 +7718,7 @@
                                 "properties": {
                                     "nome": {
                                         "type": "string",
-                                        "example": "Tipo de Responsavel do Conflito"
+                                        "example": "Latifundiário"
                                     }
                                 },
                                 "type": "object"
@@ -7110,6 +7756,56 @@
                 "responses": {
                     "204": {
                         "description": "Tipo de Responsavel excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tipo-Responsavel/pesquisar/buscar-texto": {
+            "get": {
+                "tags": [
+                    "TiposResponsavel"
+                ],
+                "summary": "Pesquisa tipo-Responsavel por texto",
+                "description": "Retorna uma lista de tipo-Responsavel cujos nomes correspondem ao termo de pesquisa",
+                "operationId": "f2b4fec38082717008268e55f8fa040e",
+                "parameters": [
+                    {
+                        "name": "texto",
+                        "in": "query",
+                        "description": "Texto para pesquisa de usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de TipoResponsavel encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TipoResponsavel"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Termo de pesquisa não fornecido"
+                    },
+                    "404": {
+                        "description": "Nenhum resultado encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 },
                 "security": [
@@ -7411,9 +8107,37 @@
                         "type": "integer",
                         "example": 1
                     },
+                    "nm_uf": {
+                        "type": "string",
+                        "example": "Amazonas"
+                    },
+                    "nm_munic": {
+                        "type": "string",
+                        "example": "Careiro"
+                    },
                     "nome": {
                         "type": "string",
-                        "example": "nome do aldeia"
+                        "example": "Aldeia Indígena Itaboca"
+                    },
+                    "situacao": {
+                        "type": "string",
+                        "example": "Rural"
+                    },
+                    "fase": {
+                        "type": "string",
+                        "example": "Regularizada"
+                    },
+                    "amz_leg": {
+                        "type": "string",
+                        "example": "1"
+                    },
+                    "lat": {
+                        "type": "string",
+                        "example": "41.40338"
+                    },
+                    "long": {
+                        "type": "string",
+                        "example": "2.17403"
                     }
                 },
                 "type": "object"
@@ -7439,7 +8163,7 @@
                     },
                     "nome": {
                         "type": "string",
-                        "example": "Nome do ator"
+                        "example": "João da Silva"
                     }
                 },
                 "type": "object"
@@ -7447,7 +8171,8 @@
             "CategoriaAtor": {
                 "properties": {
                     "idCategoriaAtor": {
-                        "type": "integer"
+                        "type": "integer",
+                        "example": "1"
                     },
                     "nome": {
                         "type": "string",
@@ -7588,7 +8313,7 @@
                     },
                     "nome": {
                         "type": "string",
-                        "example": "Nome do ImpactoAmbiental"
+                        "example": "Contaminação de cursos hídricos"
                     }
                 },
                 "type": "object"
@@ -7601,7 +8326,7 @@
                     },
                     "nome": {
                         "type": "string",
-                        "example": "Nome do Impacto Saúde"
+                        "example": "Lesões por acidentes"
                     }
                 },
                 "type": "object"
@@ -7614,7 +8339,7 @@
                     },
                     "nome": {
                         "type": "string",
-                        "example": "Nome do ImpactoSocioEconomico"
+                        "example": "Aliciamento e cooptação da população indígena"
                     }
                 },
                 "type": "object"
@@ -7628,29 +8353,6 @@
                     "nome": {
                         "type": "string",
                         "example": "MPI"
-                    }
-                },
-                "type": "object"
-            },
-            "OrigemDado": {
-                "properties": {
-                    "idOrigemDado": {
-                        "type": "integer",
-                        "example": "1"
-                    },
-                    "conflito": {
-                        "$ref": "#/components/schemas/Conflito"
-                    },
-                    "tipoResponsavel": {
-                        "$ref": "#/components/schemas/TipoResponsavel"
-                    },
-                    "setor_cadastrante": {
-                        "type": "string",
-                        "example": "FUNAI"
-                    },
-                    "observacao": {
-                        "type": "string",
-                        "example": "Lista de observações"
                     }
                 },
                 "type": "object"
@@ -7825,7 +8527,8 @@
             "TipoResponsavel": {
                 "properties": {
                     "idTipoResponsavel": {
-                        "type": "integer"
+                        "type": "integer",
+                        "example": "1"
                     },
                     "nome": {
                         "type": "string",
@@ -7922,10 +8625,6 @@
             "description": "Endpoints para Órgãos"
         },
         {
-            "name": "OrigemDado",
-            "description": "Endpoints para Origens de Dados"
-        },
-        {
             "name": "Perfis",
             "description": "Endpoints para Perfil"
         },
@@ -7954,8 +8653,20 @@
             "description": "Endpoints para Usuários"
         },
         {
+            "name": "Ators",
+            "description": "Ators"
+        },
+        {
             "name": "Health",
             "description": "Health"
+        },
+        {
+            "name": "ImpactoAmbiental",
+            "description": "ImpactoAmbiental"
+        },
+        {
+            "name": "ImpactoSaude",
+            "description": "ImpactoSaude"
         }
     ]
 }
