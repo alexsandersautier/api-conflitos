@@ -179,7 +179,7 @@ class ImpactoAmbientalController extends Controller
      *     path="/api/impacto-ambiental/pesquisar/buscar-texto",
      *     summary="Pesquisa ImpactoAmbiental por texto",
      *     description="Retorna uma lista de ImpactoAmbiental cujos nomes correspondem ao termo de pesquisa",
-     *     tags={"ImpactoAmbiental"},
+     *     tags={"ImpactosAmbientais"},
      *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="texto",

@@ -179,7 +179,7 @@ class ImpactoSaudeController extends Controller
      *     path="/api/impacto-saude/pesquisar/buscar-texto",
      *     summary="Pesquisa ImpactoSaude por texto",
      *     description="Retorna uma lista de ImpactoSaude cujos nomes correspondem ao termo de pesquisa",
-     *     tags={"ImpactoSaude"},
+     *     tags={"ImpactosSaude"},
      *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="texto",

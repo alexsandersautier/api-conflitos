@@ -20,7 +20,9 @@ class Aldeia extends Model
         'situacao',
         'fase',
         'amz_leg',
-        'lat'
+        'lat',
+        'long',
+        'carga_funai'
     ];
 
     protected $dates = [

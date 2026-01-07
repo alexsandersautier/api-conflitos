@@ -1105,7 +1105,8 @@
                                     "nome",
                                     "email",
                                     "senha",
-                                    "idOrgao"
+                                    "idOrgao",
+                                    "idPerfil"
                                 ],
                                 "properties": {
                                     "nome": {
@@ -1654,7 +1655,7 @@
         "/api/ator/pesquisar/buscar-texto": {
             "get": {
                 "tags": [
-                    "Ators"
+                    "Atores"
                 ],
                 "summary": "Pesquisa ator por texto",
                 "description": "Retorna uma lista de ator cujos nomes correspondem ao termo de pesquisa",
@@ -2066,21 +2067,10 @@
                 "tags": [
                     "Conflitos"
                 ],
-                "summary": "Listar todos os conflitos",
+                "summary": "Lista e filtra dados de conflitos",
+                "description": "Retorna uma lista paginada de conflitos com base em múltiplos filtros (localidade, tipo de violência, dados jurídicos, etc). Requer token Bearer.",
                 "operationId": "fc576bffbd4efac90b79b420d8ac1187",
                 "parameters": [
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "description": "Número de itens por página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "maximum": 100,
-                            "minimum": 1,
-                            "example": 15
-                        }
-                    },
                     {
                         "name": "page",
                         "in": "query",
@@ -2088,18 +2078,26 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "minimum": 1,
-                            "example": 1
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Itens por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
                         }
                     },
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "Termo de busca por nome",
+                        "description": "Busca textual (Nome ou Relato do conflito)",
                         "required": false,
                         "schema": {
-                            "type": "string",
-                            "example": "conflito teste"
+                            "type": "string"
                         }
                     },
                     {
@@ -2109,13 +2107,14 @@
                         "required": false,
                         "schema": {
                             "type": "string",
+                            "default": "dataInicioConflito",
                             "enum": [
                                 "nome",
                                 "dataInicioConflito",
+                                "dataAcionamentoMpiConflito",
                                 "created_at",
                                 "updated_at"
-                            ],
-                            "example": "dataInicioConflito"
+                            ]
                         }
                     },
                     {
@@ -2125,24 +2124,294 @@
                         "required": false,
                         "schema": {
                             "type": "string",
+                            "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
-                            ],
-                            "example": "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "regiao",
+                        "in": "query",
+                        "description": "Região (Norte, Nordeste, etc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Amazônia",
+                                "Centro-Oeste",
+                                "Nordeste",
+                                "Sudeste",
+                                "Sul"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "uf",
+                        "in": "query",
+                        "description": "Sigla da UF (Ex: AM, PA)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 2,
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "municipio",
+                        "in": "query",
+                        "description": "Nome do município",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "terraIndigena",
+                        "in": "query",
+                        "description": "ID ou Nome da Terra Indígena",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "povo",
+                        "in": "query",
+                        "description": "ID do Povo Indígena",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "estrategiaGeralUtilizadaDemed",
+                        "in": "query",
+                        "description": "Filtro por Estratégia DEMED",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "processoSei",
+                        "in": "query",
+                        "description": "Número do Processo SEI",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "categoriaAtor",
+                        "in": "query",
+                        "description": "ID da Categoria do Ator",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "assunto",
+                        "in": "query",
+                        "description": "ID do Assunto",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "impactoAmbiental",
+                        "in": "query",
+                        "description": "ID do Tipo de Impacto Ambiental",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "impactoSaude",
+                        "in": "query",
+                        "description": "ID do Tipo de Impacto à Saúde",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "impactoSocioEconomico",
+                        "in": "query",
+                        "description": "ID do Tipo de Impacto Socioeconômico",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "tipoViolenciaPatrimonial",
+                        "in": "query",
+                        "description": "Tipo de Violência Patrimonial",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tipoViolenciaPessoaIndigena",
+                        "in": "query",
+                        "description": "Tipo de Violência contra Pessoa Indígena",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tipoViolenciaPessoaNaoIndigena",
+                        "in": "query",
+                        "description": "Tipo de Violência contra Pessoa Não Indígena",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "programaProtecao",
+                        "in": "query",
+                        "description": "ID do Programa de Proteção",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "classificacaoGravidade",
+                        "in": "query",
+                        "description": "Classificação da gravidade/urgência",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Emergência",
+                                "Pouca Urgência",
+                                "Urgência",
+                                "Não Urgente"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "boletimOcorrencia",
+                        "in": "query",
+                        "description": "Número do B.O. ou Documento SEI",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "inquerito",
+                        "in": "query",
+                        "description": "Número do Inquérito ou Documento SEI",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "processoJudicial",
+                        "in": "query",
+                        "description": "Número do Processo Judicial ou Documento SEI",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assistenciaJuridica",
+                        "in": "query",
+                        "description": "Tipo de Instituição Jurídica ou Advogado de Instituição Jurídica",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de conflitos",
+                        "description": "Sucesso",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Conflito"
-                                    }
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conflitos recuperados com sucesso."
+                                        },
+                                        "data": {
+                                            "description": "Objeto de paginação do Laravel ou Array de dados se houver busca textual",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Conflito"
+                                                    }
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Não autorizado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erro de Validação",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Parâmetros inválidos"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -6183,7 +6452,7 @@
         "/api/impacto-ambiental/pesquisar/buscar-texto": {
             "get": {
                 "tags": [
-                    "ImpactoAmbiental"
+                    "ImpactosAmbientais"
                 ],
                 "summary": "Pesquisa ImpactoAmbiental por texto",
                 "description": "Retorna uma lista de ImpactoAmbiental cujos nomes correspondem ao termo de pesquisa",
@@ -6342,7 +6611,7 @@
         "/api/impacto-saude/pesquisar/buscar-texto": {
             "get": {
                 "tags": [
-                    "ImpactoSaude"
+                    "ImpactosSaude"
                 ],
                 "summary": "Pesquisa ImpactoSaude por texto",
                 "description": "Retorna uma lista de ImpactoSaude cujos nomes correspondem ao termo de pesquisa",
@@ -7874,7 +8143,6 @@
                                 "required": [
                                     "nome",
                                     "email",
-                                    "senha",
                                     "idOrgao",
                                     "idPerfil"
                                 ],
@@ -7887,11 +8155,6 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "joao@example.com"
-                                    },
-                                    "senha": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "senha123"
                                     },
                                     "idOrgao": {
                                         "type": "integer",
@@ -8188,10 +8451,15 @@
                         "example": "nome do conflito"
                     },
                     "relato": {
-                        "type": "string",
+                        "type": "text",
                         "example": "Relato do conflito"
                     },
-                    "dataConflito": {
+                    "dataInicioConflito": {
+                        "type": "string",
+                        "format": "yyyy-mm-dd",
+                        "example": "2025-04-13"
+                    },
+                    "dataAcionamentoMpiConflito": {
                         "type": "string",
                         "format": "yyyy-mm-dd",
                         "example": "2025-04-13"
@@ -8204,33 +8472,108 @@
                         "type": "string",
                         "example": "2.17403"
                     },
-                    "flagOcorrenciaAmeaca": {
-                        "type": "boolean",
-                        "example": "1"
+                    "observacoes": {
+                        "type": "text",
+                        "example": "Relato do conflito"
                     },
-                    "flagOcorrenciaViolencia": {
-                        "type": "boolean",
-                        "example": "0"
-                    },
-                    "flagOcorrenciaAssassinato": {
-                        "type": "boolean",
-                        "example": "1"
-                    },
-                    "flagOcorrenciaFeridos": {
-                        "type": "boolean",
-                        "example": "0"
-                    },
-                    "flagMembroProgramaProtecao": {
-                        "type": "boolean",
-                        "example": "1"
-                    },
-                    "created_at": {
+                    "flagHasImpactoAmbiental": {
                         "type": "string",
-                        "format": "date-time"
+                        "example": "SIM"
                     },
-                    "updated_at": {
+                    "flagHasImpactoSaude": {
                         "type": "string",
-                        "format": "date-time"
+                        "example": "NÃO"
+                    },
+                    "flagHasImpactoSocioEconomico": {
+                        "type": "string",
+                        "example": "SIM"
+                    },
+                    "flagHasViolenciaIndigena": {
+                        "type": "string",
+                        "example": "NÃO"
+                    },
+                    "flagHasMembroProgramaProtecao": {
+                        "type": "string",
+                        "example": "SIM"
+                    },
+                    "flagHasBOouNF": {
+                        "type": "string",
+                        "example": "NÃO"
+                    },
+                    "flagHasInquerito": {
+                        "type": "string",
+                        "example": "SIM"
+                    },
+                    "flagHasProcessoJudicial": {
+                        "type": "string",
+                        "example": "NÃO"
+                    },
+                    "flagHasAssistenciaJuridica": {
+                        "type": "string",
+                        "example": "SIM"
+                    },
+                    "flagHasRegiaoPrioritaria": {
+                        "type": "string",
+                        "example": "NÃO"
+                    },
+                    "flagHasViolenciaPatrimonialIndigena": {
+                        "type": "string",
+                        "example": "SIM"
+                    },
+                    "flagHasEventoViolenciaIndigena": {
+                        "type": "string",
+                        "example": "NÃO"
+                    },
+                    "flagHasAssassinatoPrisaoNaoIndigena": {
+                        "type": "string",
+                        "example": "SIM"
+                    },
+                    "tipoInstituicaoAssistenciaJuridica": {
+                        "type": "string",
+                        "example": "Defensoria Pública do Estado (DPE)"
+                    },
+                    "advogadoInstituicaoAssistenciaJuridica": {
+                        "type": "string",
+                        "example": "Defensoria Pública do Estado do Amazonas"
+                    },
+                    "regiaoPrioritaria": {
+                        "type": "string",
+                        "example": "Sul e extremo sul da Bahia"
+                    },
+                    "classificacaoGravidadeConflitoDemed": {
+                        "type": "string",
+                        "example": "Pouca Urgência"
+                    },
+                    "atualizacaoClassificacaoGravidadeConflito": {
+                        "type": "string",
+                        "enum": [
+                            "Pouca Urgência",
+                            "Urgência",
+                            "Não Urgente",
+                            "Emergência"
+                        ],
+                        "example": "Pouca Urgência"
+                    },
+                    "dataReferenciaMudancaClassificacao": {
+                        "type": "string",
+                        "format": "yyyy-mm-dd",
+                        "example": "2025-04-13"
+                    },
+                    "estrategiaGeralUtilizadaDemed": {
+                        "type": "string",
+                        "example": "Realização de reuniões pontuais com os atores envolvidos"
+                    },
+                    "estrategiaColetiva": {
+                        "type": "text",
+                        "example": "Participação do MPI na Assembleia do Conselho Territorial Tupiniquim Guarani e formulação de minuta através de deliberações tomadas em conjunto com CONJUR e SEGAT a partir das estratégias de diálogo com os povos considerando a ida ao território em\n 06/09/2025."
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "CADASTRADO"
+                    },
+                    "revisao": {
+                        "type": "text",
+                        "example": "txto de revisão do conflito"
                     },
                     "terrasIndigenas": {
                         "description": "Terras Indigenas vinculadas",
@@ -8653,20 +8996,8 @@
             "description": "Endpoints para Usuários"
         },
         {
-            "name": "Ators",
-            "description": "Ators"
-        },
-        {
             "name": "Health",
             "description": "Health"
-        },
-        {
-            "name": "ImpactoAmbiental",
-            "description": "ImpactoAmbiental"
-        },
-        {
-            "name": "ImpactoSaude",
-            "description": "ImpactoSaude"
         }
     ]
 }

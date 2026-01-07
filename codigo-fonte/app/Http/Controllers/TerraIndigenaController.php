@@ -454,7 +454,7 @@ class TerraIndigenaController extends Controller
             ]);
             
             // 3. Consulta (Sintaxe Corrigida: ::where)
-            $TerraIndigenas = TerraIndigena::where('nome', 'LIKE', '%' . $validated['texto'] . '%')->get();
+            $TerraIndigenas = TerraIndigena::with(['povo'])->where('nome', 'LIKE', '%' . $validated['texto'] . '%')->get();
             
             // 4. Verificação de Vazio
             if ($TerraIndigenas->isEmpty()) {

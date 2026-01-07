@@ -169,7 +169,9 @@ class AldeiaController extends Controller
         }
 
         $validator = validator($request->all(), [
-            'nome' => 'required|string|max:255'
+            'nm_uf'    => 'nullable|string|max:255',
+            'nm_munic' => 'nullable|string|max:255',
+            'nome'     => 'required|string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -179,9 +181,14 @@ class AldeiaController extends Controller
                 'errors' => $validator->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-
+        
+        $request['carga_funai'] = 0; 
+        
         $aldeia = Aldeia::create($request->only([
-            'nome'
+            'nm_uf',
+            'nm_munic',
+            'nome',
+            'carga_funai'
         ]));
         return response()->json($aldeia, Response::HTTP_CREATED);
     }

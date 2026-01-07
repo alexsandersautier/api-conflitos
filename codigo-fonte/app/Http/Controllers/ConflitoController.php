@@ -38,18 +38,41 @@ use Throwable; // Importante para capturar erros fatais
  *  @OA\Schema(
  *     schema="Conflito",
  *     type="object",
+ *     
  *     @OA\Property(property="nome", type="string", example="nome do conflito"),
- *     @OA\Property(property="relato", type="string", example="Relato do conflito"),
- *     @OA\Property(property="dataConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+ *     @OA\Property(property="relato", type="text", example="Relato do conflito"),
+ *     @OA\Property(property="dataInicioConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+ *     @OA\Property(property="dataAcionamentoMpiConflito", type="date", format="yyyy-mm-dd", example="2025-04-13"),
  *     @OA\Property(property="latitude", type="string", example="41.40338"),
  *     @OA\Property(property="longitude", type="string", example="2.17403"),
- *     @OA\Property(property="flagOcorrenciaAmeaca", type="boolean", example="1"),
- *     @OA\Property(property="flagOcorrenciaViolencia", type="boolean", example="0"),
- *     @OA\Property(property="flagOcorrenciaAssassinato", type="boolean", example="1"),
- *     @OA\Property(property="flagOcorrenciaFeridos", type="boolean", example="0"),
- *     @OA\Property(property="flagMembroProgramaProtecao", type="boolean", example="1"),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="observacoes", type="text", example="Relato do conflito"),
+ *     
+ *     @OA\Property(property="flagHasImpactoAmbiental", type="string", example="SIM"),
+ *     @OA\Property(property="flagHasImpactoSaude", type="string", example="NÃO"),
+ *     @OA\Property(property="flagHasImpactoSocioEconomico", type="string", example="SIM"),
+ *     @OA\Property(property="flagHasViolenciaIndigena", type="string", example="NÃO"),
+ *     @OA\Property(property="flagHasMembroProgramaProtecao", type="string", example="SIM"),
+ *     @OA\Property(property="flagHasBOouNF", type="string", example="NÃO"),
+ *     @OA\Property(property="flagHasInquerito", type="string", example="SIM"),
+ *     @OA\Property(property="flagHasProcessoJudicial", type="string", example="NÃO"),
+ *     @OA\Property(property="flagHasAssistenciaJuridica", type="string", example="SIM"),
+ *     @OA\Property(property="flagHasRegiaoPrioritaria", type="string", example="NÃO"),
+ *     @OA\Property(property="flagHasViolenciaPatrimonialIndigena", type="string", example="SIM"),
+ *     @OA\Property(property="flagHasEventoViolenciaIndigena", type="string", example="NÃO"),
+ *     @OA\Property(property="flagHasAssassinatoPrisaoNaoIndigena", type="string", example="SIM"),
+ *     
+ *     @OA\Property(property="tipoInstituicaoAssistenciaJuridica", type="string", example="Defensoria Pública do Estado (DPE)"),
+ *     @OA\Property(property="advogadoInstituicaoAssistenciaJuridica", type="string", example="Defensoria Pública do Estado do Amazonas"),
+ *     @OA\Property(property="regiaoPrioritaria", type="string", example="Sul e extremo sul da Bahia"),
+ *     @OA\Property(property="classificacaoGravidadeConflitoDemed", type="string", example="Pouca Urgência"),
+ *     @OA\Property(property="atualizacaoClassificacaoGravidadeConflito", type="string", enum={"Pouca Urgência", "Urgência", "Não Urgente", "Emergência"}, example="Pouca Urgência"),
+ *     @OA\Property(property="dataReferenciaMudancaClassificacao", type="date", format="yyyy-mm-dd", example="2025-04-13"),
+ *     @OA\Property(property="estrategiaGeralUtilizadaDemed", type="string", example="Realização de reuniões pontuais com os atores envolvidos"),
+ *     @OA\Property(property="estrategiaColetiva", type="text", example="Participação do MPI na Assembleia do Conselho Territorial Tupiniquim Guarani e formulação de minuta através de deliberações tomadas em conjunto com CONJUR e SEGAT a partir das estratégias de diálogo com os povos considerando a ida ao território em
+ 06/09/2025."),
+ *     @OA\Property(property="status", type="string", example="CADASTRADO"),
+ *     @OA\Property(property="revisao", type="text", example="txto de revisão do conflito"),
+ *     
  *     @OA\Property(
  *         property="terrasIndigenas",
  *         type="array",
@@ -116,76 +139,104 @@ class ConflitoController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/conflito",
-     *     tags={"Conflitos"},
-     *     security={ {"sanctum": {} } },
-     *     summary="Listar todos os conflitos",
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         required=false,
-     *         description="Número de itens por página",
-     *         @OA\Schema(type="integer", minimum=1, maximum=100, example=15)
-     *     ),
-     *     @OA\Parameter(
-     *         name="page",
-     *         in="query",
-     *         required=false,
-     *         description="Número da página",
-     *         @OA\Schema(type="integer", minimum=1, example=1)
-     *     ),
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         required=false,
-     *         description="Termo de busca por nome",
-     *         @OA\Schema(type="string", example="conflito teste")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_by",
-     *         in="query",
-     *         required=false,
-     *         description="Campo para ordenação",
-     *         @OA\Schema(type="string", enum={"nome", "dataInicioConflito", "created_at", "updated_at"}, example="dataInicioConflito")
-     *     ),
-     *     @OA\Parameter(
-     *         name="sort_order",
-     *         in="query",
-     *         required=false,
-     *         description="Direção da ordenação",
-     *         @OA\Schema(type="string", enum={"asc", "desc"}, example="desc")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Lista de conflitos",
-     *         @OA\JsonContent(
-     *              type="array",
-     *              @OA\Items(ref="#/components/schemas/Conflito")
-     *          )
-     *     )
+     * path="/api/conflito",
+     * tags={"Conflitos"},
+     * summary="Lista e filtra dados de conflitos",
+     * description="Retorna uma lista paginada de conflitos com base em múltiplos filtros (localidade, tipo de violência, dados jurídicos, etc). Requer token Bearer.",
+     * security={{"sanctum":{}}},
+     *
+     * @OA\Parameter(name="page",                           in="query", description="Número da página",                                                 required=false, @OA\Schema(type="integer", default=1)),
+     * @OA\Parameter(name="per_page",                       in="query", description="Itens por página",                                                 required=false, @OA\Schema(type="integer", default=15)),
+     * @OA\Parameter(name="search",                         in="query", description="Busca textual (Nome ou Relato do conflito)",                       required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="sort_by",                        in="query", description="Campo para ordenação",                                             required=false, @OA\Schema(type="string", enum={"nome", "dataInicioConflito", "dataAcionamentoMpiConflito", "created_at", "updated_at"}, default="dataInicioConflito")),
+     * @OA\Parameter(name="sort_order",                     in="query", description="Direção da ordenação",                                             required=false, @OA\Schema(type="string", enum={"asc", "desc"}, default="desc")),
+     * @OA\Parameter(name="regiao",                         in="query", description="Região (Norte, Nordeste, etc)",                                    required=false, @OA\Schema(type="string", enum={"Amazônia", "Centro-Oeste", "Nordeste", "Sudeste", "Sul"})),
+     * @OA\Parameter(name="uf",                             in="query", description="Sigla da UF (Ex: AM, PA)",                                         required=false, @OA\Schema(type="string", minLength=2, maxLength=2)),
+     * @OA\Parameter(name="municipio",                      in="query", description="Nome do município",                                                required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="terraIndigena",                  in="query", description="ID ou Nome da Terra Indígena",                                     required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="povo",                           in="query", description="ID do Povo Indígena",                                              required=false, @OA\Schema(type="integer")),
+     * @OA\Parameter(name="estrategiaGeralUtilizadaDemed",  in="query", description="Filtro por Estratégia DEMED",                                      required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="processoSei",                    in="query", description="Número do Processo SEI",                                           required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="categoriaAtor",                  in="query", description="ID da Categoria do Ator",                                          required=false, @OA\Schema(type="integer")),
+     * @OA\Parameter(name="assunto",                        in="query", description="ID do Assunto",                                                    required=false, @OA\Schema(type="integer")),
+     * @OA\Parameter(name="impactoAmbiental",               in="query", description="ID do Tipo de Impacto Ambiental",                                  required=false, @OA\Schema(type="integer")),
+     * @OA\Parameter(name="impactoSaude",                   in="query", description="ID do Tipo de Impacto à Saúde",                                    required=false, @OA\Schema(type="integer")),
+     * @OA\Parameter(name="impactoSocioEconomico",          in="query", description="ID do Tipo de Impacto Socioeconômico",                             required=false, @OA\Schema(type="integer")),
+     * @OA\Parameter(name="tipoViolenciaPatrimonial",       in="query", description="Tipo de Violência Patrimonial",                                    required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="tipoViolenciaPessoaIndigena",    in="query", description="Tipo de Violência contra Pessoa Indígena",                         required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="tipoViolenciaPessoaNaoIndigena", in="query", description="Tipo de Violência contra Pessoa Não Indígena",                     required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="programaProtecao",               in="query", description="ID do Programa de Proteção",                                       required=false, @OA\Schema(type="integer")),
+     * @OA\Parameter(name="classificacaoGravidade",         in="query", description="Classificação da gravidade/urgência",                              required=false, @OA\Schema(type="string", enum={"Emergência", "Pouca Urgência", "Urgência", "Não Urgente"})),
+     * @OA\Parameter(name="boletimOcorrencia",              in="query", description="Número do B.O. ou Documento SEI",                                  required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="inquerito",                      in="query", description="Número do Inquérito ou Documento SEI",                             required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="processoJudicial",               in="query", description="Número do Processo Judicial ou Documento SEI",                     required=false, @OA\Schema(type="string")),
+     * @OA\Parameter(name="assistenciaJuridica",            in="query", description="Tipo de Instituição Jurídica ou Advogado de Instituição Jurídica", required=false, @OA\Schema(type="string")),
+     * @OA\Response(response=200, description="Sucesso",
+     *      @OA\JsonContent(
+     *          @OA\Property(property="success",      type="boolean", example=true),
+     *          @OA\Property(property="message",      type="string", example="Conflitos recuperados com sucesso."),
+     *          @OA\Property(property="data",         type="object", description="Objeto de paginação do Laravel ou Array de dados se houver busca textual",
+     *          @OA\Property(property="current_page", type="integer", example=1),
+     *          @OA\Property(property="data",         type="array", @OA\Items(ref="#/components/schemas/Conflito")),
+     *          @OA\Property(property="total",        type="integer", example=50)
+     *      )
+     *  )
+     * ),
+     * @OA\Response(response=401, description="Não autorizado",
+     *  @OA\JsonContent(
+     *      @OA\Property(property="message", type="string", example="Não autorizado")
+     *  )
+     * ),
+     * @OA\Response(response=422, description="Erro de Validação",
+     *  @OA\JsonContent(
+     *      @OA\Property(property="success", type="boolean", example=false),
+     *      @OA\Property(property="message", type="string", example="Parâmetros inválidos"),
+     *      @OA\Property(property="errors", type="object")
+     *  )
+     * )
      * )
      */
     public function index(Request $request)
     {
+        // 1. Verificação de Autenticação
         if (!Auth::guard('sanctum')->check()) {
-            return response()->json([
-                'message' => 'Não autorizado',
-                'status'  => Response::HTTP_UNAUTHORIZED
-            ], Response::HTTP_UNAUTHORIZED);
+            return response()->json(['message' => 'Não autorizado'], Response::HTTP_UNAUTHORIZED);
         }
         
         try {
-            // Valida parâmetros
+            // 2. Validação (Adicionados novos campos)
             $validator = validator($request->all(), [
                 'per_page'                      => 'nullable|integer|min:1|max:100',
                 'page'                          => 'nullable|integer|min:1',
+                'sort_by'                       => 'nullable|string',
+                'sort_order'                    => 'nullable|string|in:asc,desc',
+                
+                // Filtros de Texto / IDs
                 'search'                        => 'nullable|string|max:255',
                 'estrategiaGeralUtilizadaDemed' => 'nullable|string|max:255',
-                'terraIndigena'                 => 'nullable|integer|max:255',
-                'povo'                          => 'nullable|integer|max:255',
-                'tipoViolenciaIndigena'         => 'nullable|string|max:255',
-                'sort_by'                       => 'nullable|string|in:nome,dataInicioConflito,dataAcionamentoMpiConflito,created_at,updated_at',
-                'sort_order'                    => 'nullable|string|in:asc,desc'
+                'uf'                            => 'nullable|string|size:2',
+                'municipio'                     => 'nullable|string|max:255',
+                'terraIndigena'                 => 'nullable|integer',
+                'povo'                          => 'nullable|integer',
+                'processoSei'                   => 'nullable|string|max:255',
+                
+                // Filtros de Categorias/Tipos (Ids ou Strings)
+                'categoriaAtor'                  => 'nullable|string',
+                'assunto'                        => 'nullable|integer',
+                'impactoAmbiental'               => 'nullable|integer',
+                'impactoSaude'                   => 'nullable|integer',
+                'impactoSocioEconomico'          => 'nullable|integer',
+                'tipoViolenciaPatrimonial'       => 'nullable|string',
+                'tipoViolenciaPessoaIndigena'    => 'nullable|string',
+                'tipoViolenciaPessoaNaoIndigena' => 'nullable|string',
+                'programaProtecao'               => 'nullable|string',
+                
+                // Filtros Jurídicos/Policiais (Geralmente Booleanos ou números)
+                'boletimOcorrencia'             => 'nullable|string',
+                'inquerito'                     => 'nullable|string',
+                'processoJudicial'              => 'nullable|string',
+                'assistenciaJuridica'           => 'nullable|string',
+                'classificacaoGravidade'        => 'nullable|string'
             ]);
             
             if ($validator->fails()) {
@@ -196,18 +247,13 @@ class ConflitoController extends Controller
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
             
-            // Configurações
-            $perPage                       = $request->per_page ?? 15;
-            $sortBy                        = $request->sort_by ?? 'dataInicioConflito';
-            $sortOrder                     = $request->sort_order ?? 'desc';
-            $search                        = $request->search;
-            $page                          = $request->page;
-            $estrategiaGeralUtilizadaDemed = $request->estrategiaGeralUtilizadaDemed;
-            $povo                          = $request->povo;
-            $terraIndigena                 = $request->terraIndigena;
-            $tipoViolenciaIndigena         = $request->tipoViolenciaIndigena;
+            // 3. Definição de Variáveis
+            $perPage   = $request->per_page ?? 15;
+            $sortBy    = $request->sort_by ?? 'dataInicioConflito';
+            $sortOrder = $request->sort_order ?? 'desc';
+            $page      = $request->page ?? 1;
             
-            // Query base
+            // 4. Query Base com Eager Loading
             $query = Conflito::with([
                                     'aldeias',
                                     'assuntos',
@@ -222,6 +268,7 @@ class ConflitoController extends Controller
                                     'povos',
                                     'processosJudiciais',
                                     'programasProtecao',
+                                    'registrosBOouNF',
                                     'terrasIndigenas',
                                     'tiposConflito',
                                     'violenciasPatrimoniais',
@@ -229,76 +276,184 @@ class ConflitoController extends Controller
                                     'violenciasPessoasNaoIndigenas'
                                 ]);
             
-            // Aplica busca se fornecida
-            if (!empty($search)) {
-                $query->where('nome', 'LIKE', "%{$search}%");
-                $query->where('relato', 'LIKE', "%{$search}%");
-            }
+            // =================================================================
+            // 5. Aplicação dos Filtros
+            // =================================================================
             
-            if (!empty($estrategiaGeralUtilizadaDemed)) {
-                $query->where('estrategiaGeralUtilizadaDemed', '=', "{$estrategiaGeralUtilizadaDemed}");
-            }
-            
-            // FILTRO POR POVO - CORRIGIDO (com qualificação de tabela)
-            if (!empty($povo)) {
-                $query->whereHas('povos', function($q) use ($povo) {
-                    // Qualifique a coluna com o nome da tabela (povo)
-                    $q->where('povo.idPovo', '=', $povo);
+            // Busca Geral (Nome OU Relato) - Corrigido para usar grupo lógico (OR)
+            if ($request->filled('search')) {
+                $term = $request->search;
+                $query->where(function($q) use ($term) {
+                    $q->where('nome', 'LIKE', "%{$term}%")
+                    ->orWhere('relato', 'LIKE', "%{$term}%");
                 });
             }
             
-            // FILTRO POR TERRAS INDÍGENAS
-            if (!empty($terraIndigena)) {
-                $query->whereHas('terrasIndigenas', function($q) use ($terraIndigena) {
-                    // Qualifique também para evitar ambiguidade futura
-                    $q->where('terra_indigena.idTerraIndigena', '=', $terraIndigena);
+            // Estratégia DEMED (Coluna direta)
+            if ($request->filled('estrategiaGeralUtilizadaDemed')) {
+                $query->where('estrategiaGeralUtilizadaDemed', $request->estrategiaGeralUtilizadaDemed);
+            }
+            
+            // Classificação / Gravidade (Coluna direta)
+            if ($request->filled('classificacaoGravidade')) {
+                $query->where('classificacaoGravidadeConflitoDemed', $request->classificacaoGravidade)
+                ->orWhere('atualizacaoClassificacaoGravidadeConflito', $request->classificacaoGravidade);
+            }
+            
+            // --- RELACIONAMENTOS ---
+            
+            // Localidade (UF e Município)
+            if ($request->filled('regiao') || $request->filled('uf') || $request->filled('municipio')) {
+                $query->whereHas('localidadesConflito', function($q) use ($request) {
+                    if ($request->filled('regiao')) {
+                        $q->where('regiao', $request->regiao);
+                    }
+                    if ($request->filled('uf')) {
+                        $q->where('uf', $request->uf);
+                    }
+                    if ($request->filled('municipio')) {
+                        $q->where('municipio', $request->municipio);
+                    }
                 });
             }
             
-            // FILTRO POR VIOLÊNCIAS CONTRA PESSOAS INDÍGENAS
-            if (!empty($tipoViolenciaIndigena)) {
-                $query->whereHas('violenciasPessoasIndigenas', function($q) use ($tipoViolenciaIndigena) {
-                    // Qualifique também para evitar ambiguidade futura
-                    $q->where('violencia_pessoa_indigena.tipoViolencia', '=', $tipoViolenciaIndigena);
+            // Terra Indígena (Por Nome)
+            if ($request->filled('terraIndigena')) {
+                $query->whereHas('terrasIndigenas', function($q) use ($request) {
+                    $q->where('terra_indigena.idTerraIndigena', $request->terraIndigena);
                 });
             }
             
-            // Aplica ordenação
+            // Povo (Por ID)
+            if ($request->filled('povo')) {
+                $query->whereHas('povos', function($q) use ($request) {
+                    $q->where('povo.idPovo', $request->povo);
+                });
+            }
+            
+            // Categoria de Atores
+            if ($request->filled('categoriaAtor')) {
+                $query->whereHas('categoriasAtores', function($q) use ($request) {
+                    $q->where('categoria_ator.idCategoriaAtor', $request->categoriaAtor);
+                });
+            }
+            
+            // Assunto
+            if ($request->filled('assunto')) {
+                $query->whereHas('assuntos', function($q) use ($request) {
+                    $q->where('assunto.idAssunto', $request->assunto);
+                });
+            }
+            
+            // Processo SEI (Por número)
+            if ($request->filled('processoSei')) {
+                $query->whereHas('numerosSeiIdentificacaoConflito', function($q) use ($request) {
+                    $q->where('numeroSei', $request->processoSei);
+                });
+            }
+
+            // Tipos de Impacto (Ambiental, Saúde, Socioeconômico)
+            if ($request->filled('impactoAmbiental')) {
+                $query->whereHas('impactosAmbientais', function($q) use ($request) {
+                    $q->where('impacto_ambiental.idImpactoAmbiental', $request->impactoAmbiental);
+                });
+            }
+            if ($request->filled('impactoSaude')) {
+                $query->whereHas('impactosSaude', function($q) use ($request) {
+                    $q->where('impacto_saude.idImpactoSaude', $request->impactoSaude);
+                });
+            }
+            if ($request->filled('impactoSocioEconomico')) {
+                $query->whereHas('impactosSocioEconomicos', function($q) use ($request) {
+                    $q->where('impacto_socio_economico.idImpactoSocioEconomico', $request->impactoSocioEconomico);
+                });
+            }
+            
+            // Tipos de Violência
+            if ($request->filled('violenciaPatrimonial')) {
+                $query->whereHas('violenciasPatrimoniais', function($q) use ($request) {
+                    $q->where('tipoViolencia', $request->tipoViolenciaPatrimonial);
+                });
+            }
+            if ($request->filled('violenciaPessoaIndigena')) {
+                $query->whereHas('violenciasPessoasIndigenas', function($q) use ($request) {
+                    $q->where('tipoViolencia', $request->tipoViolenciaPessoaIndigena);
+                });
+            }
+            if ($request->filled('violenciaPessoaNaoIndigena')) {
+                $query->whereHas('violenciasPessoasNaoIndigenas', function($q) use ($request) {
+                    $q->where('tipoViolencia', $request->tipoViolenciaPessoaNaoIndigena);
+                });
+            }
+            
+            // Programa de Proteção
+            if ($request->filled('programaProtecao')) {
+                $query->whereHas('programasProtecao', function($q) use ($request) {
+                    $q->where('tipoPrograma', $request->programaProtecao);
+                });
+            }
+            
+            // Jurídico / Policial
+            // Nota: Assumindo que existem tabelas/relacionamentos. Se forem campos booleanos simples na tabela Conflito, alterar para $query->where('tem_inquerito', true).
+            
+            if ($request->filled('boletimOcorrencia')) {
+                // Exemplo: Filtrar por número do BO em tabela relacionada ou flag
+                $query->whereHas('registrosBOouNF', function($q) use ($request) {
+                    $q->where('numero', $request->boletimOcorrencia)
+                    ->orWhere('numeroSei', $request->boletimOcorrencia);
+                });
+            }
+            
+            if ($request->filled('inquerito')) {
+                $query->whereHas('inqueritos', function($q) use ($request) {
+                    $q->where('numero', $request->inquerito)
+                    ->orWhere('numeroSei', $request->inquerito);
+                });
+            }
+            
+            if ($request->filled('processoJudicial')) {
+                $query->whereHas('processosJudiciais', function($q) use ($request) {
+                    $q->where('numero', $request->processoJudicial)
+                    ->orWhere('numeroSei', $request->processoJudicial);
+                });
+            }
+            
+            if ($request->filled('assistenciaJuridica')) {
+                // Assumindo campo booleano na tabela conflito
+                $query->where('tipoInstituicaoAssistenciaJuridica', 'LIKE', "%{$request->assistenciaJuridica}%")
+                ->orWhere('advogadoInstituicaoAssistenciaJuridica', 'LIKE', "%{$request->assistenciaJuridica}%");
+            }
+            
+            // 6. Ordenação
             $query->orderBy($sortBy, $sortOrder);
             
-            // Lógica de paginação/busca
-            if (!empty($search)) {
-                // Se há busca, retorna todos os resultados sem paginação
+            // 7. Execução e Retorno
+            // Mantendo sua lógica original: Se tiver busca (search), retorna tudo; senão, pagina.
+            // Nota: Idealmente a busca textual também deveria ser paginada, mas mantive sua regra de negócio.
+            
+            if ($request->filled('search')) {
                 $conflitos = $query->get();
-                
-                return response()->json([
-                    'success' => true,
-                    'data' => ['data' => $conflitos],
-                    'message' => 'Resultados da busca retornados com sucesso.'
-                ]);
+                $dataResponse = ['data' => $conflitos];
             } else {
-                // Se não há busca, usa paginação
-                $currentPage = $page ?? 1; // Se page for nulo, usa 1 como padrão
-                
-                $conflitos = $query->paginate($perPage, ['*'], 'page', $currentPage);
-                
-                return response()->json([
-                    'success' => true,
-                    'data' => $conflitos,
-                    'message' => 'Conflitos paginados recuperados com sucesso.'
-                ]);
+                $conflitos = $query->paginate($perPage, ['*'], 'page', $page);
+                $dataResponse = $conflitos;
             }
             
+            return response()->json([
+                'success' => true,
+                'data'    => $dataResponse,
+                'message' => 'Conflitos recuperados com sucesso.'
+            ]);
+            
         } catch (\Exception $e) {
-            Log::error('Erro em index:', [
+            Log::error('Erro em ConflitoController@index:', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'line'    => $e->getLine()
             ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao recuperar conflitos: ' . $e->getMessage()
+                'message' => 'Erro interno ao filtrar conflitos.'
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

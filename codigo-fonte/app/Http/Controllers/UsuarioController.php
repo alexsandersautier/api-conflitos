@@ -96,7 +96,11 @@ class UsuarioController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $usuario = Usuario::findOrFail($id);
+        $usuario = Usuario::with([
+            'orgao',
+            'perfil'
+        ])->findOrFail($id);
+        
         return response()->json($usuario, Response::HTTP_OK);
     }
 
@@ -111,7 +115,7 @@ class UsuarioController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome", "email", "senha", "idOrgao"},
+     *             required={"nome", "email", "senha", "idOrgao", "idPerfil"},
      *             @OA\Property(property="nome", type="string", example="João Silva"),
      *             @OA\Property(property="email", type="string", format="email", example="joao@example.com"),
      *             @OA\Property(property="senha", type="string", format="password", example="senha123"),
@@ -184,10 +188,9 @@ class UsuarioController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"nome", "email", "senha", "idOrgao", "idPerfil"},
+     *             required={"nome", "email", "idOrgao", "idPerfil"},
      *             @OA\Property(property="nome", type="string", example="João Silva"),
      *             @OA\Property(property="email", type="string", format="email", example="joao@example.com"),
-     *             @OA\Property(property="senha", type="string", format="password", example="senha123"),
      *             @OA\Property(property="idOrgao", type="integer", example=1),
      *             @OA\Property(property="idPerfil", type="integer", example=1)
      *         )
@@ -214,12 +217,13 @@ class UsuarioController extends Controller
         $usuario = Usuario::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'nome' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:usuario',
-            'senha' => 'required|string|min:4',
-            'idOrgao' => 'required|integer|exists:orgao,idOrgao',
-            'idPerfil' => 'required|integer|exists:perfil,idPerfil'
-        ]);
+                'nome' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255',
+                'idOrgao' => 'required|integer|exists:orgao,idOrgao',
+                'idPerfil' => 'required|integer|exists:perfil,idPerfil'
+            ], [
+                'email.required' => 'Email necessário'
+            ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -285,8 +289,8 @@ class UsuarioController extends Controller
                 'texto' => 'required|string|min:2'
             ], [
                 'texto.required' => 'O termo é obrigatório.',
-                'texto.string' => 'O termo deve ser uma string.',
-                'texto.min' => 'O termo deve ter no mínimo :min caracteres.'
+                'texto.string'   => 'O termo deve ser uma string.',
+                'texto.min'      => 'O termo deve ter no mínimo :min caracteres.'
             ]);
 
             $usuarios = Usuario::with([
@@ -373,8 +377,8 @@ class UsuarioController extends Controller
             'nova_senha' => 'required|string|min:5|different:senha_atual',
             'confirmacao_senha' => 'required|string|same:nova_senha'
         ], [
-            'nova_senha.min' => 'A nova senha deve ter no mínimo 5 caracteres',
-            'nova_senha.different' => 'A nova senha deve ser diferente da senha atual.',
+            'nova_senha.min'         => 'A nova senha deve ter no mínimo 5 caracteres',
+            'nova_senha.different'   => 'A nova senha deve ser diferente da senha atual.',
             'confirmacao_senha.same' => 'A confirmação de senha não coincide com a nova senha.'
         ]);
 
