@@ -172,7 +172,7 @@ class AtorController extends Controller
      *     path="/api/ator/pesquisar/buscar-texto",
      *     summary="Pesquisa ator por texto",
      *     description="Retorna uma lista de ator cujos nomes correspondem ao termo de pesquisa",
-     *     tags={"Ators"},
+     *     tags={"Atores"},
      *     security={ {"sanctum": {} } },
      *     @OA\Parameter(
      *         name="texto",
