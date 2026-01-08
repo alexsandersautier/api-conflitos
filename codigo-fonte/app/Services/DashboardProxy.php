@@ -27,6 +27,7 @@ class DashboardProxy
         'conflitos_ano'              => 'dashboard_conflitos_ano',
         'conflitos_uf'               => 'dashboard_conflitos_uf',
         'conflitos_regiao'           => 'dashboard_conflitos_regiao',
+        'conflitos_regiao_ano'       => 'dashboard_conflitos_regiao_ano', // <--- NOVO
         'violencias'                 => 'dashboard_violencias',
         'distribuicao'               => 'dashboard_distribuicao',
         'conflitos_gravidade'        => 'dashboard_conflitos_gravidade',
@@ -48,6 +49,7 @@ class DashboardProxy
                 'conflitos_por_ano'          => $this->getCachedOrFresh('conflitos_ano',              fn () => $this->getConflitosPorAno(), $forceRefresh),
                 'conflitos_por_uf'           => $this->getCachedOrFresh('conflitos_uf',               fn () => $this->getConflitosPorUF(), $forceRefresh),
                 'conflitos_por_regiao'       => $this->getCachedOrFresh('conflitos_regiao',           fn () => $this->getConflitosPorRegiao(), $forceRefresh),
+                'conflitos_regiao_por_ano'   => $this->getCachedOrFresh('conflitos_regiao_ano',       fn () => $this->getConflitosRegiaoPorAno(), $forceRefresh),
                 'conflitos_por_assunto'      => $this->getCachedOrFresh('conflitos_assunto',          fn () => $this->getConflitosPorAssunto(), $forceRefresh),
                 'estatisticas_violencias'    => $this->getCachedOrFresh('violencias',                 fn () => $this->getEstatisticasViolencias(), $forceRefresh),
                 'distribuicao_geografica'    => $this->getCachedOrFresh('distribuicao',               fn () => $this->getDistribuicaoGeografica(), $forceRefresh),
@@ -90,6 +92,7 @@ class DashboardProxy
             'conflitos_por_ano' => $this->getConflitosPorAno(),
             'conflitos_por_uf' => $this->getConflitosPorUF(),
             'conflitos_por_regiao' => $this->getConflitosPorRegiao(),
+            'conflitos_regiao_por_ano' => $this->getConflitosRegiaoPorAno(), // <--- NOVO
             'conflitos_por_assunto' => $this->getConflitosPorAssunto(),
             'estatisticas_violencias' => $this->getEstatisticasViolencias(),
             'distribuicao_geografica' => $this->getDistribuicaoGeografica(),
@@ -161,6 +164,139 @@ class DashboardProxy
         }
 
         return $resultado;
+    }
+    
+    /**
+     * Conflitos agrupados por Região e Ano (Matriz para gráficos)
+     * Retorno ex: [{ano: 2023, Norte: 10, Sul: 5, ...}, {ano: 2024...}]
+     */
+    public function getConflitosRegiaoPorAno(): array
+    {
+        // =========================================================================
+        // 1. Consulta ao Banco (REGIÕES)
+        // Mantém a lógica original para contar conflitos por região/ano
+        // =========================================================================
+        $registros = DB::table('conflito as c')
+        ->join('localidade_conflito as lc', 'c.idConflito', '=', 'lc.idConflito')
+        ->select(
+            DB::raw('YEAR(c.dataInicioConflito) as ano'),
+            'lc.regiao',
+            DB::raw('COUNT(DISTINCT c.idConflito) as total')
+            )
+            ->whereNotNull('c.dataInicioConflito')
+            ->whereNotNull('lc.regiao')
+            ->where('lc.regiao', '!=', '')
+            ->groupBy(DB::raw('YEAR(c.dataInicioConflito)'), 'lc.regiao')
+            ->orderBy('ano', 'asc')
+            ->get();
+            
+            // =========================================================================
+            // 2. Consulta de Totais por Tipo (USANDO A TABELA PIVÔ)
+            // =========================================================================
+            // Aqui fazemos o JOIN com a tabela N:M (conflito_tipo_conflito)
+            // Recuperamos apenas ID do Conflito, Ano e o ID do Tipo
+            $rawTipos = DB::table('conflito as c')
+            ->join('conflito_tipo_conflito as ctc', 'c.idConflito', '=', 'ctc.idConflito')
+            ->select(
+                'c.idConflito',
+                DB::raw('YEAR(c.dataInicioConflito) as ano'),
+                'ctc.idTipoConflito'
+                )
+                ->whereNotNull('c.dataInicioConflito')
+                // Filtramos apenas os tipos que interessam (1 e 2) para otimizar
+            ->whereIn('ctc.idTipoConflito', [1, 2])
+            ->get();
+            
+            // =========================================================================
+            // 3. Processamento Lógico "Ambos" (PHP)
+            // =========================================================================
+            $totaisCalculados = [];
+            
+            // Agrupamos os registros pelo ID do Conflito.
+            // Assim, se o conflito 10 tiver tipo 1 e tipo 2, teremos 2 linhas neste grupo.
+            $conflitosAgrupados = $rawTipos->groupBy('idConflito');
+            
+            foreach ($conflitosAgrupados as $idConflito => $registrosDoConflito) {
+                // O ano é o mesmo para todas as linhas do mesmo conflito
+                $ano = $registrosDoConflito->first()->ano;
+                
+                // Extrai os IDs de tipo que esse conflito possui num array simples (ex: [1, 2] ou apenas [1])
+                $tiposPresentes = $registrosDoConflito->pluck('idTipoConflito')->toArray();
+                
+                // Inicializa o contador do ano se não existir
+                if (!isset($totaisCalculados[$ano])) {
+                    $totaisCalculados[$ano] = [
+                        'disputas_territoriais'           => 0, // Tipo 1
+                        'violencia_pessoas_coletividades' => 0, // Tipo 2
+                        'ambos'                           => 0  // Tipo 1 E 2
+                    ];
+                }
+                
+                // Verifica a presença dos tipos
+                $temTipo1 = in_array(1, $tiposPresentes);
+                $temTipo2 = in_array(2, $tiposPresentes);
+                
+                // Lógica de Classificação Exclusiva para o Relatório
+                if ($temTipo1 && $temTipo2) {
+                    $totaisCalculados[$ano]['ambos']++;
+                } elseif ($temTipo1) {
+                    $totaisCalculados[$ano]['disputas_territoriais']++;
+                } elseif ($temTipo2) {
+                    $totaisCalculados[$ano]['violencia_pessoas_coletividades']++;
+                }
+            }
+            
+            // =========================================================================
+            // 4. Montagem do JSON Final (Merge)
+            // =========================================================================
+            $regioesPadrao = ['Amazônia', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
+            $resultado = [];
+            
+            // Agrupa os dados regionais por ano para facilitar o acesso
+            $gruposRegionais = $registros->groupBy('ano');
+            
+            // Identifica todos os anos únicos presentes em ambas as consultas
+            // Isso previne que um ano que tenha conflito mas não tenha região (ou vice-versa) seja ignorado
+            $todosAnos = $gruposRegionais->keys()
+            ->merge(array_keys($totaisCalculados))
+            ->unique()
+            ->sort();
+            
+            foreach ($todosAnos as $ano) {
+                $anoInt = (int)$ano;
+                $linha = ['ano' => $anoInt];
+                
+                // 4.1 Preenche Regiões (Padrão 0)
+                foreach ($regioesPadrao as $regiao) {
+                    $linha[$regiao] = 0;
+                }
+                
+                // 4.2 Preenche valores reais das regiões
+                if ($gruposRegionais->has($ano)) {
+                    foreach ($gruposRegionais[$ano] as $item) {
+                        if (in_array($item->regiao, $regioesPadrao)) {
+                            $linha[$item->regiao] = (int)$item->total;
+                        }
+                    }
+                }
+                
+                // 4.3 Preenche Totais Calculados
+                if (isset($totaisCalculados[$anoInt])) {
+                    $linha['totais'] = $totaisCalculados[$anoInt];
+                } else {
+                    // Se não houver dados de tipo para este ano, zera tudo
+                    $linha['totais'] = [
+                        'disputas_territoriais'           => 0,
+                        'violencia_pessoas_coletividades' => 0,
+                        'ambos'                           => 0
+                    ];
+                }
+                
+                $resultado[] = $linha;
+            }
+            
+            // Retorna array indexado (lista de objetos JSON)
+            return array_values($resultado);
     }
     
     /**
