@@ -15,4 +15,6 @@ class Assunto extends Model
     protected $fillable = [
         'nome'
     ];
+
+    public $timestamps = false;
 }

@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class ConflitosExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 {
@@ -61,7 +62,7 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
             }
 
             // FILTRO POR POVO - CORRIGIDO (com qualificação de tabela)
-            $povo = $this->filters['povo'];
+            $povo = $this->filters['povo'] ?? null;
             if (!empty($povo)) {
                 $query->whereHas('povos', function($q) use ($povo) {
                     // Qualifique a coluna com o nome da tabela (povo)
@@ -70,7 +71,7 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
             }
             
             // FILTRO POR TERRAS INDÍGENAS
-            $terraIndigena = $this->filters['terraIndigena'];
+            $terraIndigena = $this->filters['terraIndigena'] ?? null;
             
             if (!empty($terraIndigena)) {
                 $query->whereHas('terrasIndigenas', function($q) use ($terraIndigena){
@@ -79,7 +80,7 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
             }
             
             // FILTRO POR VIOLÊNCIAS CONTRA PESSOAS INDÍGENAS
-            $tipoViolenciaIndigena = $this->filters['tipoViolenciaIndigena'];
+            $tipoViolenciaIndigena = $this->filters['tipoViolenciaIndigena'] ?? null;
             if (!empty($tipoViolenciaIndigena)) {
                 $query->whereHas('violenciasPessoasIndigenas', function($q) use ($tipoViolenciaIndigena) {
                     $q->where('violencia_pessoa_indigena.tipoViolencia', '=', $tipoViolenciaIndigena);
@@ -102,7 +103,7 @@ class ConflitosExport implements FromCollection, WithHeadings, WithMapping, With
             }
             $conflitos = $query->get();
             
-            \Log::info('Conflitos da planilha:', ['Conflitos' => $conflitos]);
+            Log::info('Conflitos da planilha:', ['Conflitos' => $conflitos]);
             
             return $conflitos;
         } catch (\Exception $e) {
