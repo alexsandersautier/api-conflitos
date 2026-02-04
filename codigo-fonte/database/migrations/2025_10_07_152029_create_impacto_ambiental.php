@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('impacto_ambiental', function (Blueprint $table) {
-            $table->id('idImpactoAmbiental')->primary();
+            $table->id('idImpactoAmbiental');
             $table->string('nome', 50);
         });
     }

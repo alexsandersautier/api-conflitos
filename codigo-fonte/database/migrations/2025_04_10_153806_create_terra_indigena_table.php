@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('terra_indigena', function (Blueprint $table) {
-            $table->id('idTerraIndigena')->primary();
+            $table->id('idTerraIndigena');
             $table->foreignId('idPovo')->constrained('povo');
             $table->foreignId('idSituacaoFundiaria')->constrained('situacao_fundiaria');
             $table->integer('codigo_ti')->nullable();
@@ -45,7 +45,7 @@ return new class() extends Migration {
         });
 
         Schema::create('situacao_fundiaria', function (Blueprint $table) {
-            $table->id('idSituacaoFundiaria')->primary();
+            $table->id('idSituacaoFundiaria');
             $table->string('nome', 50);
         });
     }

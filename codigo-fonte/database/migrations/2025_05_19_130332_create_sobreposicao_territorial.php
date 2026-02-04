@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         // Schema::create('sobreposicao_territorial', function (Blueprint $table) {
-        // $table->id('idSobreposicaoTerritotial')->primary();
+        // $table->id('idSobreposicaoTerritotial');
         // $table->string('sobreposicao_unidade_conservacao', 200);
         // $table->string('nome', 200);
         // $table->decimal('area', 10, 2);

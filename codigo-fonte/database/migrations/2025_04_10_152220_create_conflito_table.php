@@ -8,7 +8,7 @@ return new class() extends Migration {
     public function up()
     {
         Schema::create('conflito', function (Blueprint $table) {
-            $table->id('idConflito')->primary();
+            $table->id('idConflito');
 
             // Campos principais
             $table->decimal('latitude', 11, 8);
@@ -24,7 +24,6 @@ return new class() extends Migration {
             $table->string('estrategiaGeralUtilizadaDemed')->nullable();
             $table->text('estrategiaColetiva')->nullable();
             $table->text('observacoes')->nullable();
-            $table->text('relato')->nullable();
 
             // Flags como string
             $table->string('flagHasImpactoAmbiental', 3)
@@ -236,12 +235,12 @@ return new class() extends Migration {
         });
 
         Schema::create('tipo_conflito', function (Blueprint $table) {
-            $table->id('idTipoConflito')->primary();
+            $table->id('idTipoConflito');
             $table->string('nome', 100);
         });
 
         Schema::create('assunto', function (Blueprint $table) {
-            $table->id('idAssunto')->primary();
+            $table->id('idAssunto');
             $table->string('nome', 50);
         });
     }

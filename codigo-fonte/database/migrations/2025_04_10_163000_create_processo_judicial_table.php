@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('processo_judicial', function (Blueprint $table) {
-            $table->id('idProcessoJudicial')->primary();
+            $table->id('idProcessoJudicial');
             $table->foreignId('idConflito')->constrained('conflito');
             $table->date('data')->nullable();
             $table->string('numero', 50)->nullable();

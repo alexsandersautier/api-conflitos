@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('povo', function (Blueprint $table) {
-            $table->id('idPovo')->primary();
+            $table->id('idPovo');
             $table->string('nome', 200);
             $table->string('codEtnia', 50);
             $table->string('lingua', 200)->nullable();

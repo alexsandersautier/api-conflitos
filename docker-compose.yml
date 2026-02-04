@@ -1,14 +1,40 @@
+version: '3.8'
+
 services:
- webserver:
+  webserver:
     build: .
     container_name: painelconflitos-api
     restart: unless-stopped
     ports:
-      - "8000:80"
+      - "8080:80"
     volumes:
       - ./codigo-fonte:/var/www/html
       - ./docker/apache2/logs:/var/log/apache2
     environment:
-      - DB_HOST=host.docker.internal
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=panel_conflito
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+    depends_on:
+      - mysql
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  mysql:
+    image: mysql:8.0
+    container_name: painelconflitos-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootsecret
+      MYSQL_DATABASE: panel_conflitos
+      MYSQL_USER: panel_user
+      MYSQL_PASSWORD: secret
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  db_data:

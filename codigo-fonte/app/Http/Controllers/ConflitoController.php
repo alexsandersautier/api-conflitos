@@ -282,7 +282,7 @@ class ConflitoController extends Controller
             
             // Busca Geral (Nome OU Relato) - Corrigido para usar grupo lógico (OR)
             if ($request->filled('search')) {
-                $term = $request->search;
+                $term = trim($request->search);
                 $query->where(function($q) use ($term) {
                     $q->where('nome', 'LIKE', "%{$term}%")
                     ->orWhere('relato', 'LIKE', "%{$term}%");

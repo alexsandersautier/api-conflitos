@@ -9,7 +9,7 @@ return new class() extends Migration {
     public function up()
     {
         Schema::create('usuario', function (Blueprint $table) {
-            $table->id('idUsuario')->primary();
+            $table->id('idUsuario');
             $table->foreignId('idOrgao')->constrained('orgao');
             $table->foreignId('idPerfil')->constrained('perfil');
             $table->string('nome');
@@ -20,12 +20,12 @@ return new class() extends Migration {
         });
 
         Schema::create('orgao', function (Blueprint $table) {
-            $table->id('idOrgao')->primary();
+            $table->id('idOrgao');
             $table->string('nome');
         });
 
         Schema::create('perfil', function (Blueprint $table) {
-            $table->id('idPerfil')->primary();
+            $table->id('idPerfil');
             $table->string('nome');
         });
     }

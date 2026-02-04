@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('registro_bo_nf', function (Blueprint $table) {
-            $table->id('idRegistroBoNf')->primary();
+            $table->id('idRegistroBoNf');
             $table->foreignId('idConflito')->constrained('conflito');
             $table->date('data')->nullable();
             $table->string('numero', 100)->nullable();

@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('violencia_pessoa_nao_indigena', function (Blueprint $table) {
-            $table->id('idViolenciaPessoaNaoIndigena')->primary();
+            $table->id('idViolenciaPessoaNaoIndigena');
             $table->foreignId('idConflito')->constrained('conflito');
             $table->string('tipoViolencia', 100)->nullable();
             $table->string('tipoPessoa', 100)->nullable();

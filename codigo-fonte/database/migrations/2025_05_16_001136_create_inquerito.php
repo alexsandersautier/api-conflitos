@@ -11,7 +11,7 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('inquerito', function (Blueprint $table) {
-            $table->id('idInqueritoPolicial')->primary();
+            $table->id('idInqueritoPolicial');
             $table->foreignId('idConflito')->constrained('conflito');
             $table->date('data')->nullable();
             $table->string('numero', 50)->nullable();

@@ -41,11 +41,11 @@ class HealthCheckController extends Controller
                 'status' => $dbStatus,
                 'error' => $dbError,
                 'connection' => $defaultConnection,
-                'host' => $dbConfig['host'],
-                'port' => $dbConfig['port'],
-                'database' => $dbConfig['database'],
-                'username' => $dbConfig['username'],
-                'driver' => $dbConfig['driver']
+                'host' => data_get($dbConfig, 'host'),
+                'port' => data_get($dbConfig, 'port'),
+                'database' => data_get($dbConfig, 'database'),
+                'username' => data_get($dbConfig, 'username'),
+                'driver' => data_get($dbConfig, 'driver')
             ]
         ]);
     }

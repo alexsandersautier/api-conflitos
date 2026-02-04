@@ -11,12 +11,12 @@ return new class() extends Migration {
     public function up(): void
     {
         Schema::create('ator', function (Blueprint $table) {
-            $table->id('idAtor')->primary();
+            $table->id('idAtor');
             $table->string('nome', 200);
         });
 
         Schema::create('categoria_ator', function (Blueprint $table) {
-            $table->id('idCategoriaAtor')->primary();
+            $table->id('idCategoriaAtor');
             $table->string('nome', 100);
         });
     }

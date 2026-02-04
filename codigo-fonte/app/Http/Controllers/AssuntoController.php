@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Assunto;
@@ -95,8 +96,12 @@ class AssuntoController extends Controller
             'nome' => 'required|string|max:255'
         ]);
 
-        $assunto = Assunto::create($validatedData);
-        return response()->json($assunto, Response::HTTP_CREATED);
+        try {
+            $assunto = Assunto::create($validatedData);
+            return response()->json($assunto, Response::HTTP_CREATED);
+        } catch (\Throwable $e) {
+            return $e;
+        }
     }
 
     /**
@@ -225,7 +230,7 @@ class AssuntoController extends Controller
                     'status'  => Response::HTTP_UNAUTHORIZED
                 ], Response::HTTP_UNAUTHORIZED);
             }
-            
+
             // 2. Validação
             $validated = $request->validate([
                 'texto' => 'required|string|min:2'
@@ -234,26 +239,24 @@ class AssuntoController extends Controller
                 'texto.string'   => 'O termo deve ser uma string.',
                 'texto.min'      => 'O termo deve ter no mínimo :min caracteres.'
             ]);
-            
+
             // 3. Consulta (Sintaxe Corrigida: ::where)
             $assuntos = Assunto::where('nome', 'LIKE', '%' . $validated['texto'] . '%')->get();
-            
+
             // 4. Verificação de Vazio
             if ($assuntos->isEmpty()) {
                 return response()->json([
                     'message' => 'Nenhum resultado encontrado'
                 ], Response::HTTP_NOT_FOUND);
             }
-            
+
             // 5. Retorno de Sucesso (Padronizado como JSON)
             return response()->json($assuntos, Response::HTTP_OK);
-            
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Erro de validação',
                 'errors'  => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-            
         } catch (\Exception $e) {
             // Logar o erro real internamente é uma boa prática aqui: Log::error($e);
             return response()->json([
@@ -263,7 +266,7 @@ class AssuntoController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     /**
      *
      * @OA\Delete(
