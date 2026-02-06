@@ -228,10 +228,11 @@ class ConflitoController extends Controller
                 'impactoSaude'                   => 'nullable|integer',
                 'impactoSocioEconomico'          => 'nullable|integer',
                 'violenciaPessoaIndigena'        => 'nullable|string',
-                'violenciaPatrimonial'        => 'nullable|string',
+                'violenciaPatrimonial'           => 'nullable|string',
                 'tipoViolenciaPessoaIndigena'    => 'nullable|string',
                 'violenciaPessoaNaoIndigena'     => 'nullable|string',
                 'programaProtecao'               => 'nullable|string',
+                'aldeia'                         => 'nullable|string',
                 
                 // Filtros Jurídicos/Policiais (Geralmente Booleanos ou números)
                 'boletimOcorrencia'             => 'nullable|string',
@@ -436,6 +437,13 @@ class ConflitoController extends Controller
 
                 $query->whereHas('tiposConflito', function($q) use ($tipoId) {
                     $q->where('tipo_conflito.idTipoConflito', $tipoId);
+                });
+            }
+            
+            if ($request->filled('aldeia')) {
+
+                $query->whereHas('aldeias', function($q) use ($request) {
+                    $q->where('aldeia_conflito.idAldeia', $request->aldeia);
                 });
             }
             
