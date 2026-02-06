@@ -223,6 +223,7 @@ class ConflitoController extends Controller
                 // Filtros de Categorias/Tipos (Ids ou Strings)
                 'categoriaAtor'                  => 'nullable|string',
                 'assunto'                        => 'nullable|integer',
+                'tiposConflito'                  => 'nullable|integer',
                 'impactoAmbiental'               => 'nullable|integer',
                 'impactoSaude'                   => 'nullable|integer',
                 'impactoSocioEconomico'          => 'nullable|integer',
@@ -431,7 +432,7 @@ class ConflitoController extends Controller
 
             if ($request->filled('tiposConflito')) {
                 $query->whereHas('tiposConflito', function($q) use ($request) {
-                    $q->where('idTipoConflito', $request->idTipoConflito);
+                    $q->where('idTipoConflito', $request->tiposConflito);
                 });
             }
             
