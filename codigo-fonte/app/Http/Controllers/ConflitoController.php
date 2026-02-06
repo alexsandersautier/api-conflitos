@@ -227,9 +227,10 @@ class ConflitoController extends Controller
                 'impactoAmbiental'               => 'nullable|integer',
                 'impactoSaude'                   => 'nullable|integer',
                 'impactoSocioEconomico'          => 'nullable|integer',
-                'violenciaPessoaIndigena'       => 'nullable|string',
+                'violenciaPessoaIndigena'        => 'nullable|string',
+                'violenciaPatrimonial'        => 'nullable|string',
                 'tipoViolenciaPessoaIndigena'    => 'nullable|string',
-                'ViolenciaPessoaNaoIndigena' => 'nullable|string',
+                'violenciaPessoaNaoIndigena'     => 'nullable|string',
                 'programaProtecao'               => 'nullable|string',
                 
                 // Filtros Jurídicos/Policiais (Geralmente Booleanos ou números)
@@ -373,7 +374,7 @@ class ConflitoController extends Controller
             // Tipos de Violência
             if ($request->filled('violenciaPatrimonial')) {
                 $query->whereHas('violenciasPatrimoniais', function($q) use ($request) {
-                    $q->where('tipoViolencia', $request->tipoViolenciaPatrimonial);
+                    $q->where('tipoViolencia', $request->violenciaPatrimonial);
                 });
             }
             if ($request->filled('violenciaPessoaIndigena')) {
