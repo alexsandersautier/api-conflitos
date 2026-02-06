@@ -428,6 +428,12 @@ class ConflitoController extends Controller
                 $query->where('tipoInstituicaoAssistenciaJuridica', 'LIKE', "%{$request->assistenciaJuridica}%")
                 ->orWhere('advogadoInstituicaoAssistenciaJuridica', 'LIKE', "%{$request->assistenciaJuridica}%");
             }
+
+            if ($request->filled('tiposConflito')) {
+                $query->whereHas('tiposConflito', function($q) use ($request) {
+                    $q->where('idTipoConflito', $request->idTipoConflito);
+                });
+            }
             
             // 6. Ordenação
             $query->orderBy($sortBy, $sortOrder);
