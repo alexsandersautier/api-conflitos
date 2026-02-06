@@ -435,13 +435,11 @@ class ConflitoController extends Controller
 
                 $query->whereHas('tiposConflito', function($q) use ($tipoId) {
                     $q->where('tipo_conflito.idTipoConflito', $tipoId);
-                })
-                ->with(['tiposConflito' => function($q) use ($tipoId) {
-                    $q->where('tipo_conflito.idTipoConflito', $tipoId);
-                }]);
-            } else {
-                $query->with('tiposConflito');
+                });
             }
+            
+            // Sempre carregar todos os tipos de conflito relacionados
+            $query->with('tiposConflito');
 
             // 6. Ordenação
             $query->orderBy($sortBy, $sortOrder);
