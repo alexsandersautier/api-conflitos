@@ -431,11 +431,18 @@ class ConflitoController extends Controller
             }
 
             if ($request->filled('tipoConflito')) {
-                $query->whereHas('tiposConflito', function($q) use ($request) {
-                    $q->where('conflito_tipo_conflito.idTipoConflito', $request->tipoConflito);
-                });
+                $tipoId = $request->tipoConflito;
+
+                $query->whereHas('tiposConflito', function($q) use ($tipoId) {
+                    $q->where('tipo_conflito.idTipoConflito', $tipoId);
+                })
+                ->with(['tiposConflito' => function($q) use ($tipoId) {
+                    $q->where('tipo_conflito.idTipoConflito', $tipoId);
+                }]);
+            } else {
+                $query->with('tiposConflito');
             }
-            
+
             // 6. Ordenação
             $query->orderBy($sortBy, $sortOrder);
             
@@ -450,11 +457,12 @@ class ConflitoController extends Controller
                 $conflitos = $query->paginate($perPage, ['*'], 'page', $page);
                 $dataResponse = $conflitos;
             }
+
             
             return response()->json([
                 'success' => true,
                 'data'    => $dataResponse,
-                'message' => 'Conflitos recuperados com sucesso.'
+                'message' => 'Conflitos recuperados com sucesso.',
             ]);
             
         } catch (\Exception $e) {
