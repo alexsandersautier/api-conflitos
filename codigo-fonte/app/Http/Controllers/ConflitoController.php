@@ -223,7 +223,7 @@ class ConflitoController extends Controller
                 // Filtros de Categorias/Tipos (Ids ou Strings)
                 'categoriaAtor'                  => 'nullable|string',
                 'assunto'                        => 'nullable|integer',
-                'tiposConflito'                  => 'nullable|integer',
+                'tipoConflito'                   => 'nullable|integer',
                 'impactoAmbiental'               => 'nullable|integer',
                 'impactoSaude'                   => 'nullable|integer',
                 'impactoSocioEconomico'          => 'nullable|integer',
@@ -430,9 +430,9 @@ class ConflitoController extends Controller
                 ->orWhere('advogadoInstituicaoAssistenciaJuridica', 'LIKE', "%{$request->assistenciaJuridica}%");
             }
 
-            if ($request->filled('tiposConflito')) {
+            if ($request->filled('tipoConflito')) {
                 $query->whereHas('tiposConflito', function($q) use ($request) {
-                    $q->where('idTipoConflito', $request->tiposConflito);
+                    $q->where('tipo_conflito.idTipoConflito', $request->tipoConflito);
                 });
             }
             
