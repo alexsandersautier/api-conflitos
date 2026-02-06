@@ -432,7 +432,7 @@ class ConflitoController extends Controller
 
             if ($request->filled('tipoConflito')) {
                 $query->whereHas('tiposConflito', function($q) use ($request) {
-                    $q->where('tipo_conflito.idTipoConflito', $request->tipoConflito);
+                    $q->where('conflito_tipo_conflito.idTipoConflito', $request->tipoConflito);
                 });
             }
             
