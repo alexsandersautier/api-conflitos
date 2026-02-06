@@ -388,9 +388,14 @@ class ConflitoController extends Controller
             
             // Programa de Proteção
             if ($request->filled('programaProtecao')) {
-                $query->whereHas('programasProtecao', function($q) use ($request) {
-                    $q->where('tipoPrograma', $request->programaProtecao);
-                });
+                if ($request->programaProtecao === 'SEM INFORMAÇÃO') {
+                    // Quando vier SEM INFORMAÇÃO, filtrar todos com flagHasMembroProgramaProtecao = 'NÃO'
+                    $query->where('flagHasMembroProgramaProtecao', 'NÃO');
+                } else {
+                    $query->whereHas('programasProtecao', function($q) use ($request) {
+                        $q->where('tipoPrograma', $request->programaProtecao);
+                    });
+                }
             }
             
             // Jurídico / Policial
