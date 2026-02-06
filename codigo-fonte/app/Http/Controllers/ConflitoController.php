@@ -383,7 +383,7 @@ class ConflitoController extends Controller
             }
             if ($request->filled('violenciaPessoaNaoIndigena')) {
                 $query->whereHas('violenciasPessoasNaoIndigenas', function($q) use ($request) {
-                    $q->where('tipoViolencia', trim($request->tipoViolenciaPessoaNaoIndigena));
+                    $q->where('tipoViolencia', trim($request->violenciaPessoaNaoIndigena));
                 });
             }
             
